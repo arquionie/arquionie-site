@@ -4,7 +4,7 @@ export function Marca({ compacta }) {
   return (
     <div className={`flex items-center ${compacta ? 'h-[96px]' : 'h-[150px] sm:h-[186px]'} pt-3`}>
       <img
-        src="/leao.svg"
+        src="/leao.png"
         alt=""
         className={compacta ? 'mx-3.5 h-[76px] w-[76px]' : 'mx-2 h-[96px] w-[96px] sm:ml-[34px] sm:mr-[30px] sm:h-[176px] sm:w-[176px]'}
       />

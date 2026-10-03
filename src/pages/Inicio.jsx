@@ -250,7 +250,7 @@ export default function Inicio() {
       <section className="border-t border-[#262D37] bg-aqi-barra">
         <div className="mx-auto flex max-w-[1200px] flex-col items-start gap-6 px-4 py-16 sm:px-7 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-5">
-            <img src="/leao.svg" alt="" className="h-[72px] w-[72px]" />
+            <img src="/leao.png" alt="" className="h-[72px] w-[72px]" />
             <div>
               <h2 className="text-[26px] font-semibold text-white">Comece agora</h2>
               <p className="text-aqi-muted">Crie a conta, baixe e abra o seu primeiro projeto.</p>

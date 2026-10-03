@@ -14,7 +14,7 @@ function Topo() {
     <header className="border-b border-[#262D37] bg-aqi-pagina">
       <nav className="mx-auto flex max-w-[1100px] flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3.5 sm:px-7" aria-label="Principal">
         <Link to="/" className="mr-auto flex items-center gap-2.5 text-[15px] font-semibold tracking-[2px] text-white no-underline">
-          <img src="/leao.svg" alt="" className="h-[30px] w-[30px]" />
+          <img src="/leao.png" alt="" className="h-[30px] w-[30px]" />
           ARQUIONIE™
         </Link>
         <NavLink to="/" end className={itemMenu}>
