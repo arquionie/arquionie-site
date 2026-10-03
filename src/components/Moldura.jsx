@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import { useSessao } from '@/lib/Sessao';
 import { iniciais, primeiroNome } from '@/lib/conta';
+import { useEhAdministrador } from '@/lib/gestao';
 import { EMAIL_CONTATO } from '@/config';
 
 const itemMenu = ({ isActive }) =>
@@ -8,6 +9,7 @@ const itemMenu = ({ isActive }) =>
 
 function Topo() {
   const { usuario } = useSessao();
+  const admin = useEhAdministrador();
   return (
     <header className="border-b border-[#262D37] bg-aqi-pagina">
       <nav className="mx-auto flex max-w-[1100px] flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3.5 sm:px-7" aria-label="Principal">
@@ -24,6 +26,11 @@ function Topo() {
         <NavLink to="/baixar" className={itemMenu}>
           BAIXAR
         </NavLink>
+        {admin && (
+          <NavLink to="/gestao" className={itemMenu}>
+            GESTÃO
+          </NavLink>
+        )}
         {usuario ? (
           <NavLink to="/conta" className={itemMenu} aria-label="Minha conta">
             <span className="inline-flex items-center gap-2">
