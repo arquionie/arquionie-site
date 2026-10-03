@@ -1,0 +1,23 @@
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Identidade reta do programa: nenhum canto arredondado, exceto o botão do Google (marca dele). */
+@layer base {
+  html { color-scheme: dark; }
+  body { @apply bg-aqi-pagina text-aqi-texto font-sans antialiased; font-size: 17px; line-height: 1.6; }
+  *:focus-visible { outline: 2px solid #E76353; outline-offset: 2px; }
+  ::selection { background: #794B49; color: #fff; }
+  a { @apply underline-offset-2; }
+}
+
+@layer components {
+  .titulo-secao { @apply text-[13px] font-semibold uppercase tracking-[0.12em] text-aqi-coral; }
+  .link { @apply text-aqi-texto underline hover:text-aqi-forte; }
+  .link-apagado { @apply text-aqi-muted underline hover:text-aqi-texto; }
+}
