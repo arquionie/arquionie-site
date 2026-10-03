@@ -34,7 +34,8 @@ Configurações feitas no painel, em ordem:
    `http://localhost:5173/**` e `https://arquionie.com.br/**` (a da Vercel entra quando o projeto existir).
 2. **Authentication › Sign In / Providers › Email** — confirmação do e-mail ligada, senha mínima de 8 caracteres,
    código de 6 dígitos válido por 3600 segundos. **Google** ligado com o cliente Web do projeto Arquionie no Google Cloud.
-3. **Authentication › Emails › Templates** — *Confirm signup* com `supabase/templates/confirmar-cadastro.html` (assunto
+3. **Authentication › Emails › Templates** (só depois do SMTP próprio: sem ele o Supabase não deixa editar os modelos, e o
+   e-mail padrão traz um link em inglês, que o site também aceita) — *Confirm signup* com `supabase/templates/confirmar-cadastro.html` (assunto
    "Seu código do Arquionie™") e *Reset password* com `supabase/templates/recuperar-senha.html` (assunto "Nova senha do
    Arquionie™"). Os modelos trazem o código (`{{ .Token }}`), que o site confirma com `verifyOtp`.
 4. **SQL Editor** — rodar `supabase/migrations/20261003000000_perfis_e_computadores.sql` uma vez (perfis espelhando o
