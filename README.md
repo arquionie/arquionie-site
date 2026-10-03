@@ -41,7 +41,7 @@ Configurações feitas no painel, em ordem:
 4. **SQL Editor** — rodar `supabase/migrations/20261003000000_perfis_e_computadores.sql` uma vez (perfis espelhando o
    cadastro e computadores conectados, com as regras de acesso).
    Depois, `supabase/migrations/20261003010000_contador_de_downloads.sql` (cada clique em BAIXAR e o total público).
-5. **Depois do DNS** — SMTP próprio pelo Resend (`conta@arquionie.com.br`). Até lá, o envio embutido do Supabase só
+5. **Depois do DNS** — SMTP próprio pelo Resend (`suporte@arquionie.com.br`). Até lá, o envio embutido do Supabase só
    manda e-mail para quem é membro da organização no Supabase e poucos por hora: serve para testar com o e-mail do
    Arquionie, não para os colaboradores.
 
