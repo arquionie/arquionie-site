@@ -78,6 +78,9 @@ export default function Confirmar() {
           )}
           <span className="text-aqi-muted">Não chegou? Olhe a caixa de spam.</span>
         </div>
+        <p className="mb-2 text-[12px] text-aqi-muted">
+          O e-mail trouxe um link em vez do código? Clique nele neste mesmo navegador: a conta fica confirmada e você entra.
+        </p>
         <Mensagem erro>{erro}</Mensagem>
         <Mensagem>{aviso}</Mensagem>
       </Cartao>
