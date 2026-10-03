@@ -40,13 +40,16 @@ Configurações feitas no painel, em ordem:
    Arquionie™"). Os modelos trazem o código (`{{ .Token }}`), que o site confirma com `verifyOtp`.
 4. **SQL Editor** — rodar `supabase/migrations/20261003000000_perfis_e_computadores.sql` uma vez (perfis espelhando o
    cadastro e computadores conectados, com as regras de acesso).
+   Depois, `supabase/migrations/20261003010000_contador_de_downloads.sql` (cada clique em BAIXAR e o total público).
 5. **Depois do DNS** — SMTP próprio pelo Resend (`conta@arquionie.com.br`). Até lá, o envio embutido do Supabase só
    manda e-mail para quem é membro da organização no Supabase e poucos por hora: serve para testar com o e-mail do
    Arquionie, não para os colaboradores.
 
 ## Pendente
 
-- Textos da página inicial para ÊDI revisar; imagem renderizada no Arquionie no lugar do leão grande, se ele quiser.
+- Textos da página inicial para ÊDI revisar. As imagens são capturas de amostras do programa (`public/imagens`); faltam
+  imagens com a marca nova de planta, corte, elétrica e IA. As dos carros usam modelos baixados (Sketchfab): para o site
+  público, trocar por amostras só com peças nossas.
 - Termos e privacidade são **rascunho para os testes internos**: o advogado revisa antes da abertura (CNPJ, foro,
   encarregado).
 - O link de download depende do R2 e do manifesto `https://baixar.arquionie.com.br/estavel/versao.json` (com CORS

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useSessao } from '@/lib/Sessao';
 import { cadastroCompleto, primeiroNome } from '@/lib/conta';
 import { dataLegivel, lerManifesto, tamanhoLegivel } from '@/lib/manifesto';
+import { registrarDownload } from '@/lib/downloads';
 
 // BAIXAR pede a conta (substitui a captação do e-mail no download de 10/09/2026). O link sai do manifesto de
 // versões; sem ele, a página diz que a versão está sendo preparada.
@@ -48,7 +49,7 @@ export default function Baixar() {
         </div>
       ) : (
         <div className="bg-aqi-barra p-6">
-          <a href={instalador.url} className="inline-flex items-center gap-3 bg-aqi-campo px-6 py-4 text-[15px] font-bold tracking-wide text-white no-underline hover:bg-aqi-campohover">
+          <a href={instalador.url} onClick={() => registrarDownload(manifesto.versao)} className="inline-flex items-center gap-3 bg-aqi-campo px-6 py-4 text-[15px] font-bold tracking-wide text-white no-underline hover:bg-aqi-campohover">
             ⤓ BAIXAR A VERSÃO {manifesto.versao}
           </a>
           <p className="mt-3 text-[13px] text-aqi-muted">
