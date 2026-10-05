@@ -44,6 +44,21 @@ Configurações feitas no painel, em ordem:
 5. **Depois do DNS** — SMTP próprio pelo Resend (`suporte@arquionie.com.br`). Até lá, o envio embutido do Supabase só
    manda e-mail para quem é membro da organização no Supabase e poucos por hora: serve para testar com o e-mail do
    Arquionie, não para os colaboradores.
+6. **Licenças e conexão pelo navegador** (plano 17 do repositório do plugin, 05/10/2026; o programa e o plugin do Revit):
+   1. **SQL Editor:** rodar `supabase/migrations/20261005010000_licencas_e_conexao_pelo_navegador.sql`. Ela já inclui o
+      que a `20261005000000_registrar_computador.sql` faz, com os computadores separados por produto. Por isso a
+      `20261005000000` **nunca** roda depois dela: recriaria o índice antigo e misturaria o programa com o plugin.
+      Pode rodar duas vezes sem estragar nada.
+   2. **Chave da ficha:** `node supabase/ferramentas/gerar-chave-da-licenca.mjs`.
+      - A chave privada vai para a área de transferência: colar em **Edge Functions › Secrets** com o nome
+        `LICENCA_CHAVE_PRIVADA`.
+      - A pública fica em `supabase/functions/licenca-chave-publica.txt` e vai para o programa e o plugin.
+   3. **Funções `conectar` e `licenca`:** publicar o `index.ts` de cada uma com a verificação de JWT **desligada**,
+      porque quem chama é o programa, sem conta ainda. Pelo painel (Edge Functions › Deploy a new function › Via
+      editor) ou pelo CLI: `npx supabase functions deploy conectar --project-ref sowazotriildoeaxbhkl --no-verify-jwt`,
+      e o mesmo para `licenca`.
+   4. **Teste local**, sem tocar no Supabase de verdade: `npm i --no-save @electric-sql/pglite` e depois
+      `node supabase/testes/funcoes.test.mjs` (roda também o teste do banco).
 
 ## Pendente
 
