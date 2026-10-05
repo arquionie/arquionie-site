@@ -11,6 +11,7 @@ import Recuperar from '@/pages/Recuperar';
 import Completar from '@/pages/Completar';
 import Conta from '@/pages/Conta';
 import Gestao from '@/pages/Gestao';
+import Programa from '@/pages/Programa';
 import { NaoEncontrada, Privacidade, Termos } from '@/pages/Textos';
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
           }
         />
         <Route path="/gestao" element={<Gestao />} />
+        <Route path="/programa/:porta" element={<Programa />} />
         <Route path="/termos" element={<Termos />} />
         <Route path="/privacidade" element={<Privacidade />} />
         <Route path="*" element={<NaoEncontrada />} />
