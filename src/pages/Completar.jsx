@@ -19,6 +19,7 @@ export default function Completar() {
   const [novidades, setNovidades] = useState(false);
   const [erro, setErro] = useState('');
   const [ocupado, setOcupado] = useState(false);
+  const [tentou, setTentou] = useState(false);
 
   useEffect(() => {
     if (usuario && cadastroCompleto(usuario)) navegar(volta, { replace: true });
@@ -31,8 +32,10 @@ export default function Completar() {
 
   async function concluir() {
     setErro('');
-    if (!atuacao) return setErro('Escolha a sua atuação.');
-    if (!termos) return setErro('Para usar a conta, aceite os termos de uso e a política de privacidade.');
+    setTentou(true);
+    if (!atuacao && !termos) return setErro('Escolha a sua atuação na lista e marque a caixa dos termos.');
+    if (!atuacao) return setErro('Escolha a sua atuação: clique na lista ATUAÇÃO.');
+    if (!termos) return setErro('Marque a caixa "Li e aceito" para continuar.');
     setOcupado(true);
     const { error } = await supabase.auth.updateUser({
       data: { nome: dados.nome, atuacao, novidades, aceite_termos_em: new Date().toISOString(), versao_termos: VERSAO_TERMOS },
@@ -49,7 +52,8 @@ export default function Completar() {
         titulo="Falta pouco"
         nota={
           <>
-            Você entrou como <b className="font-semibold text-aqi-texto">{dados.email}</b>. Conte qual é a sua atuação e aceite os termos para usar a conta.
+            Você entrou como <b className="font-semibold text-aqi-texto">{dados.email}</b>. Faltam dois passos: escolha a sua
+            atuação na lista e marque a caixa dos termos.
           </>
         }
         aoEnviar={concluir}
@@ -58,14 +62,14 @@ export default function Completar() {
             <Botao type="button" onClick={() => supabase.auth.signOut().then(() => navegar('/'))}>
               SAIR
             </Botao>
-            <Botao principal type="submit" disabled={ocupado || !termos}>
+            <Botao principal type="submit" disabled={ocupado}>
               {ocupado ? 'SALVANDO…' : 'CONTINUAR'}
             </Botao>
           </>
         }
       >
-        <Lista id="atuacao" rotulo="ATUAÇÃO" valor={atuacao} aoMudar={setAtuacao} opcoes={ATUACOES} />
-        <Marcar id="termos" marcado={termos} aoMudar={setTermos}>
+        <Lista id="atuacao" rotulo="ATUAÇÃO" valor={atuacao} aoMudar={setAtuacao} opcoes={ATUACOES} falta={tentou && !atuacao} />
+        <Marcar id="termos" marcado={termos} aoMudar={setTermos} falta={tentou && !termos}>
           <span>
             Li e aceito os{' '}
             <Link to="/termos" target="_blank" className="text-white underline">

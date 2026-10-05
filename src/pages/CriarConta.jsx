@@ -22,12 +22,15 @@ export default function CriarConta() {
   const [novidades, setNovidades] = useState(false);
   const [erro, setErro] = useState('');
   const [ocupado, setOcupado] = useState(false);
+  const [tentou, setTentou] = useState(false);
 
   async function criar() {
     setErro('');
-    if (!nome.trim() || !email.trim() || !senha || !atuacao) return setErro('Preencha os quatro campos.');
+    setTentou(true);
+    if (!nome.trim() || !email.trim() || !senha) return setErro('Preencha o nome, o e-mail e a senha.');
     if (senha.length < 8) return setErro('A senha precisa ter pelo menos 8 caracteres.');
-    if (!termos) return setErro('Para criar a conta, aceite os termos de uso e a política de privacidade.');
+    if (!atuacao) return setErro('Escolha a sua atuação: clique na lista ATUAÇÃO.');
+    if (!termos) return setErro('Marque a caixa "Li e aceito" para criar a conta.');
     setOcupado(true);
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
@@ -78,7 +81,7 @@ export default function CriarConta() {
             <Botao type="button" onClick={() => navegar(-1)}>
               VOLTAR
             </Botao>
-            <Botao principal type="submit" disabled={ocupado || !termos}>
+            <Botao principal type="submit" disabled={ocupado}>
               {ocupado ? 'CRIANDO…' : 'CRIAR CONTA'}
             </Botao>
           </>
@@ -86,11 +89,11 @@ export default function CriarConta() {
       >
         <BotaoGoogle aoClicar={google} />
         <Ou />
-        <Campo id="nome" rotulo="NOME" valor={nome} aoMudar={setNome} autoComplete="name" autoFocus />
+        <Campo id="nome" rotulo="NOME" valor={nome} aoMudar={setNome} autoComplete="name" autoFocus placeholder="Seu nome" />
         <Campo id="email" rotulo="E-MAIL" tipo="email" valor={email} aoMudar={setEmail} autoComplete="email" />
-        <Campo id="senha" rotulo="SENHA" tipo="password" valor={senha} aoMudar={setSenha} autoComplete="new-password" placeholder="mínimo de 8 caracteres" />
-        <Lista id="atuacao" rotulo="ATUAÇÃO" valor={atuacao} aoMudar={setAtuacao} opcoes={ATUACOES} />
-        <Marcar id="termos" marcado={termos} aoMudar={setTermos}>
+        <Campo id="senha" rotulo="SENHA" tipo="password" valor={senha} aoMudar={setSenha} autoComplete="new-password" placeholder="•••••••• (mínimo de 8)" />
+        <Lista id="atuacao" rotulo="ATUAÇÃO" valor={atuacao} aoMudar={setAtuacao} opcoes={ATUACOES} falta={tentou && !atuacao} />
+        <Marcar id="termos" marcado={termos} aoMudar={setTermos} falta={tentou && !termos}>
           <span>
             Li e aceito os{' '}
             <Link to="/termos" target="_blank" className="text-white underline">

@@ -3,7 +3,10 @@ import { useRef, useState } from 'react';
 // Peças do formulário no desenho do programa (doc 19): rótulo no laranja fechado, valor na metade mais fechada,
 // checkbox com a marca à direita, confirmação no laranja fechado com texto branco, secundário em cinza.
 
-export function Campo({ rotulo, id, tipo = 'text', valor, aoMudar, dica, autoComplete, obrigatorio, autoFocus, ...resto }) {
+// Exemplo esmaecido dentro do campo vazio, para quem chega pela primeira vez ver que ali se digita (teste cego de 05/10/2026).
+const EXEMPLOS = { email: 'exemplo@exemplo.com', password: '••••••••' };
+
+export function Campo({ rotulo, id, tipo = 'text', valor, aoMudar, dica, autoComplete, obrigatorio, autoFocus, placeholder, ...resto }) {
   const [mostrar, setMostrar] = useState(false);
   const senha = tipo === 'password';
   return (
@@ -20,6 +23,7 @@ export function Campo({ rotulo, id, tipo = 'text', valor, aoMudar, dica, autoCom
           autoComplete={autoComplete}
           required={obrigatorio}
           autoFocus={autoFocus}
+          placeholder={placeholder ?? EXEMPLOS[tipo]}
           className="w-0 min-w-0 flex-1 bg-transparent py-2 text-white placeholder:text-[#C9A9A5] focus:outline-none"
           {...resto}
         />
@@ -35,39 +39,54 @@ export function Campo({ rotulo, id, tipo = 'text', valor, aoMudar, dica, autoCom
   );
 }
 
-export function Lista({ rotulo, id, valor, aoMudar, opcoes, obrigatorio }) {
+// A lista mostra a seta e, vazia, "CLIQUE PARA ESCOLHER" (no teste cego, o "ESCOLHA" sozinho não dizia que era para clicar).
+// "falta" acende o contorno quando a pessoa tenta seguir sem escolher.
+export function Lista({ rotulo, id, valor, aoMudar, opcoes, obrigatorio, falta }) {
   return (
-    <div className="mb-1.5 grid min-h-[38px] grid-cols-[112px_minmax(0,1fr)] text-[13px] sm:grid-cols-[150px_minmax(0,1fr)]">
+    <div className={`mb-1.5 grid min-h-[38px] grid-cols-[112px_minmax(0,1fr)] text-[13px] sm:grid-cols-[150px_minmax(0,1fr)] ${falta ? 'ring-2 ring-aqi-coral' : ''}`}>
       <label htmlFor={id} className="flex items-center bg-aqi-campo px-3 font-semibold tracking-wide text-white">
         {rotulo}
       </label>
-      <select
-        id={id}
-        value={valor}
-        onChange={(e) => aoMudar(e.target.value)}
-        required={obrigatorio}
-        className="w-full cursor-pointer bg-aqi-valor px-3 text-white focus:outline-none"
-      >
-        <option value="" disabled>
-          ESCOLHA
-        </option>
-        {opcoes.map((o) => (
-          <option key={o.valor} value={o.valor} className="bg-aqi-valor">
-            {o.rotulo}
+      <div className="relative bg-aqi-valor">
+        <select
+          id={id}
+          value={valor}
+          onChange={(e) => aoMudar(e.target.value)}
+          required={obrigatorio}
+          className={`h-full w-full cursor-pointer appearance-none bg-transparent py-2 pl-3 pr-9 focus:outline-none ${valor ? 'text-white' : 'text-[#E8C9C5]'}`}
+        >
+          <option value="" disabled className="bg-aqi-valor">
+            CLIQUE PARA ESCOLHER
           </option>
-        ))}
-      </select>
+          {opcoes.map((o) => (
+            <option key={o.valor} value={o.valor} className="bg-aqi-valor text-white">
+              {o.rotulo}
+            </option>
+          ))}
+        </select>
+        <span aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[13px] text-white">
+          ▾
+        </span>
+      </div>
     </div>
   );
 }
 
-export function Marcar({ id, marcado, aoMudar, children }) {
+// A caixa tem borda mesmo vazia, para se ver que é de marcar; marcada, fica cheia com o ✓.
+export function Marcar({ id, marcado, aoMudar, falta, children }) {
   return (
-    <label htmlFor={id} className="mb-1.5 grid min-h-[38px] cursor-pointer grid-cols-[1fr_44px] text-[13px]">
+    <label htmlFor={id} className={`mb-1.5 grid min-h-[38px] cursor-pointer grid-cols-[1fr_44px] text-[13px] ${falta ? 'ring-2 ring-aqi-coral' : ''}`}>
       <span className="flex items-center bg-aqi-campo px-3 py-2 text-white">{children}</span>
       <span className="grid place-items-center bg-aqi-valor text-white">
         <input id={id} type="checkbox" checked={marcado} onChange={(e) => aoMudar(e.target.checked)} className="peer sr-only" />
-        <span aria-hidden="true" className="text-[15px]">{marcado ? '✓' : ''}</span>
+        <span
+          aria-hidden="true"
+          className={`grid h-[18px] w-[18px] place-items-center border-2 text-[12px] font-bold leading-none peer-focus-visible:ring-2 peer-focus-visible:ring-white ${
+            marcado ? 'border-white bg-white text-aqi-valor' : 'border-[#E8C9C5]'
+          }`}
+        >
+          {marcado ? '✓' : ''}
+        </span>
       </span>
     </label>
   );
