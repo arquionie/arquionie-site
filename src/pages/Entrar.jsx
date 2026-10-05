@@ -5,7 +5,7 @@ import { BotaoGoogle, Botao, Campo, Mensagem, Ou } from '@/components/Formulario
 import { supabase } from '@/lib/supabase';
 import { mensagemDeErro } from '@/lib/erros';
 import { useSessao } from '@/lib/Sessao';
-import { destinoSeguro } from '@/lib/conta';
+import { cadastroCompleto, destinoSeguro } from '@/lib/conta';
 
 export async function entrarComGoogle(volta) {
   return supabase.auth.signInWithOAuth({
@@ -24,8 +24,10 @@ export default function Entrar() {
   const [erro, setErro] = useState('');
   const [ocupado, setOcupado] = useState(false);
 
+  // Quem já entrou segue para onde ia; quem entrou pelo Google e ainda não completou o cadastro passa antes por ele.
   useEffect(() => {
-    if (usuario) navegar(volta, { replace: true });
+    if (!usuario) return;
+    navegar(cadastroCompleto(usuario) ? volta : `/completar?volta=${encodeURIComponent(volta)}`, { replace: true });
   }, [usuario, volta, navegar]);
 
   async function entrar() {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useSessao } from '@/lib/Sessao';
 import { cadastroCompleto, primeiroNome } from '@/lib/conta';
 import { dataLegivel, lerManifesto, tamanhoLegivel } from '@/lib/manifesto';
@@ -25,7 +25,10 @@ export default function Baixar() {
 
       {carregando ? (
         <p className="text-aqi-muted">Carregando…</p>
-      ) : !usuario || !cadastroCompleto(usuario) ? (
+      ) : usuario && !cadastroCompleto(usuario) ? (
+        // Entrou pelo Google e o Google devolveu direto para cá: falta o cadastro (atuação e termos) antes de baixar.
+        <Navigate to="/completar?volta=%2Fbaixar" replace />
+      ) : !usuario ? (
         <div className="bg-aqi-barra p-6">
           <p className="mb-4">Para baixar, entre na sua conta ou crie uma. É grátis no lançamento e leva um minuto.</p>
           <div className="flex flex-wrap gap-2.5">
@@ -70,7 +73,7 @@ export default function Baixar() {
           a abertura ao público.
         </li>
         <li>Aceite a licença no cartão do instalador e clique em INSTALAR. O Windows pede a permissão de administrador uma vez.</li>
-        <li>Ao abrir o Arquionie™, entre com a mesma conta deste site. As versões novas chegam sozinhas, com o aviso na barra de estado.</li>
+        <li>Pronto: as versões novas chegam sozinhas, com o aviso na barra de estado do Arquionie™.</li>
       </ol>
     </div>
   );
