@@ -67,6 +67,10 @@ Configurações feitas no painel, em ordem:
       `/conectar?codigo=KMTR-4QPX&amostra=limite` (também `aguardando`, `vencida`, `cancelada`, `inexistente`),
       `/conta?amostra=1#licencas` e `/gestao?amostra=1#licencas`. Fora do servidor de desenvolvimento, o `?amostra` não
       faz nada.
+   6. **Teste no ar**, com o site e as funções publicados: `node supabase/testes/no-ar.mjs` faz o papel do plugin e
+      mostra um link. Abrir o link, entrar com a conta e clicar AUTORIZAR. O teste confere a ficha com a chave
+      pública, renova e sai, e o computador de teste some da conta. Rodado em 07/10/2026 com a conta do ÊDI: tudo
+      certo.
 
 ## Pendente
 
