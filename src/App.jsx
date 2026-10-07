@@ -12,6 +12,7 @@ import Completar from '@/pages/Completar';
 import Conta from '@/pages/Conta';
 import Gestao from '@/pages/Gestao';
 import Programa from '@/pages/Programa';
+import Conectar from '@/pages/Conectar';
 import { NaoEncontrada, Privacidade, Termos } from '@/pages/Textos';
 
 export default function App() {
@@ -31,6 +32,14 @@ export default function App() {
           element={
             <RotaDaConta>
               <Conta />
+            </RotaDaConta>
+          }
+        />
+        <Route
+          path="/conectar"
+          element={
+            <RotaDaConta>
+              <Conectar />
             </RotaDaConta>
           }
         />

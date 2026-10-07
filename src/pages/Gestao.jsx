@@ -4,6 +4,7 @@ import { useSessao } from '@/lib/Sessao';
 import { AMOSTRA, lerPainel, planilhaDasContas, useEhAdministrador } from '@/lib/gestao';
 import { numeroLegivel } from '@/lib/downloads';
 import { ATUACOES } from '@/config';
+import GestaoLicencas from '@/components/GestaoLicencas';
 
 // Painel do gestor (ÊDI, 03/10/2026, como o /admin do Palheta Flow): quem se cadastrou, quem baixou e quantas vezes.
 // Todo e-mail aqui foi confirmado pelo código, então são contas de verdade. Os dados vêm de funções do banco que só
@@ -171,6 +172,7 @@ export default function Gestao() {
   const { usuario, carregando } = useSessao();
   const admin = useEhAdministrador();
   const [dados, setDados] = useState(null);
+  const [aba, setAba] = useState(() => (window.location.hash === '#licencas' ? 'licencas' : 'contas'));
 
   const pode = AMOSTRA || admin === true;
   async function atualizar() {
@@ -188,8 +190,34 @@ export default function Gestao() {
   }
 
   const r = dados?.resumo;
+  // Abas sublinhadas (padrão do Arquionie); /gestao#licencas abre direto nas licenças.
+  const trocarAba = (a) => {
+    setAba(a);
+    window.history.replaceState(null, '', a === 'licencas' ? '#licencas' : window.location.pathname + window.location.search);
+  };
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-10 sm:px-7">
+      <div role="tablist" aria-label="Painel do gestor" className="mb-6 flex gap-6 border-b border-aqi-borda text-[12px] font-semibold tracking-[0.08em]">
+        {[
+          ['contas', 'CONTAS E DOWNLOADS'],
+          ['licencas', 'LICENÇAS'],
+        ].map(([id, rotulo]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={aba === id}
+            onClick={() => trocarAba(id)}
+            className={`-mb-px border-b-2 py-2.5 ${aba === id ? 'border-aqi-coral text-aqi-coral' : 'border-transparent text-aqi-muted hover:text-aqi-texto'}`}
+          >
+            {rotulo}
+          </button>
+        ))}
+      </div>
+      {aba === 'licencas' ? (
+        <GestaoLicencas />
+      ) : (
+      <>
       <div className="mb-6 flex flex-wrap items-end gap-3">
         <div className="mr-auto">
           <p className="titulo-secao mb-1">Painel do gestor{AMOSTRA ? ' · dados de exemplo' : ''}</p>
@@ -231,6 +259,8 @@ export default function Gestao() {
           <Contas contas={dados.contas} />
           <UltimosDownloads downloads={dados.downloads} />
         </div>
+      )}
+      </>
       )}
     </div>
   );

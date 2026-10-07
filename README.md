@@ -59,6 +59,14 @@ Configurações feitas no painel, em ordem:
       e o mesmo para `licenca`.
    4. **Teste local**, sem tocar no Supabase de verdade: `npm i --no-save @electric-sql/pglite` e depois
       `node supabase/testes/funcoes.test.mjs` (roda também o teste do banco).
+   5. **Telas** (mockups aprovados pelo ÊDI em 05/10/2026):
+      - `/conectar`, onde a pessoa autoriza o computador;
+      - MINHA CONTA › LICENÇAS, com as licenças compradas e o PASSAR PARA UM COLEGA;
+      - `/gestao` › LICENÇAS (`/gestao#licencas`).
+      Para conferir sem conta, no `npm run dev`, abrir com `?amostra` na URL. Ex.:
+      `/conectar?codigo=KMTR-4QPX&amostra=limite` (também `aguardando`, `vencida`, `cancelada`, `inexistente`),
+      `/conta?amostra=1#licencas` e `/gestao?amostra=1#licencas`. Fora do servidor de desenvolvimento, o `?amostra` não
+      faz nada.
 
 ## Pendente
 
