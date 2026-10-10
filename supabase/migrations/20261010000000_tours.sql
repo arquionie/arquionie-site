@@ -86,7 +86,7 @@ begin
   return jsonb_build_object(
     'limite', coalesce((select limite from public.ajustes_tours where id), 20),
     'tours', (select coalesce(jsonb_agg(jsonb_build_object(
-                'id', t.id, 'codigo', t.codigo, 'nome', t.nome, 'passeio', t.passeio, 'situacao', t.situacao,
+                'id', t.id, 'codigo', t.codigo, 'chave', t.chave, 'nome', t.nome, 'passeio', t.passeio, 'situacao', t.situacao,
                 'paradas', t.paradas, 'tamanho', t.tamanho, 'visitas', t.visitas, 'ultimaVisita', t.ultima_visita,
                 'publicadoEm', t.publicado_em, 'atualizadoEm', t.atualizado_em,
                 'capa', case when t.versao > 0 then format('tours/%s-%s/v%s/capa.jpg', t.codigo, t.pasta, t.versao) end)

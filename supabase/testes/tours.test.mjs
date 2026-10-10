@@ -97,7 +97,7 @@ abrir = await chamar("anon", null, "tour_abrir", { p_codigo: codigo.toLowerCase(
 confere(abrir.situacao === "publicado" && abrir.pasta?.startsWith(`tours/${codigo}-`) && abrir.pasta.endsWith("/v1/"),
   "o link abre sem conta, com a pasta da versão 1: " + JSON.stringify(abrir));
 let meus = await chamar("authenticated", bia, "meus_tours");
-confere(meus.tours.length === 1 && meus.tours[0].visitas === 1 && meus.tours[0].tamanho === 8900 && meus.tours[0].paradas === 8 && meus.limite === 20,
+confere(meus.tours.length === 1 && meus.tours[0].chave === "225/PASSEIO 01" && meus.tours[0].visitas === 1 && meus.tours[0].tamanho === 8900 && meus.tours[0].paradas === 8 && meus.limite === 20,
   "MINHA CONTA › TOURS: 1 tour, 1 visita, 8.900 bytes, 8 paradas: " + JSON.stringify(meus.tours[0]));
 
 // ATUALIZAR: o mesmo passeio sobe a versão 2 no mesmo link, e a 1 sai do R2; enquanto sobe, o link abre a 1.

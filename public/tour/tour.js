@@ -76,15 +76,17 @@
     if (tour.logo) { $("logo").src = base + tour.logo; $("logo").classList.remove("esconder"); }
     total = Object.entries(tour.arquivos || {}).filter(([k]) => k !== "capa.jpg").reduce((s, [, v]) => s + v, 0);
     andamento();
-    const [dados, paginas, fundo, chao, trajeto, plantas] = await Promise.all([
+    // Formato 2: os vértices compartilhados, com os índices de 16 bits em lotes; o 1 levava três vértices por triângulo.
+    const [dados, indices, paginas, fundo, chao, trajeto, plantas] = await Promise.all([
       baixar(base, "modelo.bin"),
+      tour.formato >= 2 ? baixar(base, "indices.bin") : null,
       Promise.all(tour.paginas.map(p => imagem(base, p.imagem))),
       imagem(base, tour.fundo.imagem),
       baixar(base, tour.chao.arquivo).then(b => ChaoDoTour.ler(b, tour.chao)),
       tour.trajeto ? baixar(base, tour.trajeto.arquivo).then(b => new Float32Array(b)) : null,
       Promise.all(tour.plantas.map(p => imagem(base, p.imagem))),
     ]);
-    return { tour, dados: new Uint16Array(dados), paginas, fundo, chao, trajeto, plantas };
+    return { tour, dados: new Uint16Array(dados), indices: indices && new Uint16Array(indices), paginas, fundo, chao, trajeto, plantas };
   }
 
   // ---------------------------------------------------------------- o desenho (WebGL 2)
@@ -153,7 +155,7 @@
   }
 
   // ---------------------------------------------------------------- o tour
-  function iniciar({ tour, dados, paginas, fundo, chao, trajeto, plantas }) {
+  function iniciar({ tour, dados, indices, paginas, fundo, chao, trajeto, plantas }) {
     const modelo = programa(`#version 300 es
       in vec3 pos; in vec2 uv; uniform mat4 vp; uniform vec3 minimo, maximo; out vec2 vuv;
       void main() { vuv = uv; gl_Position = vp * vec4(mix(minimo, maximo, pos), 1.0); }`,
@@ -176,6 +178,7 @@
     const lp = gl.getAttribLocation(modelo, "pos"), lu = gl.getAttribLocation(modelo, "uv");
     gl.enableVertexAttribArray(lp); gl.enableVertexAttribArray(lu);
     gl.vertexAttribPointer(lp, 3, gl.UNSIGNED_SHORT, true, 10, 0); gl.vertexAttribPointer(lu, 2, gl.UNSIGNED_SHORT, true, 10, 6);
+    if (indices) { const ib = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW); }
     const regMin = tour.regiao.slice(0, 3), regMax = tour.regiao.slice(3, 6);
     const vaoCeu = gl.createVertexArray(); gl.bindVertexArray(vaoCeu);
     const tri = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, tri); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
@@ -562,7 +565,17 @@
       gl.enable(gl.DEPTH_TEST);
       gl.useProgram(modelo); gl.bindVertexArray(vaoModelo);
       gl.uniformMatrix4fv(u.vp, false, vp); gl.uniform3fv(u.minimo, regMin); gl.uniform3fv(u.maximo, regMax); gl.uniform1i(u.luz, 0);
-      tour.paginas.forEach((p, i) => { gl.bindTexture(gl.TEXTURE_2D, texturas[i]); gl.drawArrays(gl.TRIANGLES, p.inicio, p.vertices); });
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      tour.paginas.forEach((p, i) => {
+        gl.bindTexture(gl.TEXTURE_2D, texturas[i]);
+        if (!p.lotes) { gl.drawArrays(gl.TRIANGLES, p.inicio, p.vertices); return; }
+        // Cada lote com os vértices dele (o WebGL 2 não tem o vértice-base): o atributo começa no primeiro vértice do lote.
+        for (const l of p.lotes) {
+          gl.vertexAttribPointer(lp, 3, gl.UNSIGNED_SHORT, true, 10, l.vertice * 10);
+          gl.vertexAttribPointer(lu, 2, gl.UNSIGNED_SHORT, true, 10, l.vertice * 10 + 6);
+          gl.drawElements(gl.TRIANGLES, l.indices, gl.UNSIGNED_SHORT, l.indice * 2);
+        }
+      });
       requestAnimationFrame(quadro);
     }
 
