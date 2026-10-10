@@ -190,6 +190,8 @@
     const alturaDoOlho = tour.chao.alturaDoOlho;
     const camera = { olho: paradas[0].olho.slice(), guinada: 0, inclinacao: 0 };
     let estado = "parado", tempo = 0, pararEm = null, olhoNoChao = null, ultimaParada = 0;
+    // O ambiente para onde o mapa levou (no LIVRE, o nome no alto é o dele).
+    let ambienteDoMapa = null;
     // A direção do caminho (ou da câmera) fica guardada: com o movimento do celular, o olhar é ela mais o giro do aparelho.
     const doCaminho = { guinada: 0, inclinacao: 0 };
     function olharPara(d) {
@@ -241,10 +243,13 @@
 
     function atualizarEstado() {
       $("play").textContent = estado === "reproduzindo" ? "❚❚" : "▶";
-      $("estado").textContent = estado === "reproduzindo" ? "REPRODUZINDO" : estado === "livre" ? "LIVRE" : `PARADO NA CÂMERA ${ultimaParada + 1}`;
+      $("estado").textContent = estado === "reproduzindo" ? "REPRODUZINDO" : estado === "livre" ? "LIVRE"
+        : trajeto && !naParada() ? "PAUSADO" : `PARADO NA CÂMERA ${ultimaParada + 1}`;
       $("retomar").classList.toggle("esconder", estado !== "livre" || !trajeto);
       const i = estado === "livre" ? ultimaParada : paradaEm(tempo);
-      $("parada").innerHTML = `${String(i + 1).padStart(2, "0")} · ${paradas[i].nome}<span>${tour.projeto}</span>`;
+      const nome = estado === "livre" && ambienteDoMapa ? ambienteDoMapa : `${String(i + 1).padStart(2, "0")} · ${paradas[i].nome}`;
+      $("parada").innerHTML = `${nome}<span>${tour.projeto}</span>`;
+      if (estado !== "livre") ambienteDoMapa = null;
     }
     const naParada = () => trajeto && Math.abs(tempo - paradas[ultimaParada].t) < .1;
     function chegarNa(i) { peloPreto(() => { irAParada(i); estado = "parado"; pararEm = null; mostrarChegada(i); atualizarEstado(); }); }
@@ -284,6 +289,10 @@
       if (!dx && !dy) return;
       ficarLivre();
       const o = camera.olho, pes = o[2] - alturaDoOlho;
+      // No alto (a câmera do passeio AÉREO, de drone), anda na altura em que está, sem colisão, como no tour do programa; perto do
+      // chão, anda como uma pessoa.
+      const debaixo = chao.chaoEm(o[0], o[1], pes);
+      if (Number.isNaN(debaixo) || o[2] - debaixo > alturaDoOlho + .6) { o[0] += dx; o[1] += dy; olhoNoChao = null; return; }
       const [x, y] = chao.andar(o[0], o[1], o[0] + dx, o[1] + dy, pes, tour.chao.raio);
       o[0] = x; o[1] = y;
       const z = chao.chaoEm(x, y, pes);
@@ -323,7 +332,7 @@
     function moverPino(nome, dx, dy) { comandos[nome].el.querySelector("i").style.transform = `translate(${dx}px, ${dy}px)`; }
     tela.addEventListener("pointerdown", e => {
       const papel = noComando("andar", e.clientX, e.clientY) ? "andar" : noComando("olhar", e.clientX, e.clientY) ? "olhar-comando" : "olhar";
-      ponteiros.set(e.pointerId, { papel, x: e.clientX, y: e.clientY });
+      ponteiros.set(e.pointerId, { papel, x: e.clientX, y: e.clientY, arrasto: 0 });
       tela.setPointerCapture(e.pointerId);
     });
     tela.addEventListener("pointermove", e => {
@@ -331,7 +340,9 @@
       if (!p) return;
       if (p.papel === "olhar") {
         const giro = toque ? .006 : .004, dx = e.clientX - p.x, dy = e.clientY - p.y;
-        if (Math.abs(dx) + Math.abs(dy) > 0) ficarLivre();
+        // Só o arrasto olha: o toque à toa na tela (ou o dedo que treme) não tira do passeio.
+        if ((p.arrasto += Math.abs(dx) + Math.abs(dy)) < 6) return;
+        ficarLivre();
         if (movimento.ligado) movimento.deslocamento -= dx * giro;
         else { camera.guinada -= dx * giro; camera.inclinacao = Math.max(-1.4, Math.min(1.4, camera.inclinacao - dy * giro)); }
         p.x = e.clientX; p.y = e.clientY;
@@ -481,7 +492,7 @@
       peloPreto(() => {
         const z = chao.chaoEm(a.x, a.y, pl.z);
         camera.olho = [a.x, a.y, (Number.isNaN(z) ? pl.z : z) + alturaDoOlho]; olhoNoChao = null;
-        estado = "livre"; atualizarEstado();
+        estado = "livre"; ambienteDoMapa = a.nome; atualizarEstado();
       });
     });
 
