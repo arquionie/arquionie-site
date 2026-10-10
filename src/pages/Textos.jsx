@@ -78,8 +78,13 @@ export function Privacidade() {
         Dos computadores conectados: o nome do computador no Windows, a versão do programa e a data do último acesso. E os
         registros de acesso (data, hora e endereço IP), que a lei manda guardar por seis meses.
       </p>
+      <p>
+        Dos tours que você publica pelo programa: o pacote do tour (o modelo 3D do passeio com a luz das renderizações e a
+        planta do mapa), o nome, o passeio e quantas vezes o link foi aberto, com a data da última vez. De quem abre o link não
+        guardamos nada. O tour fica guardado até você excluir, e quem tiver o link pode vê-lo enquanto ele não estiver pausado.
+      </p>
       <h2>O que não guardamos</h2>
-      <p>Os seus projetos. Eles ficam no seu computador; a conta não recebe os seus arquivos.</p>
+      <p>Os seus projetos. Eles ficam no seu computador; a conta não recebe os seus arquivos, só o tour que você escolher publicar.</p>
       <h2>Para quê</h2>
       <p>
         Para criar e manter a conta, confirmar o e-mail, recuperar a senha, controlar os computadores conectados, mandar

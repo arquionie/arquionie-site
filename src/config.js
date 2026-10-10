@@ -7,6 +7,10 @@ export const SUPABASE_CHAVE_PUBLICAVEL = 'sb_publishable_aSoXh3xrkPi2T-cd0pslWw_
 // Manifesto de versões no R2 (doc 57, §4.4): a mesma fonte do aviso de atualização no programa.
 export const MANIFESTO_URL = 'https://baixar.arquionie.com.br/estavel/versao.json';
 
+// O endereço do site (o link dos tours) e o dos arquivos dos tours (o bucket arquionie-tours do R2, separado do dos downloads).
+export const SITE_URL = 'https://www.arquionie.com.br';
+export const ARQUIVOS_URL = 'https://tours.arquionie.com.br';
+
 export const EMAIL_CONTATO = 'suporte@arquionie.com.br';
 
 // Versão dos termos aceita no cadastro; muda quando o advogado revisar (decisão de 02/10/2026).

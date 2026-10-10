@@ -7,6 +7,7 @@ import { useSessao } from '@/lib/Sessao';
 import { dadosDaConta } from '@/lib/conta';
 import { dataLegivel } from '@/lib/manifesto';
 import { ATUACOES, EMAIL_CONTATO } from '@/config';
+import MeusTours from '@/components/MeusTours';
 import {
   AMOSTRA, AMOSTRA_COMPUTADORES, AMOSTRA_MINHAS_LICENCAS, PLANOS, copiarTexto, dataCurta, nomeProduto, rotuloSituacao, textoConvite,
 } from '@/lib/licencas';
@@ -400,6 +401,7 @@ export default function Conta() {
         {[
           ['#dados', 'MINHA CONTA'],
           ['#licencas', 'LICENÇAS'],
+          ['#tours', 'TOURS'],
           ['#computadores', 'COMPUTADORES'],
           ['#senha', 'SENHA'],
           ['#emails', 'E-MAILS'],
@@ -427,6 +429,9 @@ export default function Conta() {
         <Bloco id="licencas" titulo="Licenças">
           <Licencas nome={d.nome || d.email} />
         </Bloco>
+        <Bloco id="tours" titulo="Tours">
+          <MeusTours />
+        </Bloco>
         <Bloco id="computadores" titulo="Computadores conectados">
           <Computadores />
         </Bloco>
@@ -438,7 +443,7 @@ export default function Conta() {
         </Bloco>
         <Bloco id="privacidade" titulo="Privacidade">
           <p className="mb-2 text-[14px] text-aqi-muted">
-            Os seus projetos ficam no seu computador; a conta guarda só o cadastro e os computadores conectados. Veja a{' '}
+            Os seus projetos ficam no seu computador; a conta guarda o cadastro, os computadores conectados e os tours que você publica. Veja a{' '}
             <a href="/privacidade" className="link">
               política de privacidade
             </a>

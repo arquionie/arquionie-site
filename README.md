@@ -72,6 +72,26 @@ Configurações feitas no painel, em ordem:
       pública, renova e sai, e o computador de teste some da conta. Rodado em 07/10/2026 com a conta do ÊDI: tudo
       certo.
 
+7. **Tours no link** (o tour do passeio no celular do cliente; mockup `docs/mockups/tour-no-link.html` do repositório do
+   programa, aprovado por ÊDI em 10/10/2026). Só com o ÊDI, uma vez, nesta ordem:
+   1. **R2 › Create bucket** `arquionie-tours` (separado do `arquionie-downloads`: a chave da função só alcança os tours). Em
+      **Settings › Public access › Custom Domains**, ligar `tours.arquionie.com.br` (o domínio já está na Cloudflare).
+   2. No mesmo bucket, **Settings › CORS Policy**:
+      `[{"AllowedOrigins":["https://www.arquionie.com.br","https://arquionie.com.br"],"AllowedMethods":["GET","HEAD"],"AllowedHeaders":["*"],"MaxAgeSeconds":86400}]`.
+   3. **R2 › Manage API Tokens › Create API Token**: *Object Read & Write*, só no bucket `arquionie-tours`. Guardar o Access
+      Key ID e o Secret Access Key.
+   4. **Supabase › Edge Functions › Secrets**: `R2_CONTA` (o Account ID da Cloudflare, o mesmo do `ARQUIONIE_R2_CONTA`),
+      `R2_CHAVE` (o Access Key ID) e `R2_SEGREDO` (o Secret Access Key).
+   5. **SQL Editor:** rodar `supabase/migrations/20261010000000_tours.sql` (pode rodar duas vezes).
+   6. **Função `tours`:** publicar com a verificação de JWT **ligada** (quem chama tem conta):
+      `npx supabase functions deploy tours --project-ref sowazotriildoeaxbhkl`.
+   7. **Teste local**, sem tocar no Supabase nem no R2: `node supabase/testes/tours.test.mjs` (confere também a assinatura
+      do R2 pelos exemplos da AWS).
+   8. **Telas:** MINHA CONTA › TOURS (`/conta?amostra=1#tours` no `npm run dev`) e a página do cliente em `/t/CÓDIGO`
+      (`public/tour`, copiada do repositório do programa por `node ferramentas/tour/copiar-para-o-site.mjs`).
+   Durante o lançamento, o tour fica liberado para toda conta (`ajustes_tours.livres_no_lancamento`); o limite é de 20
+   publicados por conta (`ajustes_tours.limite`).
+
 ## Pendente
 
 - Textos da página inicial para ÊDI revisar. As imagens são capturas de amostras do programa (`public/imagens`); faltam
