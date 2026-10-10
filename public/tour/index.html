@@ -51,6 +51,12 @@
   #dica { right: calc(12px + env(safe-area-inset-right)); bottom: calc(130px + env(safe-area-inset-bottom)); padding: 4px 8px; font-size: 10px; color: #cfd5de; background: rgba(17,21,26,.55); }
   body:not(.toque) #dica { left: 50%; right: auto; transform: translateX(-50%); top: 12px; bottom: auto; }
   #preto { inset: 0; background: #000; opacity: 0; transition: opacity .35s; pointer-events: none; }
+  /* Os pontos das outras paradas no chão, como os da Matterport: o toque leva até a foto daquela parada. */
+  #pontos { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  #pontos button { position: absolute; left: 0; top: 0; width: 64px; height: 64px; min-width: 0; padding: 0; border-radius: 50%;
+    background: rgba(255, 255, 255, .16); border: 3px solid rgba(255, 255, 255, .92); box-shadow: 0 0 0 2px rgba(0, 0, 0, .28);
+    pointer-events: auto; transition: background .15s; }
+  #pontos button:hover, #pontos button:active { background: rgba(231, 99, 83, .6); }
   #chegada { left: 50%; top: 42%; transform: translate(-50%, -50%); padding: 12px 22px; text-align: center; transition: opacity .4s; opacity: 0; pointer-events: none; }
   #chegada span { display: block; font-size: 10.5px; color: var(--apagado); letter-spacing: .5px; font-weight: 700; }
   #chegada b { font-size: 22px; letter-spacing: 1px; font-weight: 600; }
@@ -71,6 +77,7 @@
 </head>
 <body>
 <canvas id="tela"></canvas>
+<div id="pontos"></div>
 <div class="sobre esconder" id="parada"></div>
 <div class="sobre esconder" id="mapa"><canvas id="mapinha"></canvas></div>
 <div class="sobre esconder" id="controles">

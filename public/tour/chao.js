@@ -109,12 +109,21 @@ const ChaoDoTour = (() => {
       return comprimento(xAntes) >= comprimento(yAntes) ? xAntes : yAntes;
     }
 
+    /**
+     * Se dá para ir em linha reta de (dx, dy) até (px, py) pelo chão, sem parede nem móvel no meio (os pontos das outras paradas no chão,
+     * como os da Matterport, só aparecem para as que se alcançam assim; 10/10/2026).
+     */
+    function alcanca(dx, dy, px, py, zPes) {
+      const no = noDoLugar(dx, dy, zPes);
+      return no >= 0 && percorrer(no, dx, dy, px, py, 1e-4).inteiro;
+    }
+
     /** A altura do chão no ponto, mais perto da altura preferida; NaN sem chão. */
     function chaoEm(x, y, zp) { const no = noDoLugar(x, y, zp); return no >= 0 ? z[no] : NaN; }
     /** A folga do chão no ponto, mais perto da altura preferida; zero sem chão. */
     function folgaEm(x, y, zp) { const no = noDoLugar(x, y, zp); return no >= 0 ? folga[no] : 0; }
 
-    return { andar, chaoEm, folgaEm };
+    return { andar, alcanca, chaoEm, folgaEm };
   }
 
   return { ler };

@@ -74,7 +74,8 @@
     const ambientes = new Set(tour.paradas.map(p => p.nome)).size;
     $("passeio").textContent = `${ambientes} ${ambientes === 1 ? "ambiente" : "ambientes"}`;
     if (tour.logo) { $("logo").src = base + tour.logo; $("logo").classList.remove("esconder"); }
-    total = Object.entries(tour.arquivos || {}).filter(([k]) => k !== "capa.jpg").reduce((s, [, v]) => s + v, 0);
+    // As fotos das paradas (parada-NN.jpg) não entram na abertura: cada uma vem quando o cliente chega perto dela.
+    total = Object.entries(tour.arquivos || {}).filter(([k]) => k !== "capa.jpg" && !k.startsWith("parada-")).reduce((s, [, v]) => s + v, 0);
     andamento();
     // Formato 2: os vértices compartilhados, com os índices de 16 bits em lotes; o 1 levava três vértices por triângulo.
     const [dados, indices, paginas, fundo, chao, trajeto, plantas] = await Promise.all([
@@ -86,7 +87,7 @@
       tour.trajeto ? baixar(base, tour.trajeto.arquivo).then(b => new Float32Array(b)) : null,
       Promise.all(tour.plantas.map(p => imagem(base, p.imagem))),
     ]);
-    return { tour, dados: new Uint16Array(dados), indices: indices && new Uint16Array(indices), paginas, fundo, chao, trajeto, plantas };
+    return { base, tour, dados: new Uint16Array(dados), indices: indices && new Uint16Array(indices), paginas, fundo, chao, trajeto, plantas };
   }
 
   // ---------------------------------------------------------------- o desenho (WebGL 2)
@@ -155,7 +156,7 @@
   }
 
   // ---------------------------------------------------------------- o tour
-  function iniciar({ tour, dados, indices, paginas, fundo, chao, trajeto, plantas }) {
+  function iniciar({ base, tour, dados, indices, paginas, fundo, chao, trajeto, plantas }) {
     const modelo = programa(`#version 300 es
       in vec3 pos; in vec2 uv; uniform mat4 vp; uniform vec3 minimo, maximo; out vec2 vuv;
       void main() { vuv = uv; gl_Position = vp * vec4(mix(minimo, maximo, pos), 1.0); }`,
@@ -165,12 +166,12 @@
     const ceu = programa(`#version 300 es
       in vec2 p; out vec2 q; void main() { q = p; gl_Position = vec4(p, 0.9999, 1.0); }`,
     `#version 300 es
-      precision highp float; in vec2 q; uniform mat4 inv; uniform sampler2D fundo; uniform float direcao; out vec4 cor;
+      precision highp float; in vec2 q; uniform mat4 inv; uniform sampler2D fundo; uniform float direcao, alfa; out vec4 cor;
       void main() {
         vec4 a = inv * vec4(q, -1.0, 1.0), b = inv * vec4(q, 1.0, 1.0);
         vec3 d = normalize(b.xyz / b.w - a.xyz / a.w);
         float lon = atan(d.y, d.x), lat = asin(clamp(d.z, -1.0, 1.0));
-        cor = vec4(texture(fundo, vec2((direcao - lon) / 6.28318530718 + 0.5, (1.5707963268 - lat) / 3.14159265359)).rgb, 1.0);
+        cor = vec4(texture(fundo, vec2((direcao - lon) / 6.28318530718 + 0.5, (1.5707963268 - lat) / 3.14159265359)).rgb, alfa);
       }`);
     const buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer); gl.bufferData(gl.ARRAY_BUFFER, dados, gl.STATIC_DRAW);
@@ -186,7 +187,8 @@
     const texturas = paginas.map(i => textura(i, false, true));
     const texturaFundo = textura(fundo, true, false);
     const u = { vp: gl.getUniformLocation(modelo, "vp"), minimo: gl.getUniformLocation(modelo, "minimo"), maximo: gl.getUniformLocation(modelo, "maximo"),
-      luz: gl.getUniformLocation(modelo, "luz"), inv: gl.getUniformLocation(ceu, "inv"), direcao: gl.getUniformLocation(ceu, "direcao"), fundo: gl.getUniformLocation(ceu, "fundo") };
+      luz: gl.getUniformLocation(modelo, "luz"), inv: gl.getUniformLocation(ceu, "inv"), direcao: gl.getUniformLocation(ceu, "direcao"), fundo: gl.getUniformLocation(ceu, "fundo"),
+      alfa: gl.getUniformLocation(ceu, "alfa") };
 
     // A câmera e o passeio.
     const paradas = tour.paradas, passo = tour.trajeto ? tour.trajeto.passo : 0, duracao = tour.trajeto ? tour.trajeto.duracao : 0;
@@ -217,6 +219,7 @@
       ultimaParada = i; ancorarMovimento();
       if (trajeto) irAoTempo(paradas[i].t);
       else { camera.olho = paradas[i].olho.slice(); olharPara(paradas[i].direcao); olhoNoChao = null; }
+      encaixar(i);
     }
     const proxima = t => { const i = paradas.findIndex(p => p.t > t + .05); return i < 0 ? null : i; };
     const anteriorA = t => { for (let i = paradas.length - 1; i >= 0; i--) if (paradas[i].t < t - .05) return i; return null; };
@@ -229,6 +232,46 @@
         if (d < d0) { d0 = d; melhor = k / 6 * passo; }
       }
       return melhor;
+    }
+
+    // A foto de cada parada (ÊDI, 10/10/2026, o caminho B, como a Matterport): parado no olho dela, o cliente vê o panorama renderizado
+    // inteiro, por cima do modelo; andando, a foto sai e fica o modelo. Girar o olhar não tira a foto: só sair do lugar. Cada foto vem
+    // quando o cliente chega perto (a da parada de agora e a seguinte).
+    const maxTextura = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+    const fotos = paradas.map(p => p.panorama ? { ...p.panorama, textura: null, pedida: false } : null);
+    function pedirFoto(i) {
+      const f = typeof i === "number" && i >= 0 && i < fotos.length ? fotos[i] : null;
+      if (!f || f.pedida) return;
+      f.pedida = true;
+      fetch(base + f.imagem).then(r => r.ok ? r.blob() : Promise.reject(new Error(String(r.status))))
+        .then(b => createImageBitmap(b, maxTextura < 4096 ? { resizeWidth: 2048, resizeHeight: 1024 } : {}))
+        .then(img => { f.textura = textura(img, true, false); })
+        .catch(() => { f.pedida = false; });
+    }
+    const distancia = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+    // O olho vai ao centro da foto da parada (o caminho e o GERAR podem diferir uns centímetros).
+    function encaixar(i) { if (fotos[i]) camera.olho = fotos[i].centro.slice(); pedirFoto(i); pedirFoto(i + 1); }
+    // A foto do lugar onde o olho está (a 6 cm do centro dela), já baixada; -1, nenhuma.
+    function fotoAqui() {
+      let melhor = -1, d0 = .06;
+      for (let i = 0; i < fotos.length; i++) {
+        const f = fotos[i];
+        if (!f || !f.textura) continue;
+        const d = distancia(camera.olho, f.centro);
+        if (d < d0) { d0 = d; melhor = i; }
+      }
+      return melhor;
+    }
+    const foto = { i: -1, alfa: 0 };
+    // O voo até a foto de outra parada, pelo modelo (o toque num ponto do chão): o olho anda reto, a foto de agora sai e a de lá entra.
+    let voo = null;
+    function voarPara(j) {
+      const f = fotos[j];
+      if (!f) { chegarNa(j); return; }
+      const d = distancia(camera.olho, f.centro);
+      pedirFoto(j); pedirFoto(j + 1);
+      voo = { de: camera.olho.slice(), para: f.centro.slice(), t0: performance.now(), duracao: Math.max(.6, Math.min(2.2, d / 2.4)) * 1000, j };
+      estado = "voando"; pararEm = null; atualizarEstado();
     }
 
     // O preto entre um lugar e outro e a chegada na câmera.
@@ -246,7 +289,7 @@
 
     function atualizarEstado() {
       $("play").textContent = estado === "reproduzindo" ? "❚❚" : "▶";
-      $("estado").textContent = estado === "reproduzindo" ? "REPRODUZINDO" : estado === "livre" ? "LIVRE"
+      $("estado").textContent = estado === "reproduzindo" ? "REPRODUZINDO" : estado === "voando" ? `INDO À CÂMERA ${voo ? voo.j + 1 : ""}` : estado === "livre" ? "LIVRE"
         : trajeto && !naParada() ? "PAUSADO" : `PARADO NA CÂMERA ${ultimaParada + 1}`;
       $("retomar").classList.toggle("esconder", estado !== "livre" || !trajeto);
       const i = estado === "livre" ? ultimaParada : paradaEm(tempo);
@@ -266,12 +309,13 @@
     function pausar() { estado = "parado"; pararEm = null; ultimaParada = paradaEm(tempo); atualizarEstado(); }
     function ficarLivre() {
       if (estado === "livre") return;
+      voo = null;
       if (trajeto) ultimaParada = paradaEm(tempo);
       estado = "livre"; pararEm = null;
       if (movimento.aparelho) { movimento.deslocamento = camera.guinada - movimento.aparelho.guinada; movimento.inclinacao = camera.inclinacao - movimento.aparelho.inclinacao; }
       atualizarEstado();
     }
-    $("play").onclick = () => estado === "reproduzindo" ? pausar() : estado === "livre" ? retomar() : reproduzir();
+    $("play").onclick = () => estado === "reproduzindo" ? pausar() : estado === "livre" ? retomar() : estado === "voando" ? null : reproduzir();
     // ⏭ anda pelo caminho até a câmera seguinte e para nela; do LIVRE (ou sem caminho), vai pelo preto.
     $("proxima").onclick = () => {
       if (!trajeto) { if (ultimaParada + 1 < paradas.length) chegarNa(ultimaParada + 1); return; }
@@ -508,10 +552,25 @@
         let t = tempo + dt;
         if (pararEm !== null && t >= pararEm) {
           t = pararEm; estado = "parado"; pararEm = null; irAoTempo(t);
-          ultimaParada = paradaEm(t); mostrarChegada(ultimaParada); atualizarEstado();
+          ultimaParada = paradaEm(t); encaixar(ultimaParada); mostrarChegada(ultimaParada); atualizarEstado();
         } else if (t >= duracao) { irAoTempo(duracao); pausar(); }
         else { irAoTempo(t); const i = paradaEm(t); if (i !== ultimaParada) { ultimaParada = i; atualizarEstado(); } }
+        // A foto da próxima parada vem antes de chegar nela.
+        pedirFoto(proxima(tempo));
       }
+      if (voo) {
+        const s = Math.min(1, (agora - voo.t0) / voo.duracao), e = s * s * (3 - 2 * s);
+        camera.olho = voo.de.map((v, k) => v + (voo.para[k] - v) * e);
+        if (s >= 1) {
+          const jj = voo.j; voo = null; ultimaParada = jj; olhoNoChao = null; estado = "parado";
+          if (trajeto) tempo = paradas[jj].t;
+          encaixar(jj); mostrarChegada(jj); atualizarEstado();
+        }
+      }
+      // A foto da parada entra quando o olho está no lugar dela e sai quando ele sai.
+      const aqui = fotoAqui();
+      if (aqui >= 0) { if (foto.i !== aqui) { foto.i = aqui; foto.alfa = 0; } foto.alfa = Math.min(1, foto.alfa + dt * 3.5); }
+      else foto.alfa = Math.max(0, foto.alfa - dt * 5);
       if (movimento.ligado && movimento.aparelho) {
         const ap = movimento.aparelho;
         if (estado === "livre") {
@@ -561,6 +620,7 @@
       gl.useProgram(ceu); gl.bindVertexArray(vaoCeu);
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texturaFundo);
       gl.uniformMatrix4fv(u.inv, false, inverter(vp)); gl.uniform1f(u.direcao, tour.fundo.direcao * Math.PI / 180); gl.uniform1i(u.fundo, 0);
+      gl.uniform1f(u.alfa, 1);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       gl.enable(gl.DEPTH_TEST);
       gl.useProgram(modelo); gl.bindVertexArray(vaoModelo);
@@ -576,7 +636,66 @@
           gl.drawElements(gl.TRIANGLES, l.indices, gl.UNSIGNED_SHORT, l.indice * 2);
         }
       });
+      const f0 = foto.i >= 0 ? fotos[foto.i] : null;
+      if (f0 && f0.textura && foto.alfa > 0) {
+        const a = foto.alfa * foto.alfa * (3 - 2 * foto.alfa);
+        gl.disable(gl.DEPTH_TEST); gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.useProgram(ceu); gl.bindVertexArray(vaoCeu);
+        gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, f0.textura);
+        gl.uniformMatrix4fv(u.inv, false, inverter(vp)); gl.uniform1f(u.direcao, f0.direcao * Math.PI / 180); gl.uniform1i(u.fundo, 0);
+        gl.uniform1f(u.alfa, a);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        gl.disable(gl.BLEND); gl.enable(gl.DEPTH_TEST);
+      }
+      desenharPontos(vp, vertical);
       requestAnimationFrame(quadro);
+    }
+
+    // Os pontos das outras paradas no chão (como os da Matterport): um anel em cada uma que se alcança em linha reta pelo chão, a até
+    // 14 m e no mesmo andar; o toque leva até a foto dela pelo modelo.
+    const botoesDosPontos = fotos.map((f, i) => {
+      if (!f) return null;
+      const b = document.createElement("button");
+      b.title = `${String(i + 1).padStart(2, "0")} · ${paradas[i].nome}`;
+      b.style.display = "none";
+      b.addEventListener("pointerdown", e => e.stopPropagation());
+      b.onclick = e => { e.stopPropagation(); voarPara(i); };
+      $("pontos").appendChild(b);
+      return b;
+    });
+    const chaoDosPontos = fotos.map(f => {
+      if (!f) return 0;
+      const z = chao.chaoEm(f.centro[0], f.centro[1], f.centro[2] - alturaDoOlho);
+      return Number.isNaN(z) ? f.centro[2] - alturaDoOlho : z;
+    });
+    function desenharPontos(vp, verticalGraus) {
+      const largura = tela.clientWidth, altura = tela.clientHeight, focal = altura / 2 / Math.tan(verticalGraus * Math.PI / 360);
+      const mostrar = estado !== "reproduzindo" && estado !== "voando";
+      const o = camera.olho, pes = o[2] - alturaDoOlho;
+      for (let i = 0; i < botoesDosPontos.length; i++) {
+        const b = botoesDosPontos[i];
+        if (!b) continue;
+        const c = fotos[i].centro, zc = chaoDosPontos[i];
+        let ver = mostrar && Math.hypot(c[0] - o[0], c[1] - o[1]) > .3 && Math.hypot(c[0] - o[0], c[1] - o[1]) < 14 && Math.abs(zc - pes) < 1.2;
+        if (ver) ver = chao.alcanca(o[0], o[1], c[0], c[1], pes);
+        let w = 0, sx = 0, sy = 0;
+        if (ver) {
+          const p = [c[0], c[1], zc + .02];
+          w = vp[3] * p[0] + vp[7] * p[1] + vp[11] * p[2] + vp[15];
+          if (w < .2) ver = false;
+          else {
+            sx = ((vp[0] * p[0] + vp[4] * p[1] + vp[8] * p[2] + vp[12]) / w * .5 + .5) * largura;
+            sy = (1 - ((vp[1] * p[0] + vp[5] * p[1] + vp[9] * p[2] + vp[13]) / w * .5 + .5)) * altura;
+            if (sx < -60 || sx > largura + 60 || sy < -60 || sy > altura + 60) ver = false;
+          }
+        }
+        if (!ver) { if (b.style.display !== "none") b.style.display = "none"; continue; }
+        const d = Math.max(20, Math.min(110, .5 * focal / w));
+        const achatado = Math.max(.22, Math.min(1, (o[2] - zc) / Math.hypot(c[0] - o[0], c[1] - o[1], o[2] - zc)));
+        b.style.display = "";
+        b.style.width = b.style.height = `${d}px`;
+        b.style.transform = `translate(${sx - d / 2}px, ${sy - d / 2}px) scaleY(${achatado})`;
+      }
     }
 
     // A dica dos comandos, nos primeiros segundos.
