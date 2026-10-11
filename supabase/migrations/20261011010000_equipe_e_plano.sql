@@ -261,7 +261,7 @@ end $$;
 
 -- As respostas dos clientes desde um instante (o programa pergunta ao abrir o projeto e de tempos em tempos): os pedidos de ajuste e
 -- as aprovações das apresentações que quem chama vê (as dele e as dos escritórios em que está na equipe), com o "lido" dele, e os
--- feitos marcados desde então (por qualquer pessoa da equipe).
+-- feitos de cada pedido que já teve algum marcado (por qualquer pessoa da equipe; o programa compara com o que já sabia).
 create or replace function public.apresentacao_respostas(p_desde timestamptz) returns jsonb
 language plpgsql stable security definer set search_path = '' as $$
 declare
@@ -284,7 +284,7 @@ begin
         or p.desfeita_em > coalesce(p_desde, '-infinity'::timestamptz))),
     'feitos', (select coalesce(jsonb_agg(jsonb_build_object('id', d.id, 'chave', a.chave, 'envio', e.numero, 'feitos', d.feitos)), '[]'::jsonb)
       from public.pedidos_de_ajuste d join public.envios_apresentacao e on e.id = d.envio_id join public.apresentacoes a on a.id = e.apresentacao_id
-      where a.usuario_id in (select public.escritorios_de(v_usuario)) and d.feitos_em > coalesce(p_desde, '-infinity'::timestamptz)));
+      where a.usuario_id in (select public.escritorios_de(v_usuario)) and d.feitos_em is not null));
 end $$;
 
 -- O programa marca como lidos os pedidos e as aprovações que já mostrou a esta pessoa (o aviso não volta para ela).
