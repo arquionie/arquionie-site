@@ -11,8 +11,8 @@
 @layer base {
   html { color-scheme: dark; }
   body { @apply bg-aqi-pagina text-aqi-texto font-sans antialiased; font-size: 17px; line-height: 1.6; }
-  *:focus-visible { outline: 2px solid #E76353; outline-offset: 2px; }
-  ::selection { background: #794B49; color: #fff; }
+  *:focus-visible { outline: 2px solid #D47263; outline-offset: 2px; }
+  ::selection { background: #734841; color: #fff; }
   a { @apply underline-offset-2; }
 }
 

@@ -237,6 +237,9 @@ begin
     'apresentacoes', (select coalesce(jsonb_agg(jsonb_build_object(
         'id', a.id, 'codigo', a.codigo, 'chave', a.chave, 'nome', a.nome, 'pausada', a.pausada, 'envio', a.envio,
         'visitas', a.visitas, 'ultimaVisita', a.ultima_visita,
+        -- a pasta dos arquivos e o envio.json publicado (a capa do cartão vem dele), só para quem é do escritório
+        'arquivos', format('apresentacoes/%s-%s/arquivos/', a.codigo, a.pasta),
+        'manifesto', (select v.manifesto from public.envios_apresentacao v where v.apresentacao_id = a.id and v.numero = a.envio),
         'envios', (select coalesce(jsonb_agg(jsonb_build_object(
             'id', e.id, 'numero', e.numero, 'fase', e.fase, 'paraQuem', e.para_quem, 'mudancas', e.mudancas, 'em', e.publicado_em,
             'expiraEm', e.expira_em, 'situacao', case when e.situacao <> 'expirado' and e.expira_em < now() then 'expirado' else e.situacao end,

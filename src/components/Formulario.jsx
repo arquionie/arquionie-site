@@ -96,7 +96,7 @@ export function Botao({ principal, children, className = '', ...resto }) {
   const base =
     'inline-flex h-[40px] min-w-[129px] items-center justify-center px-4 text-[13px] font-bold tracking-wide transition-colors disabled:cursor-not-allowed';
   const estilo = principal
-    ? 'bg-aqi-campo text-white hover:bg-aqi-campohover disabled:bg-aqi-painel disabled:text-aqi-muted'
+    ? 'bg-aqi-botao text-white hover:bg-aqi-botaohover disabled:bg-aqi-painel disabled:text-aqi-muted'
     : 'border border-aqi-borda bg-aqi-barra text-aqi-texto hover:bg-aqi-faixa';
   return (
     <button className={`${base} ${estilo} ${className}`} {...resto}>
@@ -170,7 +170,7 @@ export function Codigo({ valor, aoMudar }) {
               caixas.current[pos]?.focus();
             }
           }}
-          className="h-[52px] w-[42px] sm:h-[56px] sm:w-[46px] bg-aqi-valor text-center text-[26px] font-semibold text-white caret-aqi-coral focus:shadow-[inset_0_-3px_0_#E76353] focus:outline-none"
+          className="h-[52px] w-[42px] sm:h-[56px] sm:w-[46px] bg-aqi-valor text-center text-[26px] font-semibold text-white caret-aqi-coral focus:shadow-[inset_0_-3px_0_#D47263] focus:outline-none"
         />
       ))}
     </div>

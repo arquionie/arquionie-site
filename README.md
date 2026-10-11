@@ -131,6 +131,25 @@ Configurações feitas no painel, em ordem:
    - **Site:** o `git push` dos 7 commits que esperavam (até `4260ec1`). Conferido: `https://www.arquionie.com.br/t/ZZZZZZ`
      diz "Apresentação não encontrada" e a página responde sem `X-Frame-Options` (o sistema Palheta pode abri-la num `iframe`).
 
+9. **A EQUIPE do escritório, as APRESENTAÇÕES com os ajustes e o plano personalizado** (mockups
+   `docs/mockups/equipe-e-apresentacoes` e `docs/mockups/comentarios-do-cliente` e o doc 65, §7, do repositório do programa, aprovados
+   por ÊDI em 11/10/2026). **Ainda não publicado.** Só com o ÊDI, uma vez, nesta ordem:
+   1. **SQL Editor:** rodar `supabase/migrations/20261011010000_equipe_e_plano.sql` (depois da `20261011000000_apresentacoes.sql`; pode
+      rodar duas vezes). Ela troca a `apresentacao_enviar` e a `minhas_apresentacoes` por versões novas: rodar **antes** de publicar a
+      função `apresentacoes` de novo, e nunca rodar a `20261011000000` depois dela.
+   2. **Função:** `npx supabase functions deploy apresentacoes --project-ref sowazotriildoeaxbhkl` (como no item 8, com a verificação de
+      JWT ligada): o ENVIAR passa a aceitar o envio em nome do escritório (`escritorio`) e guarda quem enviou.
+   3. **Teste local:** `node supabase/testes/apresentacoes.test.mjs` (88 conferências, com a equipe, o feito, o lido de cada pessoa e o
+      pedido de plano).
+   4. **Site:** o `git push`. As telas para conferir sem conta, no `npm run dev`: `/conta?amostra=1` (a conta do responsável, com as
+      APRESENTAÇÕES e a EQUIPE), `/conta?amostra=equipe` (a área do escritório de quem é da equipe), `/conta?amostra=convite` (a
+      primeira vez), `/gestao?amostra=1#pedidos` (os PEDIDOS DE PLANO) e `/conectar?codigo=KMTR-4QPX&amostra=limite` (o quarto
+      computador, com o SOLICITAR PLANO PERSONALIZADO).
+   O que muda: MINHA CONTA ganha as abas das áreas (a MINHA ÁREA e cada escritório em que a pessoa está), o convite para confirmar, as
+   APRESENTAÇÕES no lugar dos TOURS (os tours de antes ficam embaixo, até vencer) e a EQUIPE; a `/gestao` ganha os PEDIDOS DE PLANO.
+   O site passa às cores novas do programa (o coral sereno, os campos nos tons dele e a terracota no botão principal; o `#E76353`
+   fica só no leão).
+
 ## Pendente
 
 - Textos da página inicial para ÊDI revisar. As imagens são capturas de amostras do programa (`public/imagens`); faltam

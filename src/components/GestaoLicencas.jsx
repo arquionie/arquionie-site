@@ -72,7 +72,8 @@ function Painel({ titulo, children }) {
   );
 }
 
-export default function GestaoLicencas() {
+// liberarPara (os PEDIDOS DE PLANO, 11/10/2026): { email } abre o LIBERAR com o e-mail de quem pediu.
+export default function GestaoLicencas({ liberarPara = null }) {
   const [dados, setDados] = useState(null);
   const [aviso, setAviso] = useState('');
   const [erro, setErro] = useState('');
@@ -95,6 +96,13 @@ export default function GestaoLicencas() {
   const [qual, setQual] = useState('titular');
   const [novoEmail, setNovoEmail] = useState('');
   const [fim, setFim] = useState('');
+  useEffect(() => {
+    if (!liberarPara?.email) return;
+    setDono(liberarPara.email);
+    setPainel('liberar');
+    setMensagem('');
+    setErro('');
+  }, [liberarPara]);
 
   async function carregar() {
     if (AMOSTRA) return setDados(AMOSTRA_GESTAO_LICENCAS);

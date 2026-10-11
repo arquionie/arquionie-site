@@ -164,6 +164,11 @@ export default function Conectar() {
               </button>
             ))}
           </div>
+          {/* mais gente usando ao mesmo tempo: o plano personalizado (mockup aprovado por ÊDI em 11/10/2026) */}
+          <p className="mt-2 text-[12.5px] text-aqi-muted">
+            Mais gente usando ao mesmo tempo?{' '}
+            <a href="/conta#plano" className="link font-semibold tracking-[0.04em]">SOLICITAR PLANO PERSONALIZADO</a>
+          </p>
           <Mensagem erro>{erro}</Mensagem>
         </Cartao>
       </div>

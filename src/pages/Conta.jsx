@@ -8,8 +8,11 @@ import { dadosDaConta } from '@/lib/conta';
 import { dataLegivel } from '@/lib/manifesto';
 import { ATUACOES, EMAIL_CONTATO } from '@/config';
 import MeusTours from '@/components/MeusTours';
+import Apresentacoes from '@/components/Apresentacoes';
+import Equipe from '@/components/Equipe';
+import { AMOSTRA_CONVITE, AMOSTRA_MINHAS_EQUIPES } from '@/lib/equipe';
 import {
-  AMOSTRA, AMOSTRA_COMPUTADORES, AMOSTRA_MINHAS_LICENCAS, PLANOS, copiarTexto, dataCurta, nomeProduto, rotuloSituacao, textoConvite,
+  AMOSTRA, AMOSTRA_COMPUTADORES, AMOSTRA_MINHAS_LICENCAS, PLANOS, copiarTexto, dataCurta, estadoDaAmostra, nomeProduto, rotuloSituacao, textoConvite,
 } from '@/lib/licencas';
 
 const LIMITE_COMPUTADORES = 3; // decisão de 02/10/2026
@@ -380,11 +383,116 @@ function Novidades({ ligado }) {
   );
 }
 
+// A primeira vez: quem cadastrou a pessoa na equipe, com ENTRAR NA EQUIPE e RECUSAR (mockup aprovado em 11/10/2026).
+function ConviteDaEquipe({ convite, aoResponder }) {
+  const [ocupado, setOcupado] = useState(false);
+  const [erro, setErro] = useState('');
+  async function responder(entrar) {
+    setErro('');
+    setOcupado(true);
+    if (!AMOSTRA) {
+      const { data, error } = await supabase.rpc('equipe_responder', { p_responsavel: convite.responsavel, p_entrar: entrar });
+      if (error || !data.ok) { setOcupado(false); return setErro(error ? mensagemDeErro(error) : data.motivo); }
+    }
+    setOcupado(false);
+    aoResponder(convite, entrar);
+  }
+  return (
+    <div className="mb-6 grid max-w-[760px] gap-2.5 border-l-[3px] border-aqi-coral bg-aqi-valor/40 px-4 py-3.5">
+      <b className="text-[15px] text-white">{convite.escritorio} colocou você na equipe do escritório</b>
+      <span className="text-[13.5px]">
+        Com a equipe, você vê as apresentações do escritório e os ajustes dos clientes, aqui e no programa. Quem cadastrou:{' '}
+        <span className="break-all">{convite.emailDoResponsavel}</span>.
+      </span>
+      <div className="flex flex-wrap gap-2.5">
+        <Botao principal type="button" disabled={ocupado} onClick={() => responder(true)}>ENTRAR NA EQUIPE</Botao>
+        <Botao type="button" disabled={ocupado} onClick={() => responder(false)}>RECUSAR</Botao>
+      </div>
+      <Mensagem erro>{erro}</Mensagem>
+    </div>
+  );
+}
+
+// A EQUIPE na área do escritório (quem é da equipe): quem mais está nela e o SAIR DA EQUIPE. Só o responsável cadastra e tira.
+function EquipeDoEscritorio({ equipe, aoSair }) {
+  const [saindo, setSaindo] = useState(false);
+  const [erro, setErro] = useState('');
+  async function sair() {
+    setErro('');
+    if (!AMOSTRA) {
+      const { data, error } = await supabase.rpc('equipe_sair', { p_responsavel: equipe.responsavel });
+      if (error || !data.ok) return setErro(error ? mensagemDeErro(error) : data.motivo);
+    }
+    aoSair(equipe);
+  }
+  return (
+    <>
+      <p className="mb-3 text-[14px] text-aqi-muted">Quem está na equipe. Só o responsável cadastra e tira pessoas.</p>
+      <table className="w-full max-w-[640px] border-collapse text-[14px]">
+        <tbody>
+          <tr className="border-b border-[#262D37]">
+            <td className="px-3 py-2.5"><b className="text-white">{equipe.nomeDoResponsavel || equipe.escritorio}</b>
+              <small className="block break-all text-[12px] text-aqi-muted">{equipe.emailDoResponsavel}</small></td>
+            <td className="px-3 py-2.5 text-right"><span className="bg-aqi-campo px-1.5 py-0.5 text-[10.5px] font-bold tracking-wide text-white">RESPONSÁVEL</span></td>
+          </tr>
+          {equipe.pessoas.map((p) => (
+            <tr key={p.email} className="border-b border-[#262D37]">
+              <td className="px-3 py-2.5"><b className="text-white">{p.voce ? 'Você' : p.nome || p.email}</b>
+                <small className="block break-all text-[12px] text-aqi-muted">{p.email}</small></td>
+              <td className="px-3 py-2.5 text-right"><span className="border border-aqi-borda px-1.5 py-0.5 text-[10.5px] font-bold tracking-wide text-white">EQUIPE</span></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {saindo ? (
+        <div className="mt-3 flex max-w-[640px] flex-wrap items-center gap-3 bg-aqi-barra px-3.5 py-2.5 text-[13.5px]">
+          <span className="min-w-[240px] flex-1">Sair da equipe de <b className="text-white">{equipe.escritorio}</b>? Você deixa de ver as apresentações e os ajustes dele.</span>
+          <Botao principal type="button" onClick={sair}>SAIR</Botao>
+          <Botao type="button" onClick={() => setSaindo(false)}>VOLTAR</Botao>
+        </div>
+      ) : (
+        <button type="button" onClick={() => setSaindo(true)} className="mt-3 text-[12px] font-semibold tracking-[0.04em] text-[#E8877B] underline underline-offset-[3px]">SAIR DA EQUIPE</button>
+      )}
+      <Mensagem erro>{erro}</Mensagem>
+    </>
+  );
+}
+
 export default function Conta() {
   const { usuario } = useSessao();
   const navegar = useNavigate();
   const d = dadosDaConta(usuario);
   const atuacao = ATUACOES.find((a) => a.valor === d.atuacao)?.rotulo.toLowerCase() ?? d.atuacao;
+  // as equipes em que a pessoa está (as áreas) e os convites para confirmar
+  const [equipes, setEquipes] = useState([]);
+  const [area, setArea] = useState(null);
+  const lerEquipes = async () => {
+    if (AMOSTRA) {
+      const qual = estadoDaAmostra();
+      const lista = qual === 'convite' ? AMOSTRA_CONVITE : qual === 'equipe' ? AMOSTRA_MINHAS_EQUIPES : [];
+      setEquipes(lista);
+      if (qual === 'equipe') setArea(lista[0].responsavel);
+      return;
+    }
+    const { data, error } = await supabase.rpc('minhas_equipes');
+    setEquipes(error ? [] : data ?? []);
+  };
+  useEffect(() => {
+    lerEquipes();
+  }, []);
+  const ativas = equipes.filter((e) => e.situacao === 'ativo');
+  const convites = equipes.filter((e) => e.situacao === 'convidado');
+  const doEscritorio = ativas.find((e) => e.responsavel === area) ?? null;
+  function aoResponder(convite, entrar) {
+    setEquipes((l) => (entrar ? l.map((e) => (e.responsavel === convite.responsavel ? { ...e, situacao: 'ativo', pessoas: e.pessoas.length ? e.pessoas : [{ email: d.email, nome: d.nome, voce: true }] } : e))
+      : l.filter((e) => e.responsavel !== convite.responsavel)));
+    if (entrar) setArea(convite.responsavel);
+    if (!AMOSTRA) lerEquipes();
+  }
+  function aoSair(equipe) {
+    setEquipes((l) => l.filter((e) => e.responsavel !== equipe.responsavel));
+    setArea(null);
+  }
 
   async function sair() {
     await supabase.auth.signOut();
@@ -395,13 +503,59 @@ export default function Conta() {
     `Peço a exclusão da conta ${d.email} e dos meus dados.`,
   )}`;
 
+  // as áreas em abas: a MINHA ÁREA e a de cada escritório em que a pessoa está na equipe (mockup aprovado em 11/10/2026)
+  const abasDasAreas = ativas.length > 0 && (
+    <div role="tablist" aria-label="Áreas da conta" className="mx-auto flex max-w-[1100px] flex-wrap gap-x-2 border-b border-[#262D37] px-4 text-[12px] font-semibold tracking-[0.06em] sm:px-7">
+      {[{ id: null, nome: 'MINHA ÁREA' }, ...ativas.map((e) => ({ id: e.responsavel, nome: e.escritorio.toUpperCase() }))].map((a) => (
+        <button key={a.id ?? 'minha'} type="button" role="tab" aria-selected={area === a.id} onClick={() => setArea(a.id)}
+          className={`-mb-px border-b-2 px-3 py-2.5 ${area === a.id ? 'border-aqi-coral text-aqi-coral' : 'border-transparent text-aqi-muted hover:text-aqi-texto'}`}>
+          {a.nome}
+          {a.id && <small className="ml-1.5 font-normal tracking-normal text-aqi-muted">área do escritório</small>}
+        </button>
+      ))}
+    </div>
+  );
+
+  if (doEscritorio) {
+    return (
+      <>
+        {abasDasAreas}
+        <div className="mx-auto grid max-w-[1100px] gap-8 px-4 py-10 sm:px-7 md:grid-cols-[220px_1fr]">
+          <nav className="text-[12px] font-semibold tracking-[0.08em]" aria-label="Área do escritório">
+            {[['#apresentacoes', 'APRESENTAÇÕES'], ['#equipe', 'EQUIPE']].map(([href, rotulo], i) => (
+              <a key={href} href={href} className={`block border-b border-[#262D37] py-2.5 no-underline ${i === 0 ? 'text-aqi-coral' : 'text-aqi-muted hover:text-aqi-texto'}`}>{rotulo}</a>
+            ))}
+            <p className="pb-1 pt-4 text-[10px] tracking-[0.1em] text-aqi-muted">MINHA ÁREA</p>
+            {[['#dados', 'MINHA CONTA'], ['#licencas', 'LICENÇAS'], ['#computadores', 'COMPUTADORES']].map(([href, rotulo]) => (
+              <button key={href} type="button" onClick={() => { setArea(null); setTimeout(() => { window.location.hash = href; }, 0); }}
+                className="block w-full border-b border-[#262D37] py-2.5 text-left text-aqi-muted hover:text-aqi-texto">{rotulo}</button>
+            ))}
+            <button type="button" onClick={sair} className="mt-4 block py-2 text-aqi-muted hover:text-aqi-texto">SAIR</button>
+          </nav>
+          <div>
+            {convites.map((c) => <ConviteDaEquipe key={c.responsavel} convite={c} aoResponder={aoResponder} />)}
+            <Bloco id="apresentacoes" titulo={`Apresentações · ${doEscritorio.escritorio}`}>
+              <Apresentacoes area={doEscritorio.responsavel} />
+            </Bloco>
+            <Bloco id="equipe" titulo={`Equipe · ${doEscritorio.escritorio}`}>
+              <EquipeDoEscritorio equipe={doEscritorio} aoSair={aoSair} />
+            </Bloco>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
+    <>
+    {abasDasAreas}
     <div className="mx-auto grid max-w-[1100px] gap-8 px-4 py-10 sm:px-7 md:grid-cols-[220px_1fr]">
       <nav className="text-[12px] font-semibold tracking-[0.08em]" aria-label="Minha conta">
         {[
           ['#dados', 'MINHA CONTA'],
           ['#licencas', 'LICENÇAS'],
-          ['#tours', 'TOURS'],
+          ['#apresentacoes', 'APRESENTAÇÕES'],
+          ['#equipe', 'EQUIPE'],
           ['#computadores', 'COMPUTADORES'],
           ['#senha', 'SENHA'],
           ['#emails', 'E-MAILS'],
@@ -417,6 +571,7 @@ export default function Conta() {
       </nav>
 
       <div>
+        {convites.map((c) => <ConviteDaEquipe key={c.responsavel} convite={c} aoResponder={aoResponder} />)}
         <Bloco id="dados" titulo="Minha conta">
           <p className="text-[15px]">
             {d.nome || 'Sem nome'} · {d.email} · {atuacao}
@@ -429,8 +584,13 @@ export default function Conta() {
         <Bloco id="licencas" titulo="Licenças">
           <Licencas nome={d.nome || d.email} />
         </Bloco>
-        <Bloco id="tours" titulo="Tours">
-          <MeusTours />
+        <Bloco id="apresentacoes" titulo="Apresentações">
+          <Apresentacoes />
+          {/* os tours publicados antes do ENVIAR PARA O CLIENTE, até vencerem; sem nenhum, a seção some */}
+          <MeusTours soComTours />
+        </Bloco>
+        <Bloco id="equipe" titulo="Equipe">
+          <Equipe />
         </Bloco>
         <Bloco id="computadores" titulo="Computadores conectados">
           <Computadores />
@@ -455,5 +615,6 @@ export default function Conta() {
         </Bloco>
       </div>
     </div>
+    </>
   );
 }

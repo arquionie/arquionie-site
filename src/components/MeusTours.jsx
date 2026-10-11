@@ -8,7 +8,9 @@ import { AMOSTRA_MEUS_TOURS, capaDoTour, linkCurto, linkDoTour, quandoLegivel, t
 // MINHA CONTA › TOURS (mockup docs/mockups/tour-no-link.html do repositório do programa, aprovado por ÊDI em 10/10/2026): os tours
 // que a pessoa publicou pelo programa, com as visitas, o link com o COPIAR, ABRIR, PAUSAR / REATIVAR e EXCLUIR (com confirmação).
 // Os dados vêm de meus_tours; pausar é tour_pausar; excluir passa pela função tours, que apaga os arquivos do R2.
-export default function MeusTours() {
+// soComTours (MINHA CONTA › APRESENTAÇÕES, desde 11/10/2026): só os tours publicados antes do ENVIAR PARA O CLIENTE, até vencerem;
+// sem nenhum, nada aparece.
+export default function MeusTours({ soComTours = false }) {
   const [dados, setDados] = useState(null);
   const [erro, setErro] = useState('');
   const [copiado, setCopiado] = useState('');
@@ -55,14 +57,24 @@ export default function MeusTours() {
     setExcluindo(null);
   }
 
-  if (dados === null) return <p className="text-aqi-muted">Carregando…</p>;
+  if (dados === null) return soComTours ? null : <p className="text-aqi-muted">Carregando…</p>;
+  if (soComTours && dados.tours.length === 0) return null;
   const total = dados.tours.reduce((s, t) => s + (t.tamanho || 0), 0);
   return (
     <>
-      <p className="mb-3 text-[14px] text-aqi-muted">
-        Os tours que você publicou pelo programa. O link abre no navegador do celular ou do computador, sem conta e sem instalar nada. Para
-        publicar um tour novo ou atualizar um destes, use o GERAR TOUR PARA O CLIENTE no painel do passeio.
-      </p>
+      {soComTours ? (
+        <>
+          <h3 className="mb-1 mt-6 text-[15px] font-semibold text-white">Tours publicados antes</h3>
+          <p className="mb-3 text-[14px] text-aqi-muted">
+            Os tours do passeio publicados antes do ENVIAR PARA O CLIENTE. Continuam no ar até vencer; os novos vão dentro da apresentação.
+          </p>
+        </>
+      ) : (
+        <p className="mb-3 text-[14px] text-aqi-muted">
+          Os tours que você publicou pelo programa. O link abre no navegador do celular ou do computador, sem conta e sem instalar nada. Para
+          publicar um tour novo ou atualizar um destes, use o GERAR TOUR PARA O CLIENTE no painel do passeio.
+        </p>
+      )}
       {dados.tours.length === 0 ? (
         <p className="bg-aqi-barra px-4 py-3 text-[14px] text-aqi-muted">
           Nenhum tour publicado ainda. Ele aparece aqui quando você gerar o primeiro no programa.
