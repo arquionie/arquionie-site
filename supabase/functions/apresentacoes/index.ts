@@ -4,10 +4,13 @@
 // Os arquivos de um envio vão pela impressão digital (SHA-256) do conteúdo, em apresentacoes/CODIGO-PASTA/arquivos/IMPRESSAO.ext:
 // o que já está no R2 (do envio publicado) não sobe de novo, e a página só troca quando o envio.json do envio novo é publicado.
 //
-//   POST { acao: "enviar", chave, nome, fase: "aprovacao" | "final", paraQuem, mudancas, dias, arquivos: [{ arquivo, tamanho }] }
+//   POST { acao: "enviar", chave, nome, fase: "aprovacao" | "final", paraQuem, mudancas, dias, arquivos: [{ arquivo, tamanho }],
+//          escritorio? }
 //     -> { ok: true, id, envio, numero, codigo, link, expiraEm, envios: [{ arquivo, url }], jaNoServidor }
 //        (arquivo = IMPRESSAO.ext; as URLs valem 1 hora, para PUT, com o Content-Type e o Cache-Control que o programa mandar)
-//     -> { ok: false, motivo: "plano" | "limite" | "fase", texto }
+//     -> { ok: false, motivo: "plano" | "limite" | "fase" | "equipe", texto }
+//        (escritorio: a conta do responsável, quando quem envia está na equipe dele e o envio vai em nome do escritório; a
+//        apresentação é do escritório, e quem enviou fica no envio — migração 20261011010000_equipe_e_plano.sql)
 //   POST { acao: "concluir", envio, manifesto, arquivos: [IMPRESSAO.ext], tamanho }
 //     -> { ok: true, codigo, numero, link }   (confere no R2 que tudo subiu, publica e apaga o que mais nenhum envio usa)
 //   POST { acao: "excluir", id }                     -> { ok: true }   (apaga a apresentação e os arquivos dela)
@@ -66,13 +69,19 @@ export async function tratar(req: Request): Promise<Response> {
         vistos.add(arquivo); total += tamanho;
       }
       if (total > LIMITE_TAMANHO) return responder({ erro: "o envio passa de 6 GB" }, 400);
+      // em nome de quem: a própria conta, ou o escritório em cuja equipe quem envia está
+      const escritorio = corpo.escritorio ? String(corpo.escritorio) : null;
+      if (escritorio && !/^[0-9a-f-]{36}$/i.test(escritorio)) return responder({ erro: "escritório inválido" }, 400);
+      const dono = await rpc("escritorio_para_enviar", { p_quem: usuario, p_escritorio: escritorio });
+      if (!dono) return responder({ ok: false, motivo: "equipe", texto: "Você não está na equipe deste escritório. Envie pela sua área ou fale com o responsável." });
       for (let tentativa = 0; tentativa < 8; tentativa++) {
         let d;
         try {
           d = await rpc("apresentacao_enviar", {
-            p_usuario: usuario, p_chave: chave, p_nome: nome, p_fase: String(corpo.fase ?? "aprovacao"),
+            p_usuario: dono, p_chave: chave, p_nome: nome, p_fase: String(corpo.fase ?? "aprovacao"),
             p_para_quem: String(corpo.paraQuem ?? ""), p_mudancas: String(corpo.mudancas ?? ""),
             p_dias: Number(corpo.dias) || null, p_codigo: sorteio(ALFABETO, 6), p_pasta: sorteio(MINUSCULAS, 16),
+            p_enviado_por: usuario,
           });
         } catch (e) {
           if ((e as { code?: string }).code === "23505") continue; // código repetido: sorteia outro

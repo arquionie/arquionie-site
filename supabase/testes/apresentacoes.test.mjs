@@ -223,5 +223,120 @@ confere(r.ok && abrir.situacao === "inexistente", "EXCLUIR: o link deixa de exis
 r = await post(apresentacoes, bia, { acao: "enviar", chave: "x", nome: "x", arquivos: [{ arquivo: "../fora.json", tamanho: 1 }] });
 confere(r.status === 400, "nome de arquivo fora da impressão é recusado");
 
+console.log("\n15. A EQUIPE do escritório: cadastrar, confirmar, ver e enviar em nome dele, o feito, o lido de cada um e tirar (11/10/2026)");
+await chamar("authenticated", bia, "gravar_escritorio", { p: { nome: "PALHETA ARQUITETURA", cor: "#E76353" } });
+let eq = await chamar("authenticated", bia, "minha_equipe");
+confere(eq.escritorio === "PALHETA ARQUITETURA" && eq.pessoas.length === 0 && eq.limiteComputadores === 3, "a EQUIPE começa vazia: " + JSON.stringify(eq));
+r = await chamar("authenticated", bia, "equipe_cadastrar", { p_email: "bia@exemplo.com.br" });
+confere(!r.ok && /responsável/.test(r.motivo), "o próprio e-mail não entra: " + r.motivo);
+r = await chamar("authenticated", bia, "equipe_cadastrar", { p_email: " Maria@Exemplo.com.br " });
+confere(r.ok && r.esperandoConta && r.email === "maria@exemplo.com.br", "CADASTRAR quem ainda não tem conta: ESPERANDO A CONTA: " + JSON.stringify(r));
+eq = await chamar("authenticated", bia, "minha_equipe");
+confere(eq.pessoas.length === 1 && eq.pessoas[0].situacao === "esperando", "na lista, esperando a conta");
+const maria = await novaConta("maria@exemplo.com.br");
+eq = await chamar("authenticated", bia, "minha_equipe");
+confere(eq.pessoas[0].situacao === "convidado", "com a conta criada, convidado (falta ela confirmar)");
+let equipes = await chamar("authenticated", maria, "minhas_equipes");
+confere(equipes.length === 1 && equipes[0].situacao === "convidado" && equipes[0].escritorio === "PALHETA ARQUITETURA" && equipes[0].pessoas.length === 0,
+  "a Maria vê o convite, com o nome do escritório: " + JSON.stringify(equipes));
+r = await tentar("authenticated", maria, "minhas_apresentacoes", { p_area: bia });
+confere(r.erro, "antes de entrar, ela não vê as apresentações do escritório");
+r = await chamar("authenticated", maria, "equipe_responder", { p_responsavel: bia, p_entrar: true });
+equipes = await chamar("authenticated", maria, "minhas_equipes");
+confere(r.ok && equipes[0].situacao === "ativo" && equipes[0].pessoas.some((p) => p.voce), "ENTRAR NA EQUIPE: " + JSON.stringify(equipes[0]));
+
+// em nome do escritório: a apresentação é da Bia, e quem enviou fica no envio
+const envioEq = [arq(31, "json", 100), arq(32, "jpg", 200)];
+r = await post(apresentacoes, outra, { acao: "enviar", escritorio: bia, chave: "902", nome: "902 · CASA", fase: "aprovacao", paraQuem: "A FAMÍLIA", arquivos: envioEq });
+confere(!r.ok && r.motivo === "equipe", "quem não é da equipe não envia em nome do escritório: " + JSON.stringify(r));
+r = await post(apresentacoes, maria, { acao: "enviar", escritorio: bia, chave: "902", nome: "902 · CASA", fase: "aprovacao", paraQuem: "A FAMÍLIA", arquivos: envioEq });
+confere(r.ok && r.numero === 1, "a Maria envia em nome do escritório: " + JSON.stringify({ ok: r.ok, n: r.numero }));
+const codigoEq = r.codigo, idEq = r.id;
+for (const e of r.envios) await subir(e.url, [1, 2]);
+r = await post(apresentacoes, maria, { acao: "concluir", envio: r.envio, manifesto: impressao(31) + ".json", arquivos: envioEq.map((a) => a.arquivo) });
+confere(r.ok, "e conclui: " + JSON.stringify(r));
+let doEscritorio = await chamar("authenticated", maria, "minhas_apresentacoes", { p_area: bia });
+let minhas = await chamar("authenticated", maria, "minhas_apresentacoes", {});
+confere(doEscritorio.apresentacoes.some((a) => a.codigo === codigoEq) && !doEscritorio.responsavel && doEscritorio.escritorio === "PALHETA ARQUITETURA"
+  && minhas.apresentacoes.length === 0 && minhas.responsavel, "a apresentação fica na área do escritório, não na dela");
+const daBia = await chamar("authenticated", bia, "minhas_apresentacoes", {});
+confere(daBia.apresentacoes.find((a) => a.codigo === codigoEq)?.envios[0].enviadoPor === "" , "na da Bia, com quem enviou (a Maria, sem nome no cadastro)");
+
+// o cliente pede ajustes: os dois veem; o lido é de cada um; o feito vale para os dois
+r = await post(cliente, null, { acao: "comentar", codigo: codigoEq, envio: 1, nome: "A FAMÍLIA", comentarios: [
+  { texto: "A janela da sala maior.", lugar: { pavimento: "TÉRREO", ambiente: "SALA", ponto: [1, 3, 0.2] } }, { texto: "O muro mais alto." }] });
+confere(r.ok, "a família pede 2 ajustes");
+const antesDoFeito = new Date().toISOString();
+let deMaria = await chamar("authenticated", maria, "apresentacao_respostas", { p_desde: null });
+const pedidoEq = deMaria.pedidos.find((p) => p.codigo === codigoEq);
+confere(pedidoEq && !pedidoEq.lido && deMaria.pedidos.every((p) => p.codigo === codigoEq), "a Maria lê o pedido do escritório (e só os do escritório)");
+await chamar("authenticated", maria, "apresentacao_marcar_lidas", { p_lista: [pedidoEq.id] });
+deMaria = await chamar("authenticated", maria, "apresentacao_respostas", { p_desde: null });
+let daBiaR = await chamar("authenticated", bia, "apresentacao_respostas", { p_desde: null });
+confere(deMaria.pedidos.find((p) => p.id === pedidoEq.id).lido && !daBiaR.pedidos.find((p) => p.id === pedidoEq.id).lido,
+  "lido para a Maria, ainda não lido para a Bia (o aviso aparece uma vez para cada um)");
+r = await chamar("authenticated", maria, "apresentacao_marcar_feito", { p_pedido: pedidoEq.id, p_numero: 3, p_feito: true });
+confere(!r.ok, "o número fora do pedido é recusado");
+r = await chamar("authenticated", outra, "apresentacao_marcar_feito", { p_pedido: pedidoEq.id, p_numero: 1, p_feito: true });
+confere(!r.ok, "quem não é da equipe não marca");
+r = await chamar("authenticated", maria, "apresentacao_marcar_feito", { p_pedido: pedidoEq.id, p_numero: 1, p_feito: true });
+confere(r.ok && r.feitos["1"].por === "maria@exemplo.com.br", "MARCAR COMO FEITO, com quem marcou: " + JSON.stringify(r));
+daBiaR = await chamar("authenticated", bia, "apresentacao_respostas", { p_desde: antesDoFeito });
+confere(daBiaR.feitos.some((f) => f.id === pedidoEq.id && f.feitos["1"]) && !daBiaR.pedidos.some((p) => p.id === pedidoEq.id),
+  "o programa da Bia recebe o feito da Maria (o pedido de antes não volta)");
+const naPagina = (await chamar("authenticated", bia, "minhas_apresentacoes", {})).apresentacoes.find((a) => a.codigo === codigoEq);
+const coms = naPagina.envios[0].pedidos[0].comentarios;
+confere(coms.length === 2 && coms[0].feito?.por === "maria@exemplo.com.br" && coms[1].feito === null && coms[0].lugar.ambiente === "SALA",
+  "APRESENTAÇÕES mostra os comentários com o feito: " + JSON.stringify(coms));
+await chamar("authenticated", maria, "apresentacao_marcar_feito", { p_pedido: pedidoEq.id, p_numero: 1, p_feito: false });
+const desfeito = (await chamar("authenticated", bia, "minhas_apresentacoes", {})).apresentacoes.find((a) => a.codigo === codigoEq).envios[0].pedidos[0].comentarios[0];
+confere(desfeito.feito === null, "a fazer de novo");
+
+// pausar pode; excluir, só o responsável
+r = await chamar("authenticated", maria, "apresentacao_pausar", { p_id: idEq, p_pausar: true });
+confere(r.ok, "quem é da equipe PAUSA");
+await chamar("authenticated", maria, "apresentacao_pausar", { p_id: idEq, p_pausar: false });
+r = await post(apresentacoes, maria, { acao: "excluir", id: idEq });
+confere(!r.ok, "quem é da equipe não EXCLUI");
+
+// recusar, cadastrar de novo, sair e tirar
+const joao = await novaConta("joao@exemplo.com.br");
+await chamar("authenticated", bia, "equipe_cadastrar", { p_email: "joao@exemplo.com.br" });
+r = await chamar("authenticated", joao, "equipe_responder", { p_responsavel: bia, p_entrar: false });
+eq = await chamar("authenticated", bia, "minha_equipe");
+confere(r.ok && eq.pessoas.find((p) => p.email === "joao@exemplo.com.br").situacao === "recusou", "RECUSAR: o responsável vê");
+confere((await chamar("authenticated", joao, "minhas_equipes")).length === 0, "quem recusou não vê mais o convite");
+await chamar("authenticated", bia, "equipe_cadastrar", { p_email: "joao@exemplo.com.br" });
+confere((await chamar("authenticated", joao, "minhas_equipes"))[0]?.situacao === "convidado", "cadastrado de novo, o convite volta");
+r = await chamar("authenticated", joao, "equipe_sair", { p_responsavel: bia });
+confere(r.ok && (await chamar("authenticated", bia, "minha_equipe")).pessoas.length === 1, "SAIR DA EQUIPE");
+r = await chamar("authenticated", bia, "equipe_tirar", { p_id: eq.pessoas.find((p) => p.email === "maria@exemplo.com.br").id });
+const r2 = await tentar("authenticated", maria, "minhas_apresentacoes", { p_area: bia });
+deMaria = await chamar("authenticated", maria, "apresentacao_respostas", { p_desde: null });
+confere(r.ok && r2.erro && deMaria.pedidos.length === 0, "TIRAR DA EQUIPE vale na hora: ela não vê mais nada do escritório");
+r = await tentar("authenticated", bia, "equipe_tirar", { p_id: eq.pessoas[0].id });
+confere(r.ok && !r.ok.ok, "tirar de novo: não encontrada");
+
+console.log("\n16. O plano personalizado: o pedido e a /gestao");
+r = await chamar("authenticated", bia, "pedir_plano", { p_pessoas: 5, p_whatsapp: "123", p_mensagem: "" });
+confere(!r.ok && /WhatsApp/.test(r.motivo), "o WhatsApp sem DDD é recusado");
+r = await chamar("authenticated", bia, "pedir_plano", { p_pessoas: 1, p_whatsapp: "(91) 98888-7777", p_mensagem: "" });
+confere(!r.ok, "uma pessoa só não é plano personalizado");
+r = await chamar("authenticated", bia, "pedir_plano", { p_pessoas: 5, p_whatsapp: "(91) 98888-7777", p_mensagem: "Somos cinco." });
+await chamar("authenticated", bia, "pedir_plano", { p_pessoas: 6, p_whatsapp: "91988887777", p_mensagem: "Seis, na verdade." });
+eq = await chamar("authenticated", bia, "minha_equipe");
+confere(r.ok && eq.pedidoDePlano.pessoas === 6 && !eq.pedidoDePlano.respondidoEm, "o pedido aberto se atualiza: " + JSON.stringify(eq.pedidoDePlano));
+r = await tentar("authenticated", bia, "gestao_pedidos_de_plano", {});
+confere(r.erro, "só o gestor vê os pedidos");
+const gestor = await novaConta("gestor2@exemplo.com.br");
+await db.query(`insert into public.administradores (usuario_id) values ($1)`, [gestor]);
+let pedidos = await chamar("authenticated", gestor, "gestao_pedidos_de_plano", {});
+confere(pedidos.length === 1 && pedidos[0].email === "bia@exemplo.com.br" && pedidos[0].whatsapp === "91988887777" && pedidos[0].escritorio === "PALHETA ARQUITETURA"
+  && pedidos[0].pessoas === 6, "PEDIDOS DE PLANO em /gestao: " + JSON.stringify(pedidos[0]));
+r = await chamar("authenticated", gestor, "gestao_pedido_respondido", { p_id: pedidos[0].id });
+await chamar("authenticated", bia, "pedir_plano", { p_pessoas: 8, p_whatsapp: "91988887777", p_mensagem: "" });
+pedidos = await chamar("authenticated", gestor, "gestao_pedidos_de_plano", {});
+confere(r.ok && pedidos.length === 2 && !pedidos[0].respondidoEm && pedidos[1].respondidoEm, "respondido, o pedido seguinte é outro (os abertos primeiro)");
+
 console.log(`\n${certos} de ${certos + ruins.length} conferências do ENVIAR PARA O CLIENTE passaram.`);
 process.exitCode = ruins.length || process.exitCode ? 1 : 0;
