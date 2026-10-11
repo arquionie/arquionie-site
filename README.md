@@ -92,6 +92,27 @@ Configurações feitas no painel, em ordem:
    Durante o lançamento, o tour fica liberado para toda conta (`ajustes_tours.livres_no_lancamento`); o limite é de 20
    publicados por conta (`ajustes_tours.limite`).
 
+8. **ENVIAR PARA O CLIENTE** (a página do cliente em `/t/CÓDIGO`: o vídeo, o tour e as imagens, SOLICITAR AJUSTES e APROVAR O
+   PROJETO; mockup `docs/mockups/enviar-para-o-cliente.html` e contrato no doc 65 do repositório do programa, aprovados por ÊDI em
+   11/10/2026). Usa o bucket e os segredos do R2 do item 7. Só com o ÊDI, uma vez, nesta ordem:
+   1. **SQL Editor:** rodar `supabase/migrations/20261011000000_apresentacoes.sql` (depois da dos tours; pode rodar duas vezes).
+   2. **Supabase › Edge Functions › Secrets:** `LIMPEZA_SEGREDO` (uma senha longa qualquer, só para a tarefa diária) e
+      `RESEND_API_KEY` (no Resend, uma chave que só envia, do domínio `arquionie.com.br`: o aviso por e-mail ao escritório quando o
+      cliente pede ajustes ou aprova; sem ela, o aviso fica só no programa). Opcional: `AVISO_DE` (de fábrica,
+      `Arquionie <suporte@arquionie.com.br>`).
+   3. **Funções:** `npx supabase functions deploy apresentacoes --project-ref sowazotriildoeaxbhkl` (com a verificação de JWT ligada: quem
+      chama é o programa, com a conta) e `npx supabase functions deploy cliente --no-verify-jwt --project-ref sowazotriildoeaxbhkl` (sem
+      conta: é a página do cliente). As duas levam junto a pasta `supabase/functions/_compartilhado`.
+   4. **Supabase › Integrations › Cron › Create job:** todo dia às 3h, *HTTP Request* `POST
+      https://sowazotriildoeaxbhkl.supabase.co/functions/v1/cliente`, cabeçalho `x-limpeza` com o `LIMPEZA_SEGREDO` e corpo
+      `{"acao":"limpar"}` (os envios vencidos, um ano depois, saem do R2; a página diz que o material expirou).
+   5. **Teste local**, sem tocar no Supabase nem no R2: `node supabase/testes/apresentacoes.test.mjs` (o banco num Postgres local, o R2
+      e o Resend de mentira).
+   6. **A página sem o servidor:** `public/apresentacao/index.html?prova=PASTA`, com o envio de prova montado por
+      `node ferramentas/apresentacao/envio-de-prova.mjs` do repositório do programa (o `abrir.json` e os arquivos pela impressão).
+   O `/t/CÓDIGO` passa a abrir `public/apresentacao` (o `vercel.json`); o código de um tour de antes (item 7) vai para a página do tour.
+   O tour dentro da página é o `public/tour` (com a `maquete.js`), copiado por `node ferramentas/tour/copiar-para-o-site.mjs`.
+
 ## Pendente
 
 - Textos da página inicial para ÊDI revisar. As imagens são capturas de amostras do programa (`public/imagens`); faltam

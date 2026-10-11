@@ -1,6 +1,12 @@
 {
   "rewrites": [
-    { "source": "/t/:codigo", "destination": "/tour/index.html" },
-    { "source": "/(.*)", "destination": "/" }
+    {
+      "source": "/t/:codigo",
+      "destination": "/apresentacao/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
   ]
 }

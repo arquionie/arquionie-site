@@ -6,7 +6,9 @@
   - andar (o comando, as setas, W A S D) ou olhar (arrastar, o comando OLHAR, o movimento do celular) passa ao LIVRE: quem anda não
     atravessa parede (chao.js, o mesmo andar do programa) e o RETOMAR volta ao caminho no ponto mais perto;
   - o mapa no canto mostra a planta do pavimento, o caminho, as câmeras e você; aberto grande, um toque leva ao ambiente.
-  O tour nunca usa os dois pontos de fuga. A luz vem pronta das renderizações (as páginas luz-N.jpg).
+  O tour nunca usa os dois pontos de fuga. O pacote é o formato 4, o caminho C (ÊDI, 10/10/2026, "como o Shapespark"): cada
+  superfície com a textura do material (mat-ID.jpg, nítida, no mapeamento da vista do Arquionie) vezes a luz das renderizações
+  (as páginas luz-N.jpg, macias: a cor da foto dividida pela do material).
 */
 (() => {
   const $ = id => document.getElementById(id);
@@ -14,7 +16,7 @@
   const SUPABASE_URL = "https://sowazotriildoeaxbhkl.supabase.co", CHAVE_PUBLICAVEL = "sb_publishable_aSoXh3xrkPi2T-cd0pslWw_Jj8n9xSY";
   const ARQUIVOS_URL = "https://tours.arquionie.com.br/";
   const tela = $("tela");
-  const gl = tela.getContext("webgl2", { antialias: true });
+  const gl = tela.getContext("webgl2", { antialias: true, stencil: true });
   const toque = matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;
   if (toque) document.body.classList.add("toque");
 
@@ -24,12 +26,22 @@
     $("barra").parentElement.classList.add("esconder"); $("ajuda").textContent = texto;
   }
 
-  /** Onde estão os arquivos: ?pacote=ENDEREÇO, o link /t/CÓDIGO (pelo banco) ou a pasta da página. Nulo: pausado ou inexistente. */
+  /**
+   * Onde estão os arquivos: ?envio=ENDEREÇO do envio.json (a página do cliente do ENVIAR PARA O CLIENTE: os arquivos pela impressão
+   * digital, ao lado dele), ?pacote=ENDEREÇO, o link /t/CÓDIGO ou ?codigo=CÓDIGO (pelo banco) ou a pasta da página. Nulo: pausado ou
+   * inexistente. Com o envio.json, o lugar de cada arquivo é uma função (o nome do pacote → a impressão).
+   */
   async function acharPacote() {
+    const envio = new URLSearchParams(location.search).get("envio");
+    if (envio) {
+      const m = await (await fetch(envio)).json();
+      const pasta = envio.slice(0, envio.lastIndexOf("/") + 1), mapa = (m.tour && m.tour.arquivos) || {};
+      return nome => pasta + (mapa[nome] || nome);
+    }
     const dado = new URLSearchParams(location.search).get("pacote");
     if (dado) return dado.endsWith("/") ? dado : dado + "/";
-    const m = location.pathname.match(/^\/t\/([A-Za-z0-9]{6})\/?$/);
-    if (!m) return "";
+    const m = location.pathname.match(/^\/t\/([A-Za-z0-9]{6})\/?$/) || [null, new URLSearchParams(location.search).get("codigo")];
+    if (!m[1]) return "";
     const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/tour_abrir`, {
       method: "POST", headers: { apikey: CHAVE_PUBLICAVEL, "Content-Type": "application/json" }, body: JSON.stringify({ p_codigo: m[1] }),
     });
@@ -47,8 +59,9 @@
     $("barra").style.width = Math.min(100, 100 * baixado / total) + "%";
     $("carga").textContent = `carregando · ${mb(baixado)} de ${mb(total)} MB`;
   }
+  const endereco = (base, nome) => typeof base === "function" ? base(nome) : base + nome;
   async function baixar(base, nome) {
-    const r = await fetch(base + nome);
+    const r = await fetch(endereco(base, nome));
     if (!r.ok) throw new Error(`${nome}: ${r.status}`);
     if (!r.body || !r.body.getReader) { const b = await r.arrayBuffer(); baixado += b.byteLength; andamento(); return b; }
     const leitor = r.body.getReader(), partes = [];
@@ -68,26 +81,32 @@
   async function carregar() {
     const base = await acharPacote();
     if (base === null) return null;
-    const tour = await (await fetch(base + "tour.json")).json();
+    const tour = await (await fetch(endereco(base, "tour.json"))).json();
+    // O tour dos panoramas do EXPORTAR (formato 5, panoramas.js): os pontos no chão e a passagem pelo modelo.
+    if (tour.formato === 5) return { panoramas: true, base, tour };
+    // O tour da maquete (formato 6, maquete.js): o modelo desenhado na hora, os ambientes, o sol e as fotos 360°.
+    if (tour.formato === 6) return { maquete: true, base, tour };
     document.title = tour.projeto;
     $("projeto").textContent = tour.projeto;
     const ambientes = new Set(tour.paradas.map(p => p.nome)).size;
     $("passeio").textContent = `${ambientes} ${ambientes === 1 ? "ambiente" : "ambientes"}`;
     if (tour.logo) { $("logo").src = base + tour.logo; $("logo").classList.remove("esconder"); }
-    // As fotos das paradas (parada-NN.jpg) não entram na abertura: cada uma vem quando o cliente chega perto dela.
-    total = Object.entries(tour.arquivos || {}).filter(([k]) => k !== "capa.jpg" && !k.startsWith("parada-")).reduce((s, [, v]) => s + v, 0);
+    if (!(tour.formato >= 4)) throw new Error("Este tour foi gerado numa versão antiga do Arquionie: gere de novo.");
+    total = Object.entries(tour.arquivos || {}).filter(([k]) => k !== "capa.jpg").reduce((s, [, v]) => s + v, 0);
     andamento();
-    // Formato 2: os vértices compartilhados, com os índices de 16 bits em lotes; o 1 levava três vértices por triângulo.
-    const [dados, indices, paginas, fundo, chao, trajeto, plantas] = await Promise.all([
+    // Os vértices compartilhados, com os índices de 16 bits em lotes por página e material, e as imagens dos materiais.
+    const [dados, indices, vidro, paginas, materiais, fundo, chao, trajeto, plantas] = await Promise.all([
       baixar(base, "modelo.bin"),
-      tour.formato >= 2 ? baixar(base, "indices.bin") : null,
+      baixar(base, "indices.bin"),
+      tour.vidros && tour.vidros.length ? baixar(base, "vidro.bin") : null,
       Promise.all(tour.paginas.map(p => imagem(base, p.imagem))),
+      Promise.all(tour.materiais.map(m => m.imagem ? imagem(base, m.imagem) : null)),
       imagem(base, tour.fundo.imagem),
       baixar(base, tour.chao.arquivo).then(b => ChaoDoTour.ler(b, tour.chao)),
       tour.trajeto ? baixar(base, tour.trajeto.arquivo).then(b => new Float32Array(b)) : null,
       Promise.all(tour.plantas.map(p => imagem(base, p.imagem))),
     ]);
-    return { base, tour, dados: new Uint16Array(dados), indices: indices && new Uint16Array(indices), paginas, fundo, chao, trajeto, plantas };
+    return { base, tour, dados, indices: new Uint16Array(indices), vidro, paginas, materiais, fundo, chao, trajeto, plantas };
   }
 
   // ---------------------------------------------------------------- o desenho (WebGL 2)
@@ -101,6 +120,20 @@
     gl.linkProgram(p);
     if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
     return p;
+  }
+  // A imagem do material: repete nos dois sentidos (a coordenada passa de 1), com todos os níveis e o filtro de lado nos pisos.
+  const anisotropia = gl.getExtension("EXT_texture_filter_anisotropic");
+  function texturaDoMaterial(img) {
+    const t = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, t);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    if (anisotropia) gl.texParameterf(gl.TEXTURE_2D, anisotropia.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(8, gl.getParameter(anisotropia.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
+    return t;
   }
   function textura(img, repetir, mipmaps) {
     const t = gl.createTexture();
@@ -156,13 +189,57 @@
   }
 
   // ---------------------------------------------------------------- o tour
-  function iniciar({ base, tour, dados, indices, paginas, fundo, chao, trajeto, plantas }) {
-    const modelo = programa(`#version 300 es
-      in vec3 pos; in vec2 uv; uniform mat4 vp; uniform vec3 minimo, maximo; out vec2 vuv;
-      void main() { vuv = uv; gl_Position = vp * vec4(mix(minimo, maximo, pos), 1.0); }`,
+  function iniciar({ base, tour, dados, indices, vidro, paginas, materiais, fundo, chao, trajeto, plantas }) {
+    // O vidro: escuro, na cor do material, refletindo o céu do panorama do fundo, mais forte de lado (Fresnel), por cima do resto.
+    const programaDoVidro = programa(`#version 300 es
+      in vec3 pos; uniform mat4 vp; uniform vec3 minimo, maximo; out vec3 mundo;
+      void main() { mundo = mix(minimo, maximo, pos); gl_Position = vp * vec4(mundo, 1.0); }`,
     `#version 300 es
-      precision highp float; in vec2 vuv; uniform sampler2D luz; out vec4 cor;
-      void main() { cor = vec4(texture(luz, vuv).rgb, 1.0); }`);
+      precision highp float; in vec3 mundo; uniform vec3 olho, corVidro; uniform float opacidade, direcaoFundo; uniform sampler2D fundo; out vec4 cor;
+      void main() {
+        vec3 n = normalize(cross(dFdx(mundo), dFdy(mundo))), v = normalize(mundo - olho);
+        if (dot(n, v) > 0.0) n = -n;
+        float lado = pow(1.0 - abs(dot(n, v)), 3.0), f = 0.06 + 0.4 * lado;
+        vec3 r = reflect(v, n);
+        float lon = atan(r.y, r.x), lat = asin(clamp(r.z, -1.0, 1.0));
+        vec3 ceu = texture(fundo, vec2((direcaoFundo - lon) / 6.28318530718 + 0.5, (1.5707963268 - lat) / 3.14159265359)).rgb;
+        vec3 tinta = pow(corVidro, vec3(1.0 / 2.2)) * 0.25;
+        cor = vec4(mix(tinta, ceu, f), clamp(max(opacidade, 0.08) + f * 0.6, 0.0, 0.7));
+      }`);
+    let vaoVidro = null;
+    if (vidro) {
+      vaoVidro = gl.createVertexArray(); gl.bindVertexArray(vaoVidro);
+      const bv = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, bv); gl.bufferData(gl.ARRAY_BUFFER, vidro, gl.STATIC_DRAW);
+      const lv = gl.getAttribLocation(programaDoVidro, "pos"); gl.enableVertexAttribArray(lv); gl.vertexAttribPointer(lv, 3, gl.UNSIGNED_SHORT, true, 6, 0);
+    }
+    const uv = { vp: gl.getUniformLocation(programaDoVidro, "vp"), minimo: gl.getUniformLocation(programaDoVidro, "minimo"), maximo: gl.getUniformLocation(programaDoVidro, "maximo"),
+      olho: gl.getUniformLocation(programaDoVidro, "olho"), corVidro: gl.getUniformLocation(programaDoVidro, "corVidro"), opacidade: gl.getUniformLocation(programaDoVidro, "opacidade"),
+      direcaoFundo: gl.getUniformLocation(programaDoVidro, "direcaoFundo"), fundo: gl.getUniformLocation(programaDoVidro, "fundo") };
+    // A cor de cada ponto: a do material (a cor-base e a imagem misturadas, vezes o Tint, na luz linear, como o Realista) vezes a luz da
+    // cena (o atlas guarda a luz pela fílmica na referência: volta pela fílmica ao contrário), na exposição do lugar, pela curva de tons
+    // do Realista (a fílmica, o sRGB e o "look" do contraste).
+    const modelo = programa(`#version 300 es
+      in vec3 pos; in vec2 uv; in vec2 uvMaterial; uniform mat4 vp; uniform vec3 minimo, maximo; out vec2 vuv; out vec2 vmat;
+      void main() { vuv = uv; vmat = uvMaterial; gl_Position = vp * vec4(mix(minimo, maximo, pos), 1.0); }`,
+    `#version 300 es
+      precision highp float; in vec2 vuv; in vec2 vmat; uniform sampler2D luz, imagem; uniform vec3 corBase, tint;
+      uniform float mistura, referencia, exposicao, potencia, saturacao, reflexo; uniform bool comImagem, recorte; out vec4 cor;
+      vec3 linear(vec3 c) { return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(vec3(0.04045), c)); }
+      vec3 srgb(vec3 l) { l = clamp(l, 0.0, 1.0); return mix(l * 12.92, 1.055 * pow(l, vec3(1.0 / 2.4)) - 0.055, step(vec3(0.0031308), l)); }
+      vec3 filmica(vec3 x) { x = max(x, vec3(0.0)); return clamp(x * (2.51 * x + 0.03) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0); }
+      vec3 filmicaInversa(vec3 y) { y = clamp(y, 0.0, 0.999); vec3 qa = y * 2.43 - 2.51, qb = y * 0.59 - 0.03; return (-qb - sqrt(qb * qb - 4.0 * qa * (y * 0.14))) / (2.0 * qa); }
+      void main() {
+        vec3 b = corBase;
+        if (comImagem) {
+          vec4 t = texture(imagem, vmat);
+          if (recorte && t.a < 0.5) discard;
+          b = mix(b, linear(t.rgb), mistura);
+        }
+        vec3 luzDaCena = filmicaInversa(linear(texture(luz, vuv).rgb)) / referencia;
+        vec3 v = pow(srgb(filmica((b * tint + reflexo) * luzDaCena * exposicao)), vec3(potencia));
+        float l = dot(v, vec3(0.2126, 0.7152, 0.0722));
+        cor = vec4(clamp(l + saturacao * (v - l), 0.0, 1.0), 1.0);
+      }`);
     const ceu = programa(`#version 300 es
       in vec2 p; out vec2 q; void main() { q = p; gl_Position = vec4(p, 0.9999, 1.0); }`,
     `#version 300 es
@@ -175,19 +252,30 @@
       }`);
     const buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer); gl.bufferData(gl.ARRAY_BUFFER, dados, gl.STATIC_DRAW);
+    // O vértice: x, y, z, u, v da luz em 16 bits, dois bytes de folga e a coordenada da imagem do material em dois float (20 bytes).
+    const PASSO = 20;
     const vaoModelo = gl.createVertexArray(); gl.bindVertexArray(vaoModelo);
-    const lp = gl.getAttribLocation(modelo, "pos"), lu = gl.getAttribLocation(modelo, "uv");
-    gl.enableVertexAttribArray(lp); gl.enableVertexAttribArray(lu);
-    gl.vertexAttribPointer(lp, 3, gl.UNSIGNED_SHORT, true, 10, 0); gl.vertexAttribPointer(lu, 2, gl.UNSIGNED_SHORT, true, 10, 6);
-    if (indices) { const ib = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW); }
+    const lp = gl.getAttribLocation(modelo, "pos"), lu = gl.getAttribLocation(modelo, "uv"), lm = gl.getAttribLocation(modelo, "uvMaterial");
+    gl.enableVertexAttribArray(lp); gl.enableVertexAttribArray(lu); gl.enableVertexAttribArray(lm);
+    const ib = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
     const regMin = tour.regiao.slice(0, 3), regMax = tour.regiao.slice(3, 6);
     const vaoCeu = gl.createVertexArray(); gl.bindVertexArray(vaoCeu);
     const tri = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, tri); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
     const lc = gl.getAttribLocation(ceu, "p"); gl.enableVertexAttribArray(lc); gl.vertexAttribPointer(lc, 2, gl.FLOAT, false, 0, 0);
     const texturas = paginas.map(i => textura(i, false, true));
+    // Os materiais pelo número: a cor, a mistura, o Tint e a imagem (sem imagem, uma de um ponto branco, que não é lida).
+    const branca = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, branca);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 255, 255, 255]));
+    const porMaterial = new Map(tour.materiais.map((m, i) => [m.id, { ...m, textura: materiais[i] ? texturaDoMaterial(materiais[i]) : null }]));
+    const semMaterial = { cor: [1, 1, 1], tint: [1, 1, 1], mistura: 0, textura: null, recorte: false };
     const texturaFundo = textura(fundo, true, false);
     const u = { vp: gl.getUniformLocation(modelo, "vp"), minimo: gl.getUniformLocation(modelo, "minimo"), maximo: gl.getUniformLocation(modelo, "maximo"),
-      luz: gl.getUniformLocation(modelo, "luz"), inv: gl.getUniformLocation(ceu, "inv"), direcao: gl.getUniformLocation(ceu, "direcao"), fundo: gl.getUniformLocation(ceu, "fundo"),
+      luz: gl.getUniformLocation(modelo, "luz"), imagem: gl.getUniformLocation(modelo, "imagem"), corBase: gl.getUniformLocation(modelo, "corBase"),
+      tint: gl.getUniformLocation(modelo, "tint"), mistura: gl.getUniformLocation(modelo, "mistura"), referencia: gl.getUniformLocation(modelo, "referencia"),
+      exposicao: gl.getUniformLocation(modelo, "exposicao"), potencia: gl.getUniformLocation(modelo, "potencia"), saturacao: gl.getUniformLocation(modelo, "saturacao"),
+      reflexo: gl.getUniformLocation(modelo, "reflexo"),
+      comImagem: gl.getUniformLocation(modelo, "comImagem"), recorte: gl.getUniformLocation(modelo, "recorte"),
+      inv: gl.getUniformLocation(ceu, "inv"), direcao: gl.getUniformLocation(ceu, "direcao"), fundo: gl.getUniformLocation(ceu, "fundo"),
       alfa: gl.getUniformLocation(ceu, "alfa") };
 
     // A câmera e o passeio.
@@ -219,7 +307,6 @@
       ultimaParada = i; ancorarMovimento();
       if (trajeto) irAoTempo(paradas[i].t);
       else { camera.olho = paradas[i].olho.slice(); olharPara(paradas[i].direcao); olhoNoChao = null; }
-      encaixar(i);
     }
     const proxima = t => { const i = paradas.findIndex(p => p.t > t + .05); return i < 0 ? null : i; };
     const anteriorA = t => { for (let i = paradas.length - 1; i >= 0; i--) if (paradas[i].t < t - .05) return i; return null; };
@@ -234,43 +321,13 @@
       return melhor;
     }
 
-    // A foto de cada parada (ÊDI, 10/10/2026, o caminho B, como a Matterport): parado no olho dela, o cliente vê o panorama renderizado
-    // inteiro, por cima do modelo; andando, a foto sai e fica o modelo. Girar o olhar não tira a foto: só sair do lugar. Cada foto vem
-    // quando o cliente chega perto (a da parada de agora e a seguinte).
-    const maxTextura = gl.getParameter(gl.MAX_TEXTURE_SIZE);
-    const fotos = paradas.map(p => p.panorama ? { ...p.panorama, textura: null, pedida: false } : null);
-    function pedirFoto(i) {
-      const f = typeof i === "number" && i >= 0 && i < fotos.length ? fotos[i] : null;
-      if (!f || f.pedida) return;
-      f.pedida = true;
-      fetch(base + f.imagem).then(r => r.ok ? r.blob() : Promise.reject(new Error(String(r.status))))
-        .then(b => createImageBitmap(b, maxTextura < 4096 ? { resizeWidth: 2048, resizeHeight: 1024 } : {}))
-        .then(img => { f.textura = textura(img, true, false); })
-        .catch(() => { f.pedida = false; });
-    }
     const distancia = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
-    // O olho vai ao centro da foto da parada (o caminho e o GERAR podem diferir uns centímetros).
-    function encaixar(i) { if (fotos[i]) camera.olho = fotos[i].centro.slice(); pedirFoto(i); pedirFoto(i + 1); }
-    // A foto do lugar onde o olho está (a 6 cm do centro dela), já baixada; -1, nenhuma.
-    function fotoAqui() {
-      let melhor = -1, d0 = .06;
-      for (let i = 0; i < fotos.length; i++) {
-        const f = fotos[i];
-        if (!f || !f.textura) continue;
-        const d = distancia(camera.olho, f.centro);
-        if (d < d0) { d0 = d; melhor = i; }
-      }
-      return melhor;
-    }
-    const foto = { i: -1, alfa: 0 };
-    // O voo até a foto de outra parada, pelo modelo (o toque num ponto do chão): o olho anda reto, a foto de agora sai e a de lá entra.
+    // O voo até outra câmera, pelo modelo (o toque num ponto do chão): o olho anda reto até o dela e, chegando, olha como ela.
     let voo = null;
     function voarPara(j) {
-      const f = fotos[j];
-      if (!f) { chegarNa(j); return; }
-      const d = distancia(camera.olho, f.centro);
-      pedirFoto(j); pedirFoto(j + 1);
-      voo = { de: camera.olho.slice(), para: f.centro.slice(), t0: performance.now(), duracao: Math.max(.6, Math.min(2.2, d / 2.4)) * 1000, j };
+      const para = (trajeto ? noCaminho(paradas[j].t).olho : paradas[j].olho).slice();
+      const d = distancia(camera.olho, para);
+      voo = { de: camera.olho.slice(), para, t0: performance.now(), duracao: Math.max(.6, Math.min(2.2, d / 2.4)) * 1000, j };
       estado = "voando"; pararEm = null; atualizarEstado();
     }
 
@@ -344,6 +401,27 @@
       o[0] = x; o[1] = y;
       const z = chao.chaoEm(x, y, pes);
       if (!Number.isNaN(z)) olhoNoChao = z + alturaDoOlho;
+    }
+
+    // A exposição do lugar (o caminho C): a que a RTX escolheu nos panoramas perto do olho, no mesmo andar, pela média em escala de luz;
+    // muda devagar ao andar, como o olho se acostuma (meio segundo).
+    const exposicao = { atual: 0, pronta: false };
+    function exposicaoAqui(o) {
+      let soma = 0, pesos = 0, melhor = null, d0 = Infinity;
+      for (const [x, y, z, f] of tour.exposicoes) {
+        const d2 = (x - o[0]) ** 2 + (y - o[1]) ** 2, dz = Math.abs(z - o[2]);
+        if (d2 + dz * dz < d0) { d0 = d2 + dz * dz; melhor = f; }
+        if (dz > 2.5 || d2 > 100) continue;
+        const w = 1 / (d2 + 1);
+        soma += w * Math.log(f); pesos += w;
+      }
+      return pesos > 0 ? Math.exp(soma / pesos) : melhor ?? tour.luz.referencia;
+    }
+    function acostumar(dt) {
+      const alvo = Math.log(exposicaoAqui(camera.olho));
+      if (!exposicao.pronta) { exposicao.atual = Math.exp(alvo); exposicao.pronta = true; return; }
+      const atual = Math.log(exposicao.atual);
+      exposicao.atual = Math.exp(atual + (alvo - atual) * (1 - Math.exp(-dt / .5)));
     }
 
     // A tela.
@@ -552,25 +630,18 @@
         let t = tempo + dt;
         if (pararEm !== null && t >= pararEm) {
           t = pararEm; estado = "parado"; pararEm = null; irAoTempo(t);
-          ultimaParada = paradaEm(t); encaixar(ultimaParada); mostrarChegada(ultimaParada); atualizarEstado();
+          ultimaParada = paradaEm(t); mostrarChegada(ultimaParada); atualizarEstado();
         } else if (t >= duracao) { irAoTempo(duracao); pausar(); }
         else { irAoTempo(t); const i = paradaEm(t); if (i !== ultimaParada) { ultimaParada = i; atualizarEstado(); } }
-        // A foto da próxima parada vem antes de chegar nela.
-        pedirFoto(proxima(tempo));
       }
       if (voo) {
         const s = Math.min(1, (agora - voo.t0) / voo.duracao), e = s * s * (3 - 2 * s);
         camera.olho = voo.de.map((v, k) => v + (voo.para[k] - v) * e);
         if (s >= 1) {
           const jj = voo.j; voo = null; ultimaParada = jj; olhoNoChao = null; estado = "parado";
-          if (trajeto) tempo = paradas[jj].t;
-          encaixar(jj); mostrarChegada(jj); atualizarEstado();
+          irAParada(jj); mostrarChegada(jj); atualizarEstado();
         }
       }
-      // A foto da parada entra quando o olho está no lugar dela e sai quando ele sai.
-      const aqui = fotoAqui();
-      if (aqui >= 0) { if (foto.i !== aqui) { foto.i = aqui; foto.alfa = 0; } foto.alfa = Math.min(1, foto.alfa + dt * 3.5); }
-      else foto.alfa = Math.max(0, foto.alfa - dt * 5);
       if (movimento.ligado && movimento.aparelho) {
         const ap = movimento.aparelho;
         if (estado === "livre") {
@@ -607,6 +678,7 @@
       mover(px, py);
       if (olhoNoChao !== null) camera.olho[2] += (olhoNoChao - camera.olho[2]) * Math.min(1, dt * 12);
       if (chegadaAte && agora > chegadaAte) { $("chegada").style.opacity = 0; chegadaAte = 0; }
+      acostumar(dt);
       if (agora - quadroDoMapa > 120) { quadroDoMapa = agora; desenharMapa(); }
 
       // O campo: o horizontal do passeio, deitado; em pé, 80° na vertical (o horizontal de 90° ficaria estreito demais).
@@ -626,26 +698,36 @@
       gl.useProgram(modelo); gl.bindVertexArray(vaoModelo);
       gl.uniformMatrix4fv(u.vp, false, vp); gl.uniform3fv(u.minimo, regMin); gl.uniform3fv(u.maximo, regMax); gl.uniform1i(u.luz, 0);
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.uniform1i(u.imagem, 1); gl.uniform1f(u.referencia, tour.luz.referencia); gl.uniform1f(u.exposicao, exposicao.atual);
+      gl.uniform1f(u.potencia, tour.luz.potencia); gl.uniform1f(u.saturacao, tour.luz.saturacao); gl.uniform1f(u.reflexo, tour.luz.reflexo ?? 0);
       tour.paginas.forEach((p, i) => {
-        gl.bindTexture(gl.TEXTURE_2D, texturas[i]);
-        if (!p.lotes) { gl.drawArrays(gl.TRIANGLES, p.inicio, p.vertices); return; }
-        // Cada lote com os vértices dele (o WebGL 2 não tem o vértice-base): o atributo começa no primeiro vértice do lote.
+        gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texturas[i]);
+        // Cada lote com os vértices dele (o WebGL 2 não tem o vértice-base): o atributo começa no primeiro vértice do lote; um material por lote.
         for (const l of p.lotes) {
-          gl.vertexAttribPointer(lp, 3, gl.UNSIGNED_SHORT, true, 10, l.vertice * 10);
-          gl.vertexAttribPointer(lu, 2, gl.UNSIGNED_SHORT, true, 10, l.vertice * 10 + 6);
+          const m = porMaterial.get(l.material) || semMaterial;
+          gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, m.textura || branca);
+          gl.uniform3fv(u.corBase, m.cor); gl.uniform3fv(u.tint, m.tint); gl.uniform1f(u.mistura, m.mistura);
+          gl.uniform1i(u.comImagem, m.textura ? 1 : 0); gl.uniform1i(u.recorte, m.recorte ? 1 : 0);
+          gl.vertexAttribPointer(lp, 3, gl.UNSIGNED_SHORT, true, PASSO, l.vertice * PASSO);
+          gl.vertexAttribPointer(lu, 2, gl.UNSIGNED_SHORT, true, PASSO, l.vertice * PASSO + 6);
+          gl.vertexAttribPointer(lm, 2, gl.FLOAT, false, PASSO, l.vertice * PASSO + 12);
           gl.drawElements(gl.TRIANGLES, l.indices, gl.UNSIGNED_SHORT, l.indice * 2);
         }
       });
-      const f0 = foto.i >= 0 ? fotos[foto.i] : null;
-      if (f0 && f0.textura && foto.alfa > 0) {
-        const a = foto.alfa * foto.alfa * (3 - 2 * foto.alfa);
-        gl.disable(gl.DEPTH_TEST); gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.useProgram(ceu); gl.bindVertexArray(vaoCeu);
-        gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, f0.textura);
-        gl.uniformMatrix4fv(u.inv, false, inverter(vp)); gl.uniform1f(u.direcao, f0.direcao * Math.PI / 180); gl.uniform1i(u.fundo, 0);
-        gl.uniform1f(u.alfa, a);
-        gl.drawArrays(gl.TRIANGLES, 0, 3);
-        gl.disable(gl.BLEND); gl.enable(gl.DEPTH_TEST);
+      gl.activeTexture(gl.TEXTURE0);
+      // O vidro por último, sem escrever a profundidade: o que está atrás aparece por ele.
+      if (vaoVidro) {
+        gl.useProgram(programaDoVidro); gl.bindVertexArray(vaoVidro);
+        gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false);
+        gl.bindTexture(gl.TEXTURE_2D, texturaFundo);
+        gl.uniformMatrix4fv(uv.vp, false, vp); gl.uniform3fv(uv.minimo, regMin); gl.uniform3fv(uv.maximo, regMax); gl.uniform3fv(uv.olho, camera.olho);
+        gl.uniform1f(uv.direcaoFundo, tour.fundo.direcao * Math.PI / 180); gl.uniform1i(uv.fundo, 0);
+        for (const g of tour.vidros) {
+          const m = porMaterial.get(g.material) || { cor: [.3, .35, .35], opacidade: .15 };
+          gl.uniform3fv(uv.corVidro, m.cor); gl.uniform1f(uv.opacidade, Math.min(.6, m.opacidade ?? .15));
+          gl.drawArrays(gl.TRIANGLES, g.vertice, g.vertices);
+        }
+        gl.depthMask(true); gl.disable(gl.BLEND);
       }
       desenharPontos(vp, vertical);
       requestAnimationFrame(quadro);
@@ -653,8 +735,7 @@
 
     // Os pontos das outras paradas no chão (como os da Matterport): um anel em cada uma que se alcança em linha reta pelo chão, a até
     // 14 m e no mesmo andar; o toque leva até a foto dela pelo modelo.
-    const botoesDosPontos = fotos.map((f, i) => {
-      if (!f) return null;
+    const botoesDosPontos = paradas.map((f, i) => {
       const b = document.createElement("button");
       b.title = `${String(i + 1).padStart(2, "0")} · ${paradas[i].nome}`;
       b.style.display = "none";
@@ -663,10 +744,9 @@
       $("pontos").appendChild(b);
       return b;
     });
-    const chaoDosPontos = fotos.map(f => {
-      if (!f) return 0;
-      const z = chao.chaoEm(f.centro[0], f.centro[1], f.centro[2] - alturaDoOlho);
-      return Number.isNaN(z) ? f.centro[2] - alturaDoOlho : z;
+    const chaoDosPontos = paradas.map(f => {
+      const z = chao.chaoEm(f.olho[0], f.olho[1], f.olho[2] - alturaDoOlho);
+      return Number.isNaN(z) ? f.olho[2] - alturaDoOlho : z;
     });
     function desenharPontos(vp, verticalGraus) {
       const largura = tela.clientWidth, altura = tela.clientHeight, focal = altura / 2 / Math.tan(verticalGraus * Math.PI / 360);
@@ -675,7 +755,7 @@
       for (let i = 0; i < botoesDosPontos.length; i++) {
         const b = botoesDosPontos[i];
         if (!b) continue;
-        const c = fotos[i].centro, zc = chaoDosPontos[i];
+        const c = paradas[i].olho, zc = chaoDosPontos[i];
         let ver = mostrar && Math.hypot(c[0] - o[0], c[1] - o[1]) > .3 && Math.hypot(c[0] - o[0], c[1] - o[1]) < 14 && Math.abs(zc - pes) < 1.2;
         if (ver) ver = chao.alcanca(o[0], o[1], c[0], c[1], pes);
         let w = 0, sx = 0, sy = 0;
@@ -701,6 +781,13 @@
     // A dica dos comandos, nos primeiros segundos.
     $("dica").innerHTML = toque ? "arraste a tela<br>para olhar" : "setas ou W A S D andam · arrastar olha · espaço reproduz · M abre o mapa";
     irAParada(0); ajustar(); atualizarEstado();
+    // Conferência: ?camera=x,y,z,guinada,inclinação (graus) põe o olho num lugar, livre (as fotos de antes e depois no mesmo ponto).
+    const pedida = new URLSearchParams(location.search).get("camera");
+    if (pedida) {
+      const [x, y, z, g, i] = pedida.split(",").map(Number);
+      camera.olho = [x, y, z]; camera.guinada = g * Math.PI / 180; camera.inclinacao = (i || 0) * Math.PI / 180;
+      estado = "livre"; atualizarEstado();
+    }
     requestAnimationFrame(quadro);
     return () => {
       for (const id of ["parada", "controles", "lado", "dica"]) $(id).classList.remove("esconder");
@@ -713,9 +800,10 @@
     };
   }
 
-  carregar().then(pacote => {
+  carregar().then(async pacote => {
     if (!pacote) return;
-    const mostrar = iniciar(pacote);
+    const mostrar = pacote.maquete ? await window.TourDaMaquete(pacote.base, pacote.tour)
+      : pacote.panoramas ? await window.TourDosPanoramas(pacote.base, pacote.tour) : iniciar(pacote);
     $("carga").textContent = "";
     $("barra").parentElement.classList.add("esconder");
     $("entrar").classList.remove("esconder");
@@ -727,5 +815,7 @@
       if (toque) ligarMovimento(true);
       $("abertura").remove();
     };
+    // Dentro da página do cliente (?embutido=1): entra direto; a tela cheia é a da página.
+    if (new URLSearchParams(location.search).get("embutido")) { mostrar(); $("abertura").remove(); }
   }).catch(erro => { fechado("O tour não abriu", erro.message); console.error(erro); });
 })();

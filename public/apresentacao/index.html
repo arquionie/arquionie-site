@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Apresentação do projeto</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="/apresentacao/apresentacao.css">
+</head>
+<body>
+<!-- A página do cliente (mockup docs/mockups/enviar-para-o-cliente.html do repositório do programa, aprovado por ÊDI em 11/10/2026). -->
+<div id="carregando" class="aviso"><div><b>Abrindo a apresentação…</b></div></div>
+<div id="fechado" class="aviso" hidden><div><img id="fechadoLogo" alt=""><b id="fechadoTitulo"></b><p id="fechadoTexto"></p></div></div>
+
+<header id="topo" hidden>
+  <a id="marca" target="_blank" rel="noopener"><span id="logo"></span><small id="nomeEscritorio"></small></a>
+  <div id="projeto"><b id="nomeProjeto"></b><span id="fase" class="fase"></span></div>
+  <nav id="menu"><a href="#video" data-ir="video">VÍDEO</a><a href="#explorar" data-ir="explorar">EXPLORAR</a><a href="#imagens" data-ir="imagens">IMAGENS</a></nav>
+  <div id="acoes">
+    <button id="botaoAjustes" type="button">✎ SOLICITAR AJUSTES</button>
+    <button id="botaoAprovar" type="button" class="principal">APROVAR O PROJETO</button>
+  </div>
+  <div id="selo" class="selo" hidden></div>
+  <button id="compartilharTopo" class="so-celular" type="button" title="Compartilhar esta página">⤴</button>
+</header>
+
+<main id="pagina" hidden>
+  <div id="pedido" class="selo ajustes" hidden></div>
+  <section id="video" class="bloco" hidden>
+    <h3>O VÍDEO</h3>
+    <div class="video"><video id="player" controls playsinline preload="none"></video><div class="q" id="qualidade" hidden></div></div>
+    <button class="explorar" type="button" data-ir="explorar"><span><b>EXPLORAR O PROJETO</b><small>ande pela maquete, veja a planta com as medidas e as fotos 360°</small></span><span class="ir">ENTRAR NO TOUR →</span></button>
+  </section>
+  <section id="explorar" class="bloco" hidden>
+    <h3>EXPLORAR O PROJETO</h3>
+    <div class="tour" id="tour">
+      <div class="capaTour" id="capaTour"><button id="entrarTour" type="button">ENTRAR NO TOUR <small id="tamanhoTour"></small></button></div>
+      <iframe id="quadroTour" title="O tour do projeto" allow="fullscreen; gyroscope; accelerometer; xr-spatial-tracking" allowfullscreen hidden></iframe>
+      <button id="comentar" class="com" type="button" hidden>✎ COMENTAR</button>
+      <button id="sairTour" class="sair so-celular" type="button" hidden>✕ SAIR DO TOUR</button>
+    </div>
+  </section>
+  <section id="imagens" class="bloco" hidden>
+    <h3>AS IMAGENS</h3>
+    <div class="carrossel" id="carrossel"><button class="seta e" type="button" aria-label="anterior">‹</button><button class="seta d" type="button" aria-label="seguinte">›</button></div>
+    <div class="legendaFoto" id="legenda"></div>
+    <div class="pontos" id="pontos"></div>
+  </section>
+</main>
+
+<footer id="rodape" class="rodapeEsc" hidden>
+  <div class="icones" id="icones"></div>
+  <hr><small id="frase"></small><h4 id="titulo"></h4><p id="texto"></p>
+  <div class="feito"><span id="ate"></span><a href="https://www.arquionie.com.br" target="_blank" rel="noopener">feito com ARQUIONIE™</a></div>
+</footer>
+
+<!-- SOLICITAR AJUSTES: o nome e os comentários, cada um com o alfinete no tour, enviados juntos. -->
+<aside id="painel" class="painelCom" hidden>
+  <div class="cab"><span id="painelTitulo">SOLICITAR AJUSTES</span><button id="fecharPainel" type="button" aria-label="fechar">✕</button></div>
+  <div class="corpo">
+    <label class="campo"><span>Seu nome</span><input id="nomeAjustes" maxlength="120" autocomplete="name"></label>
+    <div id="enviados"></div>
+    <div id="lista"></div>
+    <button id="novoComentario" class="mais" type="button">+ NOVO COMENTÁRIO · toque no tour onde quer comentar</button>
+    <button id="semLugar" class="mais leve" type="button">+ UM COMENTÁRIO SOBRE O PROJETO EM GERAL</button>
+  </div>
+  <div class="pe">
+    <button id="enviarComentarios" class="principal" type="button" disabled>ENVIAR OS COMENTÁRIOS</button>
+    <button id="descartar" type="button">DESCARTAR</button>
+    <p id="erroAjustes" class="erro" hidden></p>
+  </div>
+</aside>
+
+<!-- APROVAR O PROJETO: o termo do escritório. -->
+<div id="fundoTermo" class="fundo" hidden>
+  <div id="termo" class="modal" role="dialog" aria-modal="true">
+    <div class="cab" id="termoTitulo"></div>
+    <div class="corpo">
+      <p id="termoAbertura"></p>
+      <div id="termoItens"></div>
+      <p class="perg" id="termoPergunta"></p>
+      <label class="campo"><span>Seu nome</span><input id="nomeAprovar" maxlength="120" autocomplete="name"></label>
+      <div class="bts"><button id="voltarTermo" type="button">VOLTAR</button><button id="confirmarAprovar" class="principal" type="button" disabled>APROVAR</button></div>
+      <p class="dica" id="termoDica"></p>
+      <p id="erroAprovar" class="erro" hidden></p>
+    </div>
+  </div>
+</div>
+
+<!-- A imagem em tela cheia. -->
+<div id="telaCheia" class="telaCheia" hidden><img id="imagemCheia" alt=""><button class="seta e" type="button" aria-label="anterior">‹</button><button class="seta d" type="button" aria-label="seguinte">›</button><button class="fechar" type="button" aria-label="fechar">✕</button><div class="legenda" id="legendaCheia"></div></div>
+<div id="nota" class="nota" hidden></div>
+
+<script src="/apresentacao/video.js"></script>
+<script src="/apresentacao/apresentacao.js"></script>
+</body>
+</html>
