@@ -91,6 +91,9 @@ Configurações feitas no painel, em ordem:
       (`public/tour`, copiada do repositório do programa por `node ferramentas/tour/copiar-para-o-site.mjs`).
    Durante o lançamento, o tour fica liberado para toda conta (`ajustes_tours.livres_no_lancamento`); o limite é de 20
    publicados por conta (`ajustes_tours.limite`).
+   **Publicado em 11/10/2026**, com o ÊDI, junto com o item 8: o bucket com o domínio (ativo) e o CORS (conferido: libera
+   `www.arquionie.com.br` e recusa outra origem), o token do R2 só nesse bucket, os três segredos do R2, a migração no SQL
+   Editor (conferido: `tour_abrir('ZZZZZZ')` responde `inexistente` e a tabela recusa o `anon`) e a função `tours`.
 
 8. **ENVIAR PARA O CLIENTE** (a página do cliente em `/t/CÓDIGO`: o vídeo, o tour e as imagens, SOLICITAR AJUSTES e APROVAR O
    PROJETO; mockup `docs/mockups/enviar-para-o-cliente.html` e contrato no doc 65 do repositório do programa, aprovados por ÊDI em
@@ -112,6 +115,21 @@ Configurações feitas no painel, em ordem:
       `node ferramentas/apresentacao/envio-de-prova.mjs` do repositório do programa (o `abrir.json` e os arquivos pela impressão).
    O `/t/CÓDIGO` passa a abrir `public/apresentacao` (o `vercel.json`); o código de um tour de antes (item 7) vai para a página do tour.
    O tour dentro da página é o `public/tour` (com a `maquete.js`), copiado por `node ferramentas/tour/copiar-para-o-site.mjs`.
+   **Publicado em 11/10/2026**, com o ÊDI (roteiro `docs/roteiros/publicar-o-enviar-para-o-cliente.md` do repositório do programa):
+   - **Banco:** a `20261011000000_apresentacoes.sql`, depois da dos tours. Conferido sem gravar nada:
+     `apresentacao_situacao('ZZZZZZ')` responde `inexistente`; as tabelas e a `apresentacao_vencidas` recusam o `anon`.
+   - **Segredos:** `LIMPEZA_SEGREDO`. A `RESEND_API_KEY` **não** foi criada, por decisão do ÊDI (11/10/2026): o `suporte@` é o
+     suporte do software, não um canal entre o escritório e o cliente dele, e as respostas do cliente aparecem no programa, ao
+     abrir o projeto (etapa 4 do doc 65). Sem a chave, a função `cliente` não manda e-mail.
+   - **Funções** `tours`, `apresentacoes` e `cliente` (esta com `--no-verify-jwt`), por `npx supabase functions deploy …
+     --use-api` (sem Docker) com uma chave de acesso temporária do Supabase: o login do CLI neste computador é o da conta da
+     Palheta, que não enxerga o projeto `arquionie`. Conferido: `tours` e `apresentacoes` recusam quem não tem conta; `cliente`
+     atende sem conta e recusa o `limpar` sem o segredo.
+   - **Tarefa diária:** as extensões `pg_cron` e `pg_net` ligadas; a tarefa `limpar-apresentacoes-vencidas`, `0 6 * * *` (o
+     relógio do Supabase é UTC: 3h em Brasília), POST na função `cliente` com o cabeçalho `x-limpeza` e o corpo
+     `{"acao":"limpar"}`. Rodada à mão às 12h12: a função respondeu 200.
+   - **Site:** o `git push` dos 7 commits que esperavam (até `4260ec1`). Conferido: `https://www.arquionie.com.br/t/ZZZZZZ`
+     diz "Apresentação não encontrada" e a página responde sem `X-Frame-Options` (o sistema Palheta pode abri-la num `iframe`).
 
 ## Pendente
 
