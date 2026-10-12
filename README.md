@@ -53,6 +53,10 @@ Configurações feitas no painel, em ordem:
       - A chave privada vai para a área de transferência: colar em **Edge Functions › Secrets** com o nome
         `LICENCA_CHAVE_PRIVADA`.
       - A pública fica em `supabase/functions/licenca-chave-publica.txt` e vai para o programa e o plugin.
+      - **Trocada em 12/10/2026.** Em 11/10, na publicação do item 8, uma senha da limpeza foi colada por engano no
+        `LICENCA_CHAVE_PRIVADA`, e a privada de 07/10 se perdeu (o Supabase não mostra o valor). Par novo gerado pelo ÊDI
+        com `--substituir`; conferido pelo resumo SHA-256 (o da página bate com o da chave gerada). Nenhum programa tinha a
+        pública antiga, então nada mais muda. Para colar um segredo, só a área de cima da página, nunca o menu de uma linha.
    3. **Funções `conectar` e `licenca`:** publicar o `index.ts` de cada uma com a verificação de JWT **desligada**,
       porque quem chama é o programa, sem conta ainda. Pelo painel (Edge Functions › Deploy a new function › Via
       editor) ou pelo CLI: `npx supabase functions deploy conectar --project-ref sowazotriildoeaxbhkl --no-verify-jwt`,
