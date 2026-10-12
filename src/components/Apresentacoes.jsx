@@ -152,7 +152,7 @@ function Cartao({ apresentacao, responsavel, aoMudar, aoErro }) {
           </div>
           {envio && (
             <div className="mt-0.5 text-[12.5px] text-aqi-muted">
-              {[`ENVIO ${envio.numero} · ${dataCurta(envio.em)}`, envio.paraQuem, envio.fase === 'final' ? 'apresentação final' : 'em aprovação',
+              {[`ENVIO ${envio.numero} · ${dataCurta(envio.em)}`, envio.paraQuem, envio.fase === 'final' ? 'entrega final' : 'estudo',
                 envio.enviadoPor ? `enviado por ${envio.enviadoPor}` : ''].filter(Boolean).join(' · ')}
             </div>
           )}

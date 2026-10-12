@@ -129,7 +129,8 @@
     if (e.site) $("marca").href = endereco(e.site); else $("marca").removeAttribute("href");
     $("nomeProjeto").textContent = d.nome;
     const final = envio.fase === "final";
-    $("fase").textContent = final ? "APRESENTAÇÃO FINAL" : `EM APROVAÇÃO · ENVIO ${envio.numero} · ${data(envio.em)}`;
+    // os nomes da fase desde 12/10/2026 (mockup enviar-no-painel do programa): ESTUDO e ENTREGA FINAL; no banco, 'aprovacao' e 'final'
+    $("fase").textContent = final ? "ENTREGA FINAL" : `ESTUDO · ENVIO ${envio.numero} · ${data(envio.em)}`;
     $("fase").classList.toggle("final", final);
     atualizarSituacao();
     // O vídeo, o tour e as imagens, na ordem do mockup; o que o envio não tem não aparece.
