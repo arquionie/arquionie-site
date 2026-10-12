@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Botao, Campo, Mensagem } from '@/components/Formulario';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Botao, Campo, Marcar, Mensagem } from '@/components/Formulario';
 import { supabase } from '@/lib/supabase';
 import { mensagemDeErro } from '@/lib/erros';
 import { useSessao } from '@/lib/Sessao';
@@ -9,7 +9,7 @@ import { dataLegivel } from '@/lib/manifesto';
 import { ATUACOES, EMAIL_CONTATO } from '@/config';
 import MeusTours from '@/components/MeusTours';
 import Apresentacoes from '@/components/Apresentacoes';
-import Equipe from '@/components/Equipe';
+import Equipe, { PlanoDaConta } from '@/components/Equipe';
 import { AMOSTRA_CONVITE, AMOSTRA_MINHAS_EQUIPES } from '@/lib/equipe';
 import {
   AMOSTRA, AMOSTRA_COMPUTADORES, AMOSTRA_MINHAS_LICENCAS, PLANOS, copiarTexto, dataCurta, estadoDaAmostra, nomeProduto, rotuloSituacao, textoConvite,
@@ -85,9 +85,7 @@ function Computadores() {
                     <td className="px-3 py-2.5">{new Date(c.ultimo_acesso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</td>
                     <td className="px-3 py-2.5">{c.versao ?? '—'}</td>
                     <td className="px-3 py-2.5 text-right">
-                      <button type="button" onClick={() => desconectar(c.id)} className="link text-[12px]">
-                        DESCONECTAR
-                      </button>
+                      <Botao pequeno nivel={3} type="button" onClick={() => desconectar(c.id)}>DESCONECTAR</Botao>
                     </td>
                   </tr>
                 ))}
@@ -201,27 +199,24 @@ function Licencas({ nome }) {
   const acoes = (l) => {
     const valendo = !['vencida', 'revogada'].includes(l.situacao);
     if (!valendo) return null;
+    // os botões pela hierarquia (DECISOES 11/10/2026): a terracota só na licença sem ninguém, que pede atenção; o mais forte à direita
     if (l.situacao === 'sem titular') {
       return (
-        <>
-          <button type="button" onClick={() => abrirPassar(l)} className="link text-[12px]">PASSAR PARA UM COLEGA</button>
-          {!usaOProduto(l.produto) && (
-            <button type="button" onClick={() => ficar(l)} className="link ml-4 text-[12px]">FICAR COM ESTA</button>
-          )}
-        </>
+        <div className="flex flex-wrap justify-end gap-2">
+          {!usaOProduto(l.produto) && <Botao pequeno nivel={2} type="button" onClick={() => ficar(l)}>FICAR COM ESTA</Botao>}
+          <Botao pequeno nivel={1} type="button" onClick={() => abrirPassar(l)}>PASSAR PARA UM COLEGA</Botao>
+        </div>
       );
     }
     return (
-      <>
-        {l.situacao === 'esperando a conta' && (
-          <button type="button" onClick={() => mostrarConvite(l)} className="link text-[12px]">COPIAR CONVITE</button>
-        )}
+      <div className="flex flex-wrap items-center justify-end gap-2">
         {l.proximaTroca ? (
-          <span className="ml-4 text-[12px] text-aqi-muted">próxima troca em {dataCurta(l.proximaTroca)}</span>
+          <span className="text-[12px] text-aqi-muted">próxima troca em {dataCurta(l.proximaTroca)}</span>
         ) : (
-          <button type="button" onClick={() => abrirPassar(l)} className="link ml-4 text-[12px]">TROCAR</button>
+          <Botao pequeno nivel={2} type="button" onClick={() => abrirPassar(l)}>TROCAR</Botao>
         )}
-      </>
+        {l.situacao === 'esperando a conta' && <Botao pequeno nivel={2} type="button" onClick={() => mostrarConvite(l)}>COPIAR CONVITE</Botao>}
+      </div>
     );
   };
 
@@ -292,7 +287,7 @@ function Licencas({ nome }) {
           </p>
           <Campo id="email-colega" rotulo="E-MAIL DO COLEGA" tipo="email" valor={email} aoMudar={setEmail} autoFocus />
           <div className="mt-3 flex justify-end gap-2.5">
-            <Botao type="button" onClick={() => { setAlvo(null); setErro(''); }}>CANCELAR</Botao>
+            <Botao nivel={3} type="button" onClick={() => { setAlvo(null); setErro(''); }}>CANCELAR</Botao>
             <Botao principal type="submit" disabled={ocupado}>{ocupado ? 'PASSANDO…' : 'PASSAR'}</Botao>
           </div>
         </form>
@@ -359,27 +354,24 @@ function TrocarSenha({ temSenha }) {
   );
 }
 
+// As novidades por e-mail, na caixa de marcar do formulário (mockup minha-conta-em-paginas, 12/10/2026). Os avisos da conta (códigos,
+// senha, segurança) chegam sempre.
 function Novidades({ ligado }) {
-  const [valor, setValor] = useState(ligado);
+  const [valor, setValor] = useState(!!ligado);
   const [erro, setErro] = useState('');
-  async function trocar() {
+  async function trocar(novo) {
     setErro('');
-    const novo = !valor;
-    const { error } = await supabase.auth.updateUser({ data: { novidades: novo } });
-    if (error) return setErro(mensagemDeErro(error));
+    if (!AMOSTRA) {
+      const { error } = await supabase.auth.updateUser({ data: { novidades: novo } });
+      if (error) return setErro(mensagemDeErro(error));
+    }
     setValor(novo);
   }
   return (
-    <>
-      <p className="text-[15px]">
-        Novidades por e-mail: <b className="text-white">{valor ? 'SIM' : 'NÃO'}</b> ·{' '}
-        <button type="button" onClick={trocar} className="link">
-          {valor ? 'NÃO QUERO MAIS' : 'QUERO RECEBER'}
-        </button>
-      </p>
-      <p className="mt-1 text-[13px] text-aqi-muted">Os avisos da conta (códigos, senha, segurança) chegam sempre; esta escolha vale só para as novidades.</p>
+    <div className="max-w-[640px]">
+      <Marcar id="novidades" marcado={valor} aoMudar={trocar}>Receber por e-mail as novidades do Arquionie (versões novas e recursos).</Marcar>
       <Mensagem erro>{erro}</Mensagem>
-    </>
+    </div>
   );
 }
 
@@ -447,31 +439,63 @@ function EquipeDoEscritorio({ equipe, aoSair }) {
       {saindo ? (
         <div className="mt-3 flex max-w-[640px] flex-wrap items-center gap-3 bg-aqi-barra px-3.5 py-2.5 text-[13.5px]">
           <span className="min-w-[240px] flex-1">Sair da equipe de <b className="text-white">{equipe.escritorio}</b>? Você deixa de ver as apresentações e os ajustes dele.</span>
+          <Botao nivel={3} type="button" onClick={() => setSaindo(false)}>VOLTAR</Botao>
           <Botao principal type="button" onClick={sair}>SAIR</Botao>
-          <Botao type="button" onClick={() => setSaindo(false)}>VOLTAR</Botao>
         </div>
       ) : (
-        <button type="button" onClick={() => setSaindo(true)} className="mt-3 text-[12px] font-semibold tracking-[0.04em] text-[#E8877B] underline underline-offset-[3px]">SAIR DA EQUIPE</button>
+        <Botao pequeno nivel={3} type="button" className="mt-3" onClick={() => setSaindo(true)}>SAIR DA EQUIPE</Botao>
       )}
       <Mensagem erro>{erro}</Mensagem>
     </>
   );
 }
 
+// MINHA CONTA em três páginas, cada uma com o seu endereço (mockup docs/mockups/minha-conta-em-paginas do repositório do programa,
+// aprovado por ÊDI em 12/10/2026): APRESENTAÇÕES (a primeira), EQUIPE E LICENÇAS e MEUS DADOS. Na área de um escritório em que a pessoa
+// está na equipe, só APRESENTAÇÕES e EQUIPE, em /conta/escritorio/NOME/... Os links de antes (/conta#licencas, #tours do programa,
+// #plano do CONECTAR) abrem a página nova certa.
+const PAGINAS = [
+  ['apresentacoes', 'APRESENTAÇÕES', 'Apresentações'],
+  ['equipe', 'EQUIPE E LICENÇAS', 'Equipe e licenças'],
+  ['dados', 'MEUS DADOS', 'Meus dados'],
+];
+const PAGINAS_DO_ESCRITORIO = [
+  ['apresentacoes', 'APRESENTAÇÕES', 'Apresentações'],
+  ['equipe', 'EQUIPE', 'Equipe'],
+];
+const PAGINA_DA_PARTE = {
+  apresentacoes: 'apresentacoes', tours: 'apresentacoes',
+  equipe: 'equipe', licencas: 'equipe', computadores: 'equipe', plano: 'equipe',
+  dados: 'dados', senha: 'dados', emails: 'dados', privacidade: 'dados',
+};
+const ATALHOS = {
+  equipe: [['equipe', 'EQUIPE'], ['licencas', 'LICENÇAS'], ['computadores', 'COMPUTADORES']],
+  dados: [['dados', 'CONTA'], ['senha', 'SENHA'], ['emails', 'E-MAILS'], ['privacidade', 'PRIVACIDADE']],
+};
+
+// o nome do escritório no endereço: "PALHETA ARQUITETURA" vira "palheta-arquitetura"
+const nomeNoEndereco = (e) =>
+  e.escritorio.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || e.responsavel;
+
 export default function Conta() {
   const { usuario } = useSessao();
   const navegar = useNavigate();
+  const local = useLocation();
   const d = dadosDaConta(usuario);
   const atuacao = ATUACOES.find((a) => a.valor === d.atuacao)?.rotulo.toLowerCase() ?? d.atuacao;
-  // as equipes em que a pessoa está (as áreas) e os convites para confirmar
-  const [equipes, setEquipes] = useState([]);
-  const [area, setArea] = useState(null);
+  const [, , primeira, segunda, terceira] = local.pathname.replace(/\/+$/, '').split('/');
+  const noEscritorio = primeira === 'escritorio';
+  const pagina = noEscritorio ? terceira ?? 'apresentacoes' : primeira;
+  const caminho = (p, e = null) => `/conta/${e ? `escritorio/${nomeNoEndereco(e)}/` : ''}${p}${local.search}`;
+
+  // as equipes em que a pessoa está (as áreas) e os convites para confirmar; null enquanto carrega
+  const [equipes, setEquipes] = useState(null);
   const lerEquipes = async () => {
     if (AMOSTRA) {
       const qual = estadoDaAmostra();
       const lista = qual === 'convite' ? AMOSTRA_CONVITE : qual === 'equipe' ? AMOSTRA_MINHAS_EQUIPES : [];
       setEquipes(lista);
-      if (qual === 'equipe') setArea(lista[0].responsavel);
+      if (qual === 'equipe' && !noEscritorio && !primeira) navegar(caminho('apresentacoes', lista[0]), { replace: true });
       return;
     }
     const { data, error } = await supabase.rpc('minhas_equipes');
@@ -480,99 +504,126 @@ export default function Conta() {
   useEffect(() => {
     lerEquipes();
   }, []);
-  const ativas = equipes.filter((e) => e.situacao === 'ativo');
-  const convites = equipes.filter((e) => e.situacao === 'convidado');
-  const doEscritorio = ativas.find((e) => e.responsavel === area) ?? null;
+  const ativas = (equipes ?? []).filter((e) => e.situacao === 'ativo');
+  const convites = (equipes ?? []).filter((e) => e.situacao === 'convidado');
+  const doEscritorio = noEscritorio ? ativas.find((e) => nomeNoEndereco(e) === segunda || e.responsavel === segunda) ?? null : null;
+  const lista = doEscritorio ? PAGINAS_DO_ESCRITORIO : PAGINAS;
+  const titulo = lista.find(([p]) => p === pagina)?.[2];
+
   function aoResponder(convite, entrar) {
     setEquipes((l) => (entrar ? l.map((e) => (e.responsavel === convite.responsavel ? { ...e, situacao: 'ativo', pessoas: e.pessoas.length ? e.pessoas : [{ email: d.email, nome: d.nome, voce: true }] } : e))
       : l.filter((e) => e.responsavel !== convite.responsavel)));
-    if (entrar) setArea(convite.responsavel);
+    if (entrar) navegar(caminho('apresentacoes', convite));
     if (!AMOSTRA) lerEquipes();
   }
   function aoSair(equipe) {
     setEquipes((l) => l.filter((e) => e.responsavel !== equipe.responsavel));
-    setArea(null);
+    navegar(caminho('apresentacoes'));
   }
+
+  // o título da aba do navegador acompanha a página (o leitor de tela anuncia), e a parte do endereço (#licencas) rola até ela
+  useEffect(() => {
+    if (!titulo) return undefined;
+    const antes = document.title;
+    document.title = `${doEscritorio ? `${titulo} · ${doEscritorio.escritorio}` : titulo} · Arquionie™`;
+    return () => { document.title = antes; };
+  }, [titulo, doEscritorio]);
+  useEffect(() => {
+    if (!titulo) return;
+    const parte = local.hash.slice(1);
+    if (parte) setTimeout(() => document.getElementById(parte)?.scrollIntoView(), 0);
+    else window.scrollTo(0, 0);
+  }, [titulo, local.hash]);
 
   async function sair() {
     await supabase.auth.signOut();
     navegar('/', { replace: true });
   }
 
+  // /conta sozinho, um link de antes (/conta#licencas) ou uma página que não existe: a página certa
+  if (!noEscritorio && !titulo) {
+    const parte = local.hash.slice(1);
+    return <Navigate to={`/conta/${PAGINA_DA_PARTE[parte] ?? 'apresentacoes'}${local.search}${parte && PAGINA_DA_PARTE[parte] ? local.hash : ''}`} replace />;
+  }
+  if (noEscritorio && equipes === null) return <p className="px-4 py-16 text-center text-aqi-muted">Carregando…</p>;
+  if (noEscritorio && (!doEscritorio || !titulo)) return <Navigate to={caminho('apresentacoes')} replace />;
+
   const pedidoExclusao = `mailto:${EMAIL_CONTATO}?subject=${encodeURIComponent('Excluir a minha conta do Arquionie')}&body=${encodeURIComponent(
     `Peço a exclusão da conta ${d.email} e dos meus dados.`,
   )}`;
 
-  // as áreas em abas: a MINHA ÁREA e a de cada escritório em que a pessoa está na equipe (mockup aprovado em 11/10/2026)
+  // as áreas no alto: a MINHA ÁREA e a de cada escritório em que a pessoa está na equipe (mockup aprovado em 11/10/2026)
   const abasDasAreas = ativas.length > 0 && (
-    <div role="tablist" aria-label="Áreas da conta" className="mx-auto flex max-w-[1100px] flex-wrap gap-x-2 border-b border-[#262D37] px-4 text-[12px] font-semibold tracking-[0.06em] sm:px-7">
-      {[{ id: null, nome: 'MINHA ÁREA' }, ...ativas.map((e) => ({ id: e.responsavel, nome: e.escritorio.toUpperCase() }))].map((a) => (
-        <button key={a.id ?? 'minha'} type="button" role="tab" aria-selected={area === a.id} onClick={() => setArea(a.id)}
-          className={`-mb-px border-b-2 px-3 py-2.5 ${area === a.id ? 'border-aqi-coral text-aqi-coral' : 'border-transparent text-aqi-muted hover:text-aqi-texto'}`}>
-          {a.nome}
-          {a.id && <small className="ml-1.5 font-normal tracking-normal text-aqi-muted">área do escritório</small>}
-        </button>
-      ))}
-    </div>
+    <nav aria-label="Áreas da conta" className="mx-auto flex max-w-[1100px] flex-wrap gap-x-2 border-b border-[#262D37] px-4 text-[12px] font-semibold tracking-[0.06em] sm:px-7">
+      {[null, ...ativas].map((e) => {
+        const aqui = e ? doEscritorio?.responsavel === e.responsavel : !doEscritorio;
+        return (
+          <Link key={e?.responsavel ?? 'minha'} to={caminho('apresentacoes', e)} aria-current={aqui ? 'page' : undefined}
+            className={`-mb-px border-b-2 px-3 py-2.5 no-underline ${aqui ? 'border-aqi-coral text-aqi-coral' : 'border-transparent text-aqi-muted hover:text-aqi-texto'}`}>
+            {e ? e.escritorio.toUpperCase() : 'MINHA ÁREA'}
+            {e && <small className="ml-1.5 font-normal tracking-normal text-aqi-muted">área do escritório</small>}
+          </Link>
+        );
+      })}
+    </nav>
   );
 
-  if (doEscritorio) {
-    return (
+  // o menu das páginas: à esquerda no computador; no celular, uma faixa de abas no alto
+  const menu = (
+    <nav aria-label={doEscritorio ? `Páginas de ${doEscritorio.escritorio}` : 'Minha conta'}
+      className="-mx-4 flex gap-x-1 overflow-x-auto border-b border-[#262D37] px-4 text-[12px] font-semibold tracking-[0.08em] md:mx-0 md:block md:overflow-visible md:border-0 md:px-0">
+      {lista.map(([p, rotulo]) => (
+        <Link key={p} to={caminho(p, doEscritorio)} aria-current={p === pagina ? 'page' : undefined}
+          className={`shrink-0 whitespace-nowrap border-b-2 px-2 py-2.5 no-underline md:block md:border-b md:border-[#262D37] md:px-0 ${
+            p === pagina ? 'border-aqi-coral text-aqi-coral' : 'border-transparent text-aqi-muted hover:text-aqi-texto'}`}>
+          {rotulo}
+        </Link>
+      ))}
+      <button type="button" onClick={sair} className="shrink-0 px-2 py-2.5 text-left text-aqi-muted hover:text-aqi-texto md:mt-4 md:block md:px-0">
+        SAIR
+      </button>
+    </nav>
+  );
+
+  const atalhos = !doEscritorio && ATALHOS[pagina] && (
+    <nav aria-label="Nesta página" className="mb-7 flex flex-wrap gap-x-4 gap-y-1 border-b border-[#262D37] pb-3 text-[11.5px] font-semibold tracking-[0.08em] text-aqi-muted">
+      <span>NESTA PÁGINA:</span>
+      {ATALHOS[pagina].map(([id, rotulo]) => (
+        <a key={id} href={`#${id}`} className="no-underline text-aqi-texto hover:text-aqi-coral">{rotulo}</a>
+      ))}
+    </nav>
+  );
+
+  let conteudo;
+  if (doEscritorio && pagina === 'apresentacoes') conteudo = <Apresentacoes area={doEscritorio.responsavel} />;
+  else if (doEscritorio) conteudo = <EquipeDoEscritorio equipe={doEscritorio} aoSair={aoSair} />;
+  else if (pagina === 'apresentacoes') {
+    conteudo = (
       <>
-        {abasDasAreas}
-        <div className="mx-auto grid max-w-[1100px] gap-8 px-4 py-10 sm:px-7 md:grid-cols-[220px_1fr]">
-          <nav className="text-[12px] font-semibold tracking-[0.08em]" aria-label="Área do escritório">
-            {[['#apresentacoes', 'APRESENTAÇÕES'], ['#equipe', 'EQUIPE']].map(([href, rotulo], i) => (
-              <a key={href} href={href} className={`block border-b border-[#262D37] py-2.5 no-underline ${i === 0 ? 'text-aqi-coral' : 'text-aqi-muted hover:text-aqi-texto'}`}>{rotulo}</a>
-            ))}
-            <p className="pb-1 pt-4 text-[10px] tracking-[0.1em] text-aqi-muted">MINHA ÁREA</p>
-            {[['#dados', 'MINHA CONTA'], ['#licencas', 'LICENÇAS'], ['#computadores', 'COMPUTADORES']].map(([href, rotulo]) => (
-              <button key={href} type="button" onClick={() => { setArea(null); setTimeout(() => { window.location.hash = href; }, 0); }}
-                className="block w-full border-b border-[#262D37] py-2.5 text-left text-aqi-muted hover:text-aqi-texto">{rotulo}</button>
-            ))}
-            <button type="button" onClick={sair} className="mt-4 block py-2 text-aqi-muted hover:text-aqi-texto">SAIR</button>
-          </nav>
-          <div>
-            {convites.map((c) => <ConviteDaEquipe key={c.responsavel} convite={c} aoResponder={aoResponder} />)}
-            <Bloco id="apresentacoes" titulo={`Apresentações · ${doEscritorio.escritorio}`}>
-              <Apresentacoes area={doEscritorio.responsavel} />
-            </Bloco>
-            <Bloco id="equipe" titulo={`Equipe · ${doEscritorio.escritorio}`}>
-              <EquipeDoEscritorio equipe={doEscritorio} aoSair={aoSair} />
-            </Bloco>
-          </div>
-        </div>
+        <Apresentacoes />
+        {/* os tours publicados antes do ENVIAR PARA O CLIENTE, até vencerem; sem nenhum, a seção some */}
+        <MeusTours soComTours />
       </>
     );
-  }
-
-  return (
-    <>
-    {abasDasAreas}
-    <div className="mx-auto grid max-w-[1100px] gap-8 px-4 py-10 sm:px-7 md:grid-cols-[220px_1fr]">
-      <nav className="text-[12px] font-semibold tracking-[0.08em]" aria-label="Minha conta">
-        {[
-          ['#dados', 'MINHA CONTA'],
-          ['#licencas', 'LICENÇAS'],
-          ['#apresentacoes', 'APRESENTAÇÕES'],
-          ['#equipe', 'EQUIPE'],
-          ['#computadores', 'COMPUTADORES'],
-          ['#senha', 'SENHA'],
-          ['#emails', 'E-MAILS'],
-          ['#privacidade', 'PRIVACIDADE'],
-        ].map(([href, rotulo], i) => (
-          <a key={href} href={href} className={`block border-b border-[#262D37] py-2.5 no-underline ${i === 0 ? 'text-aqi-coral' : 'text-aqi-muted hover:text-aqi-texto'}`}>
-            {rotulo}
-          </a>
-        ))}
-        <button type="button" onClick={sair} className="mt-4 block py-2 text-aqi-muted hover:text-aqi-texto">
-          SAIR
-        </button>
-      </nav>
-
-      <div>
-        {convites.map((c) => <ConviteDaEquipe key={c.responsavel} convite={c} aoResponder={aoResponder} />)}
-        <Bloco id="dados" titulo="Minha conta">
+  } else if (pagina === 'equipe') {
+    conteudo = (
+      <>
+        <Bloco id="equipe" titulo="Equipe">
+          <Equipe />
+        </Bloco>
+        <Bloco id="licencas" titulo="Licenças">
+          <Licencas nome={d.nome || d.email} />
+        </Bloco>
+        <Bloco id="computadores" titulo="Computadores conectados">
+          <Computadores />
+          <PlanoDaConta />
+        </Bloco>
+      </>
+    );
+  } else {
+    conteudo = (
+      <>
+        <Bloco id="dados" titulo="Conta">
           <p className="text-[15px]">
             {d.nome || 'Sem nome'} · {d.email} · {atuacao}
           </p>
@@ -581,20 +632,6 @@ export default function Conta() {
             Durante o lançamento, a conta usa o Arquionie™ por completo, sem custo.
           </p>
         </Bloco>
-        <Bloco id="licencas" titulo="Licenças">
-          <Licencas nome={d.nome || d.email} />
-        </Bloco>
-        <Bloco id="apresentacoes" titulo="Apresentações">
-          <Apresentacoes />
-          {/* os tours publicados antes do ENVIAR PARA O CLIENTE, até vencerem; sem nenhum, a seção some */}
-          <MeusTours soComTours />
-        </Bloco>
-        <Bloco id="equipe" titulo="Equipe">
-          <Equipe />
-        </Bloco>
-        <Bloco id="computadores" titulo="Computadores conectados">
-          <Computadores />
-        </Bloco>
         <Bloco id="senha" titulo="Senha">
           <TrocarSenha temSenha={d.pelaSenha} />
         </Bloco>
@@ -602,19 +639,32 @@ export default function Conta() {
           <Novidades ligado={d.novidades} />
         </Bloco>
         <Bloco id="privacidade" titulo="Privacidade">
-          <p className="mb-2 text-[14px] text-aqi-muted">
-            Os seus projetos ficam no seu computador; a conta guarda o cadastro, os computadores conectados e os tours que você publica. Veja a{' '}
+          <p className="mb-3 text-[14px] text-aqi-muted">
+            Os seus projetos ficam no seu computador; a conta guarda o cadastro, os computadores conectados e as apresentações que você publica.
+            Veja a{' '}
             <a href="/privacidade" className="link">
               política de privacidade
             </a>
             .
           </p>
-          <a href={pedidoExclusao} className="text-[14px] text-[#E8877B] underline">
-            Pedir a exclusão da minha conta e dos meus dados
-          </a>
+          <Botao pequeno nivel={3} href={pedidoExclusao}>PEDIR A EXCLUSÃO DA CONTA E DOS DADOS</Botao>
         </Bloco>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {abasDasAreas}
+      <div className="mx-auto grid max-w-[1100px] gap-6 px-4 py-6 sm:px-7 md:grid-cols-[220px_1fr] md:gap-8 md:py-10">
+        {menu}
+        <div className="min-w-0">
+          {!doEscritorio && convites.map((c) => <ConviteDaEquipe key={c.responsavel} convite={c} aoResponder={aoResponder} />)}
+          <h1 className="mb-1 text-[20px] font-semibold text-white">{doEscritorio ? `${titulo} · ${doEscritorio.escritorio}` : titulo}</h1>
+          {atalhos || <div className="mb-3" />}
+          {conteudo}
+        </div>
       </div>
-    </div>
     </>
   );
 }

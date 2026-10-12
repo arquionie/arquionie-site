@@ -33,7 +33,8 @@ export function etiquetaDaApresentacao(apresentacao) {
   if (envio.situacao === 'aprovado') return { texto: 'APROVADO', tipo: 'aprovado' };
   if (envio.situacao === 'ajustes') {
     const faltam = ajustesAFazer(envio);
-    return faltam > 0 ? { texto: `AJUSTES (${faltam})`, tipo: 'ajustes' } : { texto: 'AJUSTES FEITOS', tipo: 'espera' };
+    // o número antes da palavra: "2 AJUSTES", não "AJUSTES (2)" (ÊDI, 12/10/2026)
+    return faltam > 0 ? { texto: `${faltam} ${faltam === 1 ? 'AJUSTE' : 'AJUSTES'}`, tipo: 'ajustes' } : { texto: 'AJUSTES FEITOS', tipo: 'espera' };
   }
   return { texto: 'AGUARDANDO', tipo: 'espera' };
 }

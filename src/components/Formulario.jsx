@@ -92,12 +92,21 @@ export function Marcar({ id, marcado, aoMudar, falta, children }) {
   );
 }
 
-export function Botao({ principal, children, className = '', ...resto }) {
-  const base =
-    'inline-flex h-[40px] min-w-[129px] items-center justify-center px-4 text-[13px] font-bold tracking-wide transition-colors disabled:cursor-not-allowed';
-  const estilo = principal
-    ? 'bg-aqi-botao text-white hover:bg-aqi-botaohover disabled:bg-aqi-painel disabled:text-aqi-muted'
-    : 'border border-aqi-borda bg-aqi-barra text-aqi-texto hover:bg-aqi-faixa';
+// Os botões em três níveis do programa (DECISOES 11/10/2026): 1 a terracota, a ação principal ou a que pede atenção; 2 o tom do
+// campo, o que abre ou ajuda; 3 o cinza, o pausar, o apagar, o voltar. Sem nível, o contorno de antes (entrar e criar a conta).
+// "pequeno" é o das listas e dos cartões; com href, vira um link com a cara de botão.
+const NIVEL = {
+  1: 'bg-aqi-botao text-white hover:bg-aqi-botaohover disabled:bg-aqi-painel disabled:text-aqi-muted',
+  2: 'bg-aqi-campo text-white hover:bg-aqi-campohover disabled:opacity-60',
+  3: 'bg-aqi-painel text-aqi-texto hover:bg-aqi-fundo hover:text-white disabled:opacity-60',
+};
+
+export function Botao({ principal, nivel, pequeno, href, children, className = '', ...resto }) {
+  const n = principal ? 1 : nivel;
+  const base = `inline-flex items-center justify-center whitespace-nowrap font-bold no-underline transition-colors disabled:cursor-not-allowed ${
+    pequeno ? 'h-[30px] px-3 text-[11px] tracking-[0.06em]' : 'h-[40px] min-w-[129px] px-4 text-[13px] tracking-wide'}`;
+  const estilo = n ? NIVEL[n] : 'border border-aqi-borda bg-aqi-barra text-aqi-texto hover:bg-aqi-faixa';
+  if (href) return <a href={href} className={`${base} ${estilo} ${className}`} {...resto}>{children}</a>;
   return (
     <button className={`${base} ${estilo} ${className}`} {...resto}>
       {children}

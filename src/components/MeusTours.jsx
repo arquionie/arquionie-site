@@ -88,29 +88,26 @@ export default function MeusTours({ soComTours = false }) {
             const pausado = t.situacao === 'pausado';
             const ultima = quandoLegivel(t.ultimaVisita);
             return (
-              <div key={t.id} className="grid gap-3 border-b border-[#262D37] py-3 sm:grid-cols-[136px_minmax(0,1fr)_300px] sm:items-center sm:gap-4">
-                {capaDoTour(t.capa) ? (
-                  <img src={capaDoTour(t.capa)} alt="" className={`aspect-video w-full object-cover sm:w-[136px] ${pausado ? 'brightness-[.6] grayscale' : ''}`} />
-                ) : (
-                  <div className="aspect-video w-full bg-aqi-barra sm:w-[136px]" />
-                )}
-                <div className="min-w-0">
-                  <div className="text-[14px] font-semibold text-white">
-                    {t.nome}
-                    {pausado && <span className="ml-2 border border-aqi-borda px-1.5 align-[2px] text-[10.5px] font-bold tracking-wide text-aqi-muted">PAUSADO</span>}
+              // o mesmo cartão das APRESENTAÇÕES: em cima o tour e o link; embaixo, a faixa com as visitas e os botões
+              <div key={t.id} className="mt-2.5 bg-aqi-barra">
+                <div className="grid gap-3 px-3.5 py-3 sm:grid-cols-[136px_minmax(0,1fr)_300px] sm:items-center sm:gap-4">
+                  {capaDoTour(t.capa) ? (
+                    <img src={capaDoTour(t.capa)} alt="" className={`aspect-video w-full object-cover sm:w-[136px] ${pausado ? 'brightness-[.6] grayscale' : ''}`} />
+                  ) : (
+                    <div className="aspect-video w-full bg-aqi-faixa sm:w-[136px]" />
+                  )}
+                  <div className="min-w-0">
+                    <div className="text-[14px] font-semibold text-white">
+                      {t.nome}
+                      {pausado && <span className="ml-2 border border-aqi-borda px-1.5 align-[2px] text-[10.5px] font-bold tracking-wide text-aqi-muted">PAUSADO</span>}
+                    </div>
+                    <div className="mt-0.5 text-[12.5px] text-aqi-muted">
+                      {[t.passeio, `${t.paradas} paradas`, tamanhoLegivel(t.tamanho), `publicado em ${dataCurta(t.publicadoEm)}`].filter(Boolean).join(' · ')}
+                      {t.atualizadoEm && t.publicadoEm && t.atualizadoEm.slice(0, 16) !== t.publicadoEm.slice(0, 16) ? `, atualizado ${quandoLegivel(t.atualizadoEm)}` : ''}
+                    </div>
                   </div>
-                  <div className="mt-0.5 text-[12.5px] text-aqi-muted">
-                    {[t.passeio, `${t.paradas} paradas`, tamanhoLegivel(t.tamanho), `publicado em ${dataCurta(t.publicadoEm)}`].filter(Boolean).join(' · ')}
-                    {t.atualizadoEm && t.publicadoEm && t.atualizadoEm.slice(0, 16) !== t.publicadoEm.slice(0, 16) ? `, atualizado ${quandoLegivel(t.atualizadoEm)}` : ''}
-                  </div>
-                  <div className="mt-1 text-[12.5px]">
-                    <b className="text-white">{t.visitas}</b> {t.visitas === 1 ? 'visita' : 'visitas'}
-                    {ultima ? ` · a última ${ultima}` : ''}
-                  </div>
-                </div>
-                <div>
                   <div className="flex">
-                    <span className={`min-w-0 flex-1 truncate border border-[#262D37] bg-aqi-barra px-2.5 py-[7px] text-[13px] ${pausado ? 'text-aqi-muted line-through' : 'text-white'}`}>
+                    <span className={`min-w-0 flex-1 truncate border border-[#262D37] bg-aqi-pagina px-2.5 py-[7px] text-[13px] ${pausado ? 'text-aqi-muted line-through' : 'text-white'}`}>
                       {linkCurto(t.codigo)}
                     </span>
                     <button type="button" onClick={() => copiar(t)}
@@ -118,20 +115,26 @@ export default function MeusTours({ soComTours = false }) {
                       {copiado === t.id ? '✓ COPIADO' : 'COPIAR'}
                     </button>
                   </div>
-                  <div className="mt-2 flex justify-end gap-3.5 text-[11.5px] font-semibold tracking-[0.06em]">
-                    <a href={linkDoTour(t.codigo)} target="_blank" rel="noreferrer" className="link">ABRIR</a>
-                    <button type="button" onClick={() => pausar(t, !pausado)} className="link">{pausado ? 'REATIVAR' : 'PAUSAR'}</button>
-                    <button type="button" onClick={() => setExcluindo(t.id)} className="text-[#E8877B] underline underline-offset-[3px]">EXCLUIR</button>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-[#262D37] bg-aqi-faixa px-3.5 py-2 text-[12.5px] text-aqi-muted">
+                  <span className="mr-auto">
+                    <b className="text-white">{t.visitas}</b> {t.visitas === 1 ? 'visita' : 'visitas'}
+                    {ultima ? ` · a última ${ultima}` : ''}
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    <Botao pequeno nivel={3} type="button" onClick={() => setExcluindo(t.id)}>EXCLUIR</Botao>
+                    <Botao pequeno nivel={pausado ? 2 : 3} type="button" onClick={() => pausar(t, !pausado)}>{pausado ? 'REATIVAR' : 'PAUSAR'}</Botao>
+                    <Botao pequeno nivel={2} href={linkDoTour(t.codigo)} target="_blank" rel="noreferrer">ABRIR</Botao>
                   </div>
                 </div>
                 {excluindo === t.id && (
-                  <div className="flex flex-wrap items-center gap-3 bg-aqi-barra px-3.5 py-2.5 text-[13.5px] sm:col-span-3">
+                  <div className="flex flex-wrap items-center gap-3 border-t border-[#262D37] px-3.5 py-2.5 text-[13.5px]">
                     <span className="min-w-[240px] flex-1">
                       Excluir o tour <b className="text-white">{t.passeio || t.nome}</b>? O link deixa de funcionar e os arquivos saem do servidor. Não dá
                       para desfazer.
                     </span>
+                    <Botao nivel={3} type="button" onClick={() => setExcluindo(null)}>VOLTAR</Botao>
                     <Botao principal type="button" disabled={ocupado} onClick={() => excluir(t)}>{ocupado ? 'EXCLUINDO…' : 'EXCLUIR'}</Botao>
-                    <Botao type="button" onClick={() => setExcluindo(null)}>VOLTAR</Botao>
                   </div>
                 )}
               </div>

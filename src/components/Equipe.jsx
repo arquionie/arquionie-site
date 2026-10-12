@@ -9,7 +9,7 @@ import { AMOSTRA_MINHA_EQUIPE, textoConviteDaEquipe } from '@/lib/equipe';
 // MINHA CONTA › EQUIPE, na conta do responsável (mockup docs/mockups/equipe-e-apresentacoes do repositório do programa, aprovado
 // por ÊDI em 11/10/2026; migração 20261011010000_equipe_e_plano.sql). O responsável digita o e-mail e CADASTRA; quem já tem conta
 // confirma na própria conta; quem não tem fica ESPERANDO A CONTA, com o COPIAR CONVITE para mandar pelo WhatsApp (o Arquionie não
-// manda e-mail). TIRAR DA EQUIPE vale na hora. Embaixo, os computadores da conta e o SOLICITAR PLANO PERSONALIZADO.
+// manda e-mail). TIRAR DA EQUIPE vale na hora. O SOLICITAR PLANO PERSONALIZADO fica embaixo dos computadores (PlanoDaConta).
 
 const SELO = {
   ativo: ['EQUIPE', 'border border-aqi-borda text-white'],
@@ -54,16 +54,18 @@ export function PlanoPersonalizado({ pedido, aoEnviar, aberto: abertoNoComeco = 
   const pendente = pedido && !pedido.respondidoEm;
   if (!aberto) {
     return (
-      <span className="text-[13px]">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] text-aqi-muted">
         {pendente ? (
-          <span className="text-aqi-muted">
-            <b className="text-white">PEDIDO ENVIADO EM {dataCurta(pedido.em)}</b> ({pedido.pessoas} pessoas) · a gente chama no WhatsApp para montar o plano ·{' '}
+          <span>
+            <b className="text-white">PEDIDO ENVIADO EM {dataCurta(pedido.em)}</b> · {pedido.pessoas} pessoas · a gente chama no WhatsApp para montar o plano
           </span>
-        ) : null}
-        <button type="button" onClick={() => setAberto(true)} className="link font-semibold tracking-[0.04em]">
+        ) : (
+          <span>Mais gente usando ao mesmo tempo?</span>
+        )}
+        <Botao pequeno nivel={2} type="button" onClick={() => setAberto(true)}>
           {pendente ? 'MUDAR O PEDIDO' : 'SOLICITAR PLANO PERSONALIZADO'}
-        </button>
-      </span>
+        </Botao>
+      </div>
     );
   }
   return (
@@ -76,7 +78,7 @@ export function PlanoPersonalizado({ pedido, aoEnviar, aberto: abertoNoComeco = 
         A gente chama no WhatsApp para montar o plano. Com o plano fechado, as contas a mais aparecem em LICENÇAS, para você passar a quem vai usar.
       </p>
       <div className="mt-3 flex justify-end gap-2.5">
-        <Botao type="button" onClick={() => { setAberto(false); setErro(''); }}>CANCELAR</Botao>
+        <Botao nivel={3} type="button" onClick={() => { setAberto(false); setErro(''); }}>CANCELAR</Botao>
         <Botao principal type="submit" disabled={ocupado}>{ocupado ? 'ENVIANDO…' : 'ENVIAR PEDIDO'}</Botao>
       </div>
       <div className="mt-2"><Mensagem erro>{erro}</Mensagem></div>
@@ -157,9 +159,8 @@ export default function Equipe({ aoMudar }) {
   return (
     <>
       <p className="mb-3 max-w-[72ch] text-[14px] text-aqi-muted">
-        Quem você cadastrar aqui entra com o próprio e-mail ou com o Google e passa a ver a área do escritório: as apresentações, os ajustes
-        dos clientes e os envios. No programa, abre os projetos do escritório e recebe os ajustes que chegam. A licença de cada pessoa continua
-        em LICENÇAS.
+        Quem você cadastrar aqui entra com o próprio e-mail ou com o Google e vê a área do escritório: as apresentações e os ajustes dos
+        clientes. No programa, abre os projetos do escritório.
       </p>
       <form onSubmit={cadastrar} className="mb-4 grid max-w-[640px] grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
         <Campo id="equipe-email" rotulo="E-MAIL" tipo="email" valor={email} aoMudar={setEmail} placeholder="nome@escritorio.com.br" />
@@ -194,10 +195,10 @@ export default function Equipe({ aoMudar }) {
                 </td>
                 <td className="px-3 py-2.5"><Selo situacao={p.situacao} /></td>
                 <td className="px-3 py-2.5">{situacao(p)}</td>
-                <td className="px-3 py-2.5 text-right text-[12px] font-semibold tracking-[0.04em]">
-                  <div className="flex flex-col items-end gap-1.5 whitespace-nowrap">
-                    {p.situacao === 'esperando' && <button type="button" onClick={() => mostrarConvite(p)} className="link">COPIAR CONVITE</button>}
-                    <button type="button" onClick={() => setTirando(p)} className="text-[#E8877B] underline underline-offset-[3px]">TIRAR DA EQUIPE</button>
+                <td className="px-3 py-2.5 text-right">
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <Botao pequeno nivel={3} type="button" onClick={() => setTirando(p)}>TIRAR DA EQUIPE</Botao>
+                    {p.situacao === 'esperando' && <Botao pequeno nivel={2} type="button" onClick={() => mostrarConvite(p)}>COPIAR CONVITE</Botao>}
                   </div>
                 </td>
               </tr>
@@ -212,8 +213,8 @@ export default function Equipe({ aoMudar }) {
             Tirar <b className="text-white">{tirando.nome || tirando.email}</b> da equipe? Deixa de ver as apresentações e os ajustes do escritório na hora.
             O que já fez fica no histórico com o nome.
           </span>
+          <Botao nivel={3} type="button" onClick={() => setTirando(null)}>VOLTAR</Botao>
           <Botao principal type="button" disabled={ocupado} onClick={() => tirar(tirando)}>{ocupado ? 'TIRANDO…' : 'TIRAR'}</Botao>
-          <Botao type="button" onClick={() => setTirando(null)}>VOLTAR</Botao>
         </div>
       )}
 
@@ -230,17 +231,23 @@ export default function Equipe({ aoMudar }) {
         </div>
       )}
 
-      <div id="plano" className="mt-5 scroll-mt-6 border-t border-[#262D37] pt-3">
-        <p className="mb-1 text-[11px] font-semibold tracking-[0.1em] text-aqi-muted">COMPUTADORES AO MESMO TEMPO</p>
-        <p className="mb-1 text-[13.5px]">
-          A conta do escritório: <b className="text-white">{dados.computadores} de {dados.limiteComputadores}</b> computadores conectados. Quem é do
-          escritório pode entrar com a conta do escritório em até {dados.limiteComputadores} computadores ao mesmo tempo; com mais gente, o escritório
-          precisa de mais contas.
-        </p>
-        <PlanoPersonalizado pedido={dados.pedidoDePlano} aberto={window.location.hash === '#plano'}
-          aoEnviar={(pedido) => setDados((d) => ({ ...d, pedidoDePlano: pedido }))} />
-      </div>
       <div className="mt-2"><Mensagem erro>{erro}</Mensagem></div>
     </>
+  );
+}
+
+// O SOLICITAR PLANO PERSONALIZADO embaixo dos computadores, na EQUIPE E LICENÇAS (mockup minha-conta-em-paginas, 12/10/2026). O pedido
+// de antes vem de minha_equipe; o #plano (do aviso do quarto computador, no CONECTAR) já abre o formulário.
+export function PlanoDaConta() {
+  const [pedido, setPedido] = useState(undefined);
+  useEffect(() => {
+    if (AMOSTRA) return setPedido(AMOSTRA_MINHA_EQUIPE.pedidoDePlano);
+    supabase.rpc('minha_equipe').then(({ data, error }) => setPedido(error ? null : data?.pedidoDePlano ?? null));
+  }, []);
+  if (pedido === undefined) return null;
+  return (
+    <div id="plano" className="mt-3 scroll-mt-6">
+      <PlanoPersonalizado pedido={pedido} aberto={window.location.hash === '#plano'} aoEnviar={setPedido} />
+    </div>
   );
 }

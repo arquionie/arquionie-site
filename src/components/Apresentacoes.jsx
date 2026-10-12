@@ -62,7 +62,7 @@ function Ajustes({ apresentacao }) {
   const [abertos, setAbertos] = useState(() => new Set());
   const comPedidos = apresentacao.envios.filter((e) => e.pedidos?.length || e.aprovacao);
   return (
-    <div className="grid gap-2.5 bg-aqi-faixa px-3.5 py-3 sm:col-span-3">
+    <div className="grid gap-2.5 border-t border-[#262D37] bg-aqi-faixa px-3.5 py-3">
       {comPedidos.map((envio, i) => {
         const aberto = i === 0 || abertos.has(envio.id);
         if (!aberto) {
@@ -70,8 +70,8 @@ function Ajustes({ apresentacao }) {
           return (
             <p key={envio.id} className="text-[12.5px] text-aqi-muted">
               ENVIO {envio.numero} · {dataCurta(envio.em)} · {total === 1 ? '1 comentário' : `${total} comentários`}
-              {faltam ? `, ${faltam} a fazer` : total > 1 ? ', todos feitos' : ', feito'} ·{' '}
-              <button type="button" className="link font-semibold" onClick={() => setAbertos((a) => new Set(a).add(envio.id))}>VER</button>
+              {faltam ? `, ${faltam} a fazer` : total > 1 ? ', todos feitos' : ', feito'}
+              <Botao pequeno nivel={3} type="button" className="ml-3" onClick={() => setAbertos((a) => new Set(a).add(envio.id))}>VER</Botao>
             </p>
           );
         }
@@ -111,6 +111,7 @@ function Cartao({ apresentacao, responsavel, aoMudar, aoErro }) {
   const envio = apresentacao.envios[0];
   const etiqueta = etiquetaDaApresentacao(apresentacao);
   const temRespostas = apresentacao.envios.some((e) => e.pedidos?.length || e.aprovacao);
+  const faltam = ajustesAFazer(envio);
   const ultima = quandoLegivel(apresentacao.ultimaVisita);
 
   async function pausar(pausar) {
@@ -134,33 +135,30 @@ function Cartao({ apresentacao, responsavel, aoMudar, aoErro }) {
     setExcluindo(false);
   }
 
+  // O cartão (mockup minha-conta-em-paginas, aprovado por ÊDI em 12/10/2026): em cima a capa, o nome, o envio e o link; embaixo, a
+  // faixa com as visitas e o prazo e, no fim dela, os botões pela hierarquia (o mais forte à direita; a terracota só onde há ajuste a fazer).
   return (
-    <div className="grid gap-3 border-b border-[#262D37] py-3 sm:grid-cols-[136px_minmax(0,1fr)_300px] sm:items-center sm:gap-4">
-      {capa ? (
-        <img src={capa} alt="" className={`aspect-video w-full object-cover sm:w-[136px] ${apresentacao.pausada ? 'brightness-[.6] grayscale' : ''}`} />
-      ) : (
-        <div className="grid aspect-video w-full place-items-center bg-aqi-barra text-[11px] text-aqi-muted sm:w-[136px]">sem capa</div>
-      )}
-      <div className="min-w-0">
-        <div className="text-[14px] font-semibold text-white">
-          {apresentacao.nome}
-          <Etiqueta etiqueta={etiqueta} />
-        </div>
-        {envio && (
-          <div className="mt-0.5 text-[12.5px] text-aqi-muted">
-            {[`ENVIO ${envio.numero} · ${dataCurta(envio.em)}`, envio.paraQuem, envio.fase === 'final' ? 'apresentação final' : 'em aprovação',
-              `no ar até ${dataCurta(envio.expiraEm)}`, envio.enviadoPor ? `enviado por ${envio.enviadoPor}` : ''].filter(Boolean).join(' · ')}
-          </div>
+    <div className="mt-2.5 bg-aqi-barra">
+      <div className="grid gap-3 px-3.5 py-3 sm:grid-cols-[136px_minmax(0,1fr)_300px] sm:items-center sm:gap-4">
+        {capa ? (
+          <img src={capa} alt="" className={`aspect-video w-full object-cover sm:w-[136px] ${apresentacao.pausada ? 'brightness-[.6] grayscale' : ''}`} />
+        ) : (
+          <div className="grid aspect-video w-full place-items-center bg-aqi-faixa text-[11px] text-aqi-muted sm:w-[136px]">sem capa</div>
         )}
-        <div className="mt-1 text-[12.5px]">
-          <b className="text-white">{apresentacao.visitas}</b> {apresentacao.visitas === 1 ? 'visita' : 'visitas'}
-          {ultima ? ` · a última ${ultima}` : ''}
-          {envio?.tamanho ? ` · ${tamanhoLegivel(envio.tamanho)}` : ''}
+        <div className="min-w-0">
+          <div className="text-[14px] font-semibold text-white">
+            {apresentacao.nome}
+            <Etiqueta etiqueta={etiqueta} />
+          </div>
+          {envio && (
+            <div className="mt-0.5 text-[12.5px] text-aqi-muted">
+              {[`ENVIO ${envio.numero} · ${dataCurta(envio.em)}`, envio.paraQuem, envio.fase === 'final' ? 'apresentação final' : 'em aprovação',
+                envio.enviadoPor ? `enviado por ${envio.enviadoPor}` : ''].filter(Boolean).join(' · ')}
+            </div>
+          )}
         </div>
-      </div>
-      <div>
         <div className="flex">
-          <span className={`min-w-0 flex-1 truncate border border-[#262D37] bg-aqi-barra px-2.5 py-[7px] text-[13px] ${apresentacao.pausada ? 'text-aqi-muted line-through' : 'text-white'}`}>
+          <span className={`min-w-0 flex-1 truncate border border-[#262D37] bg-aqi-pagina px-2.5 py-[7px] text-[13px] ${apresentacao.pausada ? 'text-aqi-muted line-through' : 'text-white'}`}>
             {linkCurto(apresentacao.codigo)}
           </span>
           <button type="button" onClick={async () => setCopiado(await copiarTexto(linkDoTour(apresentacao.codigo)))}
@@ -168,29 +166,45 @@ function Cartao({ apresentacao, responsavel, aoMudar, aoErro }) {
             {copiado ? '✓ COPIADO' : 'COPIAR'}
           </button>
         </div>
-        <div className="mt-2 flex flex-wrap justify-end gap-3.5 text-[11.5px] font-semibold tracking-[0.06em]">
+      </div>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-[#262D37] bg-aqi-faixa px-3.5 py-2 text-[12.5px] text-aqi-muted">
+        <span className="mr-auto">
+          <b className="text-white">{apresentacao.visitas}</b> {apresentacao.visitas === 1 ? 'visita' : 'visitas'}
+          {ultima ? ` · a última ${ultima}` : ''}
+          {envio && <> · no ar até <b className="text-white">{dataCurta(envio.expiraEm)}</b></>}
+        </span>
+        <div className="flex flex-wrap gap-2">
+          {responsavel && <Botao pequeno nivel={3} type="button" onClick={() => setExcluindo(true)}>EXCLUIR</Botao>}
+          <Botao pequeno nivel={apresentacao.pausada ? 2 : 3} type="button" onClick={() => pausar(!apresentacao.pausada)}>
+            {apresentacao.pausada ? 'REATIVAR' : 'PAUSAR'}
+          </Botao>
+          <Botao pequeno nivel={2} href={linkDoTour(apresentacao.codigo)} target="_blank" rel="noreferrer">ABRIR</Botao>
           {temRespostas && (
-            <button type="button" onClick={() => setAjustes(!ajustes)} className="link">
+            <Botao pequeno nivel={ajustes ? 3 : faltam > 0 ? 1 : 2} type="button" aria-expanded={ajustes} onClick={() => setAjustes(!ajustes)}>
               {ajustes ? 'FECHAR' : envio?.aprovacao && !envio.pedidos?.length ? 'VER A APROVAÇÃO' : 'VER OS AJUSTES'}
-            </button>
+            </Botao>
           )}
-          <a href={linkDoTour(apresentacao.codigo)} target="_blank" rel="noreferrer" className="link">ABRIR</a>
-          <button type="button" onClick={() => pausar(!apresentacao.pausada)} className="link">{apresentacao.pausada ? 'REATIVAR' : 'PAUSAR'}</button>
-          {responsavel && <button type="button" onClick={() => setExcluindo(true)} className="text-[#E8877B] underline underline-offset-[3px]">EXCLUIR</button>}
         </div>
       </div>
       {ajustes && <Ajustes apresentacao={apresentacao} />}
       {excluindo && (
-        <div className="flex flex-wrap items-center gap-3 bg-aqi-barra px-3.5 py-2.5 text-[13.5px] sm:col-span-3">
+        <div className="flex flex-wrap items-center gap-3 border-t border-[#262D37] px-3.5 py-2.5 text-[13.5px]">
           <span className="min-w-[240px] flex-1">
             Excluir a apresentação de <b className="text-white">{apresentacao.nome}</b>? O link deixa de funcionar e os arquivos saem do servidor. Não dá
             para desfazer.
           </span>
+          <Botao nivel={3} type="button" onClick={() => setExcluindo(false)}>VOLTAR</Botao>
           <Botao principal type="button" disabled={ocupado} onClick={excluir}>{ocupado ? 'EXCLUINDO…' : 'EXCLUIR'}</Botao>
-          <Botao type="button" onClick={() => setExcluindo(false)}>VOLTAR</Botao>
         </div>
       )}
     </div>
+  );
+}
+
+// A contagem da aba numa plaquinha, sem parênteses (ÊDI, 12/10/2026).
+export function Contagem({ n, ligada }) {
+  return (
+    <span className={`ml-1.5 inline-block min-w-[18px] px-1 text-center text-[10.5px] text-white ${ligada ? 'bg-aqi-campo' : 'bg-aqi-painel'}`}>{n}</span>
   );
 }
 
@@ -222,12 +236,12 @@ export default function Apresentacoes({ area = null }) {
   return (
     <>
       <p className="mb-3 text-[14px] text-aqi-muted">
-        As páginas enviadas aos clientes pelo ENVIAR PARA O CLIENTE, um cartão por projeto. O link é o mesmo a cada envio do projeto. Para
-        enviar de novo, use o ENVIAR PARA O CLIENTE no programa.
+        As páginas enviadas aos clientes pelo ENVIAR PARA O CLIENTE, um cartão por projeto. O link é o mesmo a cada envio do projeto.
       </p>
       {lista.length === 0 ? (
         <p className="bg-aqi-barra px-4 py-3 text-[14px] text-aqi-muted">
-          Nenhuma apresentação enviada ainda. Ela aparece aqui quando o primeiro ENVIAR PARA O CLIENTE terminar, no programa.
+          <b className="text-white">Nenhuma apresentação ainda.</b> No Arquionie, abra o projeto e use ENVIAR PARA O CLIENTE, no APRESENTAR. O link
+          aparece aqui, com as visitas e os ajustes que o cliente pedir.
         </p>
       ) : (
         <>
@@ -240,7 +254,7 @@ export default function Apresentacoes({ area = null }) {
             {ABAS.map(([id, rotulo]) => (
               <button key={id} type="button" role="tab" aria-selected={aba === id} onClick={() => setAba(id)}
                 className={`-mb-px border-b-2 py-2 ${aba === id ? 'border-aqi-coral text-aqi-coral' : 'border-transparent text-aqi-texto hover:text-white'}`}>
-                {rotulo} ({contar(id)})
+                {rotulo}<Contagem n={contar(id)} ligada={aba === id} />
               </button>
             ))}
           </div>

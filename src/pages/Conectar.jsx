@@ -167,7 +167,7 @@ export default function Conectar() {
           {/* mais gente usando ao mesmo tempo: o plano personalizado (mockup aprovado por ÊDI em 11/10/2026) */}
           <p className="mt-2 text-[12.5px] text-aqi-muted">
             Mais gente usando ao mesmo tempo?{' '}
-            <a href="/conta#plano" className="link font-semibold tracking-[0.04em]">SOLICITAR PLANO PERSONALIZADO</a>
+            <a href="/conta/equipe#plano" className="link font-semibold tracking-[0.04em]">SOLICITAR PLANO PERSONALIZADO</a>
           </p>
           <Mensagem erro>{erro}</Mensagem>
         </Cartao>
@@ -183,7 +183,7 @@ export default function Conectar() {
           titulo={`Pronto. Pode voltar ao ${ondeVolta(info.produto)}`}
           nota={`O ${info.produto ? produto : 'Arquionie™'} percebe sozinho em poucos segundos. Esta página já pode ser fechada.`}
           botoes={
-            <Link to="/conta#licencas" className="inline-flex h-[40px] min-w-[129px] items-center justify-center border border-aqi-borda bg-aqi-barra px-4 text-[13px] font-bold tracking-wide text-aqi-texto no-underline hover:bg-aqi-faixa">
+            <Link to="/conta/equipe#licencas" className="inline-flex h-[40px] min-w-[129px] items-center justify-center border border-aqi-borda bg-aqi-barra px-4 text-[13px] font-bold tracking-wide text-aqi-texto no-underline hover:bg-aqi-faixa">
               VER MINHA CONTA
             </Link>
           }

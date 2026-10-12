@@ -28,7 +28,7 @@ export default function App() {
         <Route path="/recuperar" element={<Recuperar />} />
         <Route path="/completar" element={<Completar />} />
         <Route
-          path="/conta"
+          path="/conta/*"
           element={
             <RotaDaConta>
               <Conta />
