@@ -225,7 +225,11 @@
   function ligarComentar(ligado) {
     comentando = ligado;
     $("comentar").classList.toggle("on", ligado);
-    $("comentar").textContent = ligado ? "✎ COMENTANDO · toque onde quer comentar" : "✎ COMENTAR";
+    $("tour").classList.toggle("comentando", ligado);
+    $("comentar").innerHTML = ligado ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg><span class="rotulo">PARAR DE COMENTAR</span>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg><span class="rotulo">COMENTAR</span>';
+    $("comentar").setAttribute("aria-label", ligado ? "Parar de comentar" : "Comentar");
+    $("avisoComentar").hidden = !ligado;
     paraOTour({ tipo: "comentar", ligado });
   }
   $("comentar").onclick = () => ligarComentar(!comentando);

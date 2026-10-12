@@ -50,8 +50,16 @@ main { max-width: 1180px; margin: 0 auto; padding: 8px 24px 32px; }
 .capaTour button { border: 0; background: var(--cor); color: #fff; font-weight: 800; letter-spacing: .04em; padding: 14px 24px; box-shadow: 0 8px 20px rgba(0, 0, 0, .35); }
 .capaTour small { display: block; font-weight: 400; font-size: 11px; opacity: .85; }
 .tour iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-.tour .com { position: absolute; right: 12px; top: 12px; z-index: 3; border: 0; background: rgba(32, 37, 43, .92); color: #fff; font-size: 12px; font-weight: 700; padding: 8px 12px; }
-.tour .com.on { background: var(--cor); }
+/* O COMENTAR (mockup docs/mockups/controles-do-tour do programa, aprovado por ÊDI em 12/10/2026): cheio no coral, com o lápis; ligado,
+   branco com o contorno, PARAR DE COMENTAR, a moldura coral no tour e o aviso embaixo. No celular, só o lápis. */
+.tour .com { position: absolute; right: 12px; top: 12px; z-index: 3; border: 0; height: 36px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px;
+  background: var(--cor); color: #fff; font-size: 12px; font-weight: 800; letter-spacing: .05em; box-shadow: 0 6px 16px rgba(0, 0, 0, .28); }
+.tour .com[hidden] { display: none; }
+.tour .com svg { width: 15px; height: 15px; flex: none; }
+.tour .com.on { background: #fff; color: var(--cor); box-shadow: 0 0 0 2px var(--cor) inset, 0 6px 16px rgba(0, 0, 0, .25); }
+.tour.comentando::after { content: ""; position: absolute; inset: 0; z-index: 2; border: 4px solid var(--cor); pointer-events: none; }
+.tour .avisoComentar { position: absolute; left: 50%; bottom: 82px; transform: translateX(-50%); z-index: 3; background: var(--cor); color: #fff; font-size: 12px;
+  font-weight: 700; padding: 7px 14px; white-space: nowrap; box-shadow: 0 6px 16px rgba(0, 0, 0, .3); pointer-events: none; }
 .tour .sair { position: absolute; left: 12px; top: 12px; z-index: 3; border: 0; background: rgba(32, 37, 43, .92); color: #fff; font-size: 12px; font-weight: 700; padding: 8px 12px; }
 .tour.cheio { position: fixed; inset: 0; z-index: 50; aspect-ratio: auto; }
 
@@ -60,8 +68,11 @@ main { max-width: 1180px; margin: 0 auto; padding: 8px 24px 32px; }
 .carrossel .f { position: absolute; top: 50%; left: 50%; background: #ccc center/cover; transition: transform .35s ease, opacity .35s ease, width .35s ease, height .35s ease;
   box-shadow: 0 6px 16px rgba(20, 24, 30, .28); cursor: pointer; }
 .carrossel .f.c { box-shadow: 0 14px 32px rgba(20, 24, 30, .45), 0 2px 6px rgba(20, 24, 30, .25); outline: 4px solid #fff; cursor: zoom-in; }
-.seta { position: absolute; top: 50%; transform: translateY(-50%); z-index: 9; width: 40px; height: 40px; border-radius: 50%; border: 0; background: #fff; color: var(--texto);
-  font-size: 22px; line-height: 1; box-shadow: 0 4px 12px rgba(20, 24, 30, .3); }
+/* as setas (o mesmo mockup): o círculo branco maior com a seta grossa na cor do escritório; ao passar o mouse, o círculo na cor e a seta branca */
+.seta { position: absolute; top: 50%; transform: translateY(-50%); z-index: 9; width: 50px; height: 50px; border-radius: 50%; border: 0; padding: 0; background: #fff;
+  color: var(--cor); display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(20, 24, 30, .28); transition: background .15s, color .15s; }
+.seta svg { width: 22px; height: 22px; display: block; }
+.seta:hover { background: var(--cor); color: #fff; }
 .seta.e { left: 8px; } .seta.d { right: 8px; }
 .legendaFoto { text-align: center; font-size: 12.5px; color: var(--cinza); margin-top: 6px; }
 .pontos { display: flex; justify-content: center; gap: 6px; margin-top: 8px; }
@@ -142,6 +153,10 @@ main { max-width: 1180px; margin: 0 auto; padding: 8px 24px 32px; }
   .bloco { scroll-margin-top: 130px; padding-top: 16px; }
   .tour { aspect-ratio: 4 / 3; }
   .carrossel { height: 240px; }
+  .seta { width: 44px; height: 44px; } .seta svg { width: 20px; height: 20px; }
+  .tour .com { width: 32px; height: 32px; padding: 0; justify-content: center; } .tour .com .rotulo { display: none; }
+  .tour .sair { width: 32px; height: 32px; padding: 0; font-size: 15px; background: rgba(17, 21, 26, .72); }
+  .tour .avisoComentar { bottom: 62px; }
   .painelCom { left: 0; right: 0; top: auto; bottom: 0; width: auto; height: 70vh; }
   .rodapeEsc h4 { font-size: 18px; }
 }

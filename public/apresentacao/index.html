@@ -36,13 +36,14 @@
     <div class="tour" id="tour">
       <div class="capaTour" id="capaTour"><button id="entrarTour" type="button">ENTRAR NO TOUR <small id="tamanhoTour"></small></button></div>
       <iframe id="quadroTour" title="O tour do projeto" allow="fullscreen; gyroscope; accelerometer; xr-spatial-tracking" allowfullscreen hidden></iframe>
-      <button id="comentar" class="com" type="button" hidden>✎ COMENTAR</button>
-      <button id="sairTour" class="sair so-celular" type="button" hidden>✕ SAIR DO TOUR</button>
+      <button id="comentar" class="com" type="button" aria-label="Comentar" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg><span class="rotulo">COMENTAR</span></button>
+      <div id="avisoComentar" class="avisoComentar" hidden>Toque no tour onde quer comentar</div>
+      <button id="sairTour" class="sair so-celular" type="button" aria-label="Sair do tour" title="Sair do tour" hidden>✕</button>
     </div>
   </section>
   <section id="imagens" class="bloco" hidden>
     <h3>AS IMAGENS</h3>
-    <div class="carrossel" id="carrossel"><button class="seta e" type="button" aria-label="anterior">‹</button><button class="seta d" type="button" aria-label="seguinte">›</button></div>
+    <div class="carrossel" id="carrossel"><button class="seta e" type="button" aria-label="anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><button class="seta d" type="button" aria-label="seguinte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
     <div class="legendaFoto" id="legenda"></div>
     <div class="pontos" id="pontos"></div>
   </section>
@@ -88,7 +89,7 @@
 </div>
 
 <!-- A imagem em tela cheia. -->
-<div id="telaCheia" class="telaCheia" hidden><img id="imagemCheia" alt=""><button class="seta e" type="button" aria-label="anterior">‹</button><button class="seta d" type="button" aria-label="seguinte">›</button><button class="fechar" type="button" aria-label="fechar">✕</button><div class="legenda" id="legendaCheia"></div></div>
+<div id="telaCheia" class="telaCheia" hidden><img id="imagemCheia" alt=""><button class="seta e" type="button" aria-label="anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><button class="seta d" type="button" aria-label="seguinte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button><button class="fechar" type="button" aria-label="fechar">✕</button><div class="legenda" id="legendaCheia"></div></div>
 <div id="nota" class="nota" hidden></div>
 
 <script src="/apresentacao/video.js"></script>

@@ -91,22 +91,77 @@ window.TourDaMaquete = async function (base, tour) {
       box-shadow: 0 1px 4px rgba(0,0,0,.35); padding: 0; min-width: 0; }
     #mq-dica { position: absolute; left: 50%; transform: translateX(-50%); top: calc(10px + env(safe-area-inset-top)); padding: 5px 12px; background: rgba(17,21,26,.66);
       color: #e6e9ee; font-size: 11.5px; white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis; }
-    #mq-barra { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(12px + env(safe-area-inset-bottom)); display: flex; gap: 6px; align-items: center;
-      background: rgba(17,21,26,.78); padding: 6px; color: #e6e9ee; max-width: calc(100vw - 20px); flex-wrap: wrap; justify-content: center; }
-    #mq-barra .grupo { display: flex; gap: 2px; align-items: center; }
-    #mq-barra button { height: 32px; }
-    #mq-barra button.ativo { background: #e76353; color: #fff; }
-    #mq-barra label { display: flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 700; letter-spacing: .4px; color: #aab3bf; padding: 0 6px; }
-    #mq-barra input[type=range] { width: 110px; accent-color: #e76353; }
-    #mq-barra .valor { color: #fff; min-width: 38px; font-weight: 600; }
-    #mq-pav { min-width: 92px; text-align: center; font-size: 11px; font-weight: 700; letter-spacing: .3px; }
-    #mq-ajustes { display: contents; }
-    body.toque #mq-ajustes { display: none; }
-    body.toque.mq-ajustes-abertos #mq-ajustes { display: flex; width: 100%; flex-wrap: wrap; justify-content: center; gap: 6px; }
-    #mq-mais { display: none; } body.toque #mq-mais { display: inline-block; }
+    /* A barra (mockup docs/mockups/controles-do-tour do repositório do programa, aprovado por ÊDI em 12/10/2026): no computador, uma
+       linha em grupos com o nome pequeno em cima (PAVIMENTO, VER, PASSEAR, LUZ e CORTE) e a tela cheia no fim, o coral só no escolhido
+       ou ligado; no celular, o pavimento e a tela cheia no alto, o sol e o corte nas laterais (como o volume do iPhone) e, embaixo, os
+       três modos e o ▶, com o meio livre para o dedo. */
+    #mq-barra { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(12px + env(safe-area-inset-bottom)); display: flex;
+      align-items: stretch; background: rgba(17,21,26,.84); padding: 5px; color: #e6e9ee; width: max-content; max-width: calc(100vw - 20px); flex-wrap: wrap;
+      justify-content: center; row-gap: 6px; box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+    .mq-grupo { display: flex; flex-direction: column; justify-content: flex-end; padding: 0 6px; }
+    .mq-grupo + .mq-grupo { border-left: 1px solid rgba(255,255,255,.12); }
+    .mq-tit { font-size: 8.5px; font-weight: 700; letter-spacing: .12em; color: #9aa4b2; margin: 0 0 3px 2px; line-height: 1; }
+    .mq-linha { display: flex; align-items: center; gap: 2px; height: 34px; }
+    #mq-barra button, #mq-topo button { height: 34px; min-width: 0; padding: 0 10px; background: rgba(255,255,255,.07); color: #e6e9ee;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; letter-spacing: .04em; }
+    #mq-barra svg, #mq-topo svg, .mq-vert svg { width: 16px; height: 16px; display: block; flex: none; }
+    #mq-barra b { display: contents; }
+    .mq-seg { background: rgba(255,255,255,.05); gap: 0; }
+    #mq-barra .mq-seg button { background: transparent; color: #c9d0da; }
+    #mq-barra button.mq-passear { background: rgba(255,255,255,.05); color: #c9d0da; }
+    #mq-barra .mq-seg button.ativo, #mq-barra button.mq-passear.ativo { background: #e76353; color: #fff; }
+    .mq-pav { display: flex; align-items: center; gap: 3px; height: 34px; }
+    #mq-barra .mq-pav button.mq-ir, #mq-topo .mq-pav button.mq-ir { width: 34px; padding: 0; background: rgba(255,255,255,.16); color: #fff; }
+    .mq-pav button.mq-ir:disabled { opacity: .32; cursor: default; }
+    #mq-pav { min-width: 108px; height: 34px; padding: 0 12px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.06);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.28) inset; color: #fff; font-size: 12px; font-weight: 800; letter-spacing: .07em; white-space: nowrap;
+      max-width: 44vw; overflow: hidden; text-overflow: ellipsis; }
+    .mq-desl { display: flex; align-items: center; gap: 7px; height: 34px; padding: 0 4px; color: #c9d0da; }
+    .mq-desl input[type=range] { width: 96px; accent-color: #e76353; }
+    .mq-desl .valor { color: #fff; min-width: 40px; font-size: 11.5px; font-weight: 700; }
+    #mq-barra button.mq-chave { padding: 0 8px; font-size: 10.5px; color: #c9d0da; }
+    .mq-chave i { width: 26px; height: 14px; border-radius: 7px; background: rgba(255,255,255,.25); position: relative; flex: none; }
+    .mq-chave i::after { content: ""; position: absolute; left: 2px; top: 2px; width: 10px; height: 10px; border-radius: 50%; background: #fff; transition: left .15s; }
+    .mq-chave.ativo i { background: #e76353; } .mq-chave.ativo i::after { left: 14px; }
+    /* o celular */
+    body.toque #mq-barra { left: calc(8px + env(safe-area-inset-left)); right: calc(8px + env(safe-area-inset-right)); bottom: calc(10px + env(safe-area-inset-bottom));
+      transform: none; width: auto; max-width: none; padding: 0; gap: 4px; flex-wrap: nowrap; background: none; box-shadow: none; }
+    body.toque #mq-barra .mq-seg { flex: 1; height: 38px; background: rgba(17,21,26,.78); }
+    body.toque #mq-barra .mq-seg button { flex: 1; height: 38px; font-size: 10.5px; }
+    body.toque #mq-barra button.mq-passear { width: 44px; height: 38px; padding: 0; background: rgba(17,21,26,.78); }
+    body.toque #mq-barra button.mq-passear.ativo { background: #e76353; }
+    body.toque .mq-passear span { display: none; }
+    body.toque #parada { display: none !important; }
+    #mq-topo { top: calc(12px + env(safe-area-inset-top)); left: 0; right: 0; height: 32px; background: none; pointer-events: none; }
+    #mq-topo .mq-esq { position: absolute; left: calc(12px + env(safe-area-inset-left)); display: flex; gap: 4px; pointer-events: auto; }
+    body.embutido #mq-topo .mq-esq { left: calc(48px + env(safe-area-inset-left)); }
+    #mq-topo button { width: 32px; height: 32px; padding: 0; background: rgba(17,21,26,.72); color: #fff; }
+    #mq-topo button.ativo { background: #e76353; }
+    #mq-topo .mq-pav { position: absolute; left: 50%; transform: translateX(-50%); gap: 2px; height: 32px; pointer-events: auto; }
+    #mq-topo .mq-pav button.mq-ir { width: 28px; height: 32px; background: rgba(17,21,26,.82); }
+    #mq-topo .mq-pav button.mq-ir:disabled { opacity: 1; color: rgba(255,255,255,.3); }
+    #mq-topo #mq-pav { min-width: 74px; height: 32px; padding: 0 8px; background: rgba(17,21,26,.72); font-size: 11px; letter-spacing: .06em; }
+    .mq-vert { position: absolute; top: 19%; height: 36%; width: 30px; display: flex; flex-direction: column; align-items: center; gap: 6px; background: none; }
+    #mq-v-sol { left: calc(12px + env(safe-area-inset-left)); } #mq-v-corte { right: calc(12px + env(safe-area-inset-right)); }
+    .mq-vert .mq-ico, #mq-v-sol #mq-sombra { width: 26px; height: 26px; min-width: 0; padding: 0; border-radius: 50%; background: rgba(17,21,26,.62); color: #fff;
+      display: flex; align-items: center; justify-content: center; flex: none; }
+    .mq-vert .mq-ico svg, #mq-v-sol #mq-sombra svg { width: 14px; height: 14px; }
+    #mq-v-sol #mq-sombra { color: #c9d0da; } #mq-v-sol #mq-sombra.ativo { background: #e76353; color: #fff; }
+    .mq-vbarra { position: relative; flex: 1; width: 34px; display: flex; justify-content: center; touch-action: none; cursor: ns-resize; }
+    .mq-vbarra .t { position: relative; width: 6px; height: 100%; border-radius: 3px; background: rgba(17,21,26,.42); box-shadow: 0 0 0 1px rgba(255,255,255,.55) inset;
+      transition: width .12s; }
+    .mq-vbarra .t i { position: absolute; left: 0; right: 0; bottom: 0; border-radius: 3px; background: #e76353; }
+    .mq-vbarra.mexendo .t { width: 14px; } .mq-vbarra.mexendo .t i { border-radius: 7px; }
+    .mq-vbarra .bolha { position: absolute; left: 36px; transform: translateY(50%); background: rgba(17,21,26,.88); color: #fff; font-size: 12px; font-weight: 800;
+      padding: 3px 8px; white-space: nowrap; display: none; pointer-events: none; }
+    #mq-v-corte .mq-vbarra .bolha { left: auto; right: 36px; }
+    .mq-vbarra.mexendo .bolha { display: block; }
+    body.toque #mq-dica { top: calc(52px + env(safe-area-inset-top)); font-size: 11px; }
+    body.toque #mq-voltar { top: calc(84px + env(safe-area-inset-top)); }
+    body.embutido #mapa { top: calc(56px + env(safe-area-inset-top)); }
     #mq-cartao { position: absolute; right: calc(12px + env(safe-area-inset-right)); top: calc(54px + env(safe-area-inset-top)); width: 270px; background: rgba(17,21,26,.88);
       color: #e6e9ee; padding: 14px 16px 12px; display: none; }
-    body.toque #mq-cartao { left: 10px; right: 10px; width: auto; top: auto; bottom: calc(120px + env(safe-area-inset-bottom)); }
+    body.toque #mq-cartao { left: 10px; right: 10px; width: auto; top: auto; bottom: calc(60px + env(safe-area-inset-bottom)); }
     #mq-cartao .tipo { font-size: 10px; letter-spacing: .6px; color: #9aa4b2; font-weight: 700; }
     #mq-cartao h2 { margin: 2px 0 10px; font-size: 19px; font-weight: 600; letter-spacing: .4px; color: #fff; }
     #mq-cartao dl { display: grid; grid-template-columns: 92px 1fr; gap: 4px 8px; margin: 0 0 12px; font-size: 12px; }
@@ -118,24 +173,54 @@ window.TourDaMaquete = async function (base, tour) {
     #mq-voltar { position: absolute; left: 50%; transform: translateX(-50%); top: calc(44px + env(safe-area-inset-top)); display: none; background: #794b49; color: #fff; }
   `;
   document.head.appendChild(estilo);
+  // Os símbolos da barra (o traço do programa, nas cores do tour).
+  const ICONES = {
+    antes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+    depois: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+    play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>',
+    pausa: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>',
+    sol: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>',
+    corte: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16M6 20V9h12v11M6 13h12M10 9v4M14 13v7"/></svg>',
+    cheia: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
+    giro: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M3 8a9 9 0 0 0 0 8M21 8a9 9 0 0 1 0 8"/></svg>',
+    sombra: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg>',
+  };
+  const pavimento = `<div class="mq-pav"><button id="mq-abaixo" class="mq-ir" title="Pavimento de baixo" aria-label="Pavimento de baixo">${ICONES.antes}</button>`
+    + `<span id="mq-pav"></span><button id="mq-acima" class="mq-ir" title="Pavimento de cima" aria-label="Pavimento de cima">${ICONES.depois}</button></div>`;
+  const modos = '<div class="mq-linha mq-seg"><button id="mq-maquete">MAQUETE</button><button id="mq-planta">PLANTA</button><button id="mq-andar">ANDAR</button></div>';
+  const passear = `<button id="mq-play" class="mq-passear" title="Passear pelos ambientes" aria-label="Passear pelos ambientes"><b id="mq-play-icone">${ICONES.play}</b>`
+    + '<span id="mq-play-nome">PASSEAR</span></button>';
+  const barra = toque ? `
+    <div class="sobre esconder" id="mq-topo"><div class="mq-esq"><button id="mq-cheia" title="Tela cheia" aria-label="Tela cheia">${ICONES.cheia}</button>`
+      + `<button id="mq-giro" title="Movimento do celular" aria-label="Movimento do celular">${ICONES.giro}</button></div>${pavimento}</div>
+    <div class="sobre esconder mq-vert" id="mq-v-sol"><span class="mq-ico" title="A hora do sol">${ICONES.sol}</span>
+      <div class="mq-vbarra" id="mq-vb-sol" role="slider" aria-label="A hora do sol"><div class="t"><i></i></div><b class="bolha"></b></div>
+      <button id="mq-sombra" title="Ligar e desligar a sombra do sol" aria-label="Sombra">${ICONES.sombra}</button></div>
+    <div class="sobre esconder mq-vert" id="mq-v-corte"><span class="mq-ico" title="A altura das paredes">${ICONES.corte}</span>
+      <div class="mq-vbarra" id="mq-vb-corte" role="slider" aria-label="A altura das paredes"><div class="t"><i></i></div><b class="bolha"></b></div></div>
+    <div class="sobre esconder" id="mq-barra">${modos}${passear}
+      <input type="range" id="mq-sol" min="360" max="1080" step="5" hidden><input type="range" id="mq-paredes" min="0.8" max="3.6" step="0.1" hidden>
+      <span id="mq-hora" hidden></span><span id="mq-altura" hidden></span></div>` : `
+    <div class="sobre esconder" id="mq-barra">
+      <div class="mq-grupo"><span class="mq-tit">PAVIMENTO</span>${pavimento}</div>
+      <div class="mq-grupo"><span class="mq-tit">VER</span>${modos}</div>
+      <div class="mq-grupo"><span class="mq-tit">PASSEAR</span><div class="mq-linha">${passear}</div></div>
+      <div class="mq-grupo"><span class="mq-tit">LUZ</span><div class="mq-linha"><label class="mq-desl" title="A hora do sol">${ICONES.sol}`
+        + `<input type="range" id="mq-sol" min="360" max="1080" step="5"><span class="valor" id="mq-hora"></span></label>`
+        + `<button id="mq-sombra" class="mq-chave" title="Ligar e desligar a sombra do sol"><i></i>SOMBRA</button></div></div>
+      <div class="mq-grupo"><span class="mq-tit">CORTE</span><div class="mq-linha"><label class="mq-desl" title="A altura das paredes">${ICONES.corte}`
+        + `<input type="range" id="mq-paredes" min="0.8" max="3.6" step="0.1"><span class="valor" id="mq-altura"></span></label></div></div>
+      <div class="mq-grupo"><span class="mq-tit">&nbsp;</span><div class="mq-linha"><button id="mq-giro" title="Movimento do celular" aria-label="Movimento do celular">${ICONES.giro}</button>`
+        + `<button id="mq-cheia" title="Tela cheia" aria-label="Tela cheia">${ICONES.cheia}</button></div></div>
+    </div>`;
+  // Dentro da página do cliente (?embutido=1), o ✕ e o COMENTAR da página ficam nos cantos de cima: a tela cheia e o mapinha se afastam deles.
+  if (new URLSearchParams(location.search).get("embutido")) document.body.classList.add("embutido");
   const camada = document.createElement("div");
   camada.innerHTML = `
     <svg id="mq-cotas" xmlns="http://www.w3.org/2000/svg"></svg><div id="mq-rotulos"></div><div id="mq-marcas"></div><div id="mq-alfinetes"></div>
     <div class="sobre esconder" id="mq-dica"></div>
     <button class="sobre" id="mq-voltar">✕ VOLTAR À MAQUETE</button>
-    <div class="sobre esconder" id="mq-barra">
-      <div class="grupo"><button id="mq-maquete">MAQUETE</button><button id="mq-planta">PLANTA</button><button id="mq-andar">ANDAR</button></div>
-      <button class="play" id="mq-play" title="Passear pelos ambientes">▶</button>
-      <button id="mq-mais" title="Ajustes">☀</button>
-      <div id="mq-ajustes">
-        <button id="mq-sombra" title="Ligar e desligar a sombra do sol">SOMBRA</button>
-        <label>SOL <input type="range" id="mq-sol" min="360" max="1080" step="5"><span class="valor" id="mq-hora"></span></label>
-        <label>PAREDES <input type="range" id="mq-paredes" min="0.8" max="3.6" step="0.1"><span class="valor" id="mq-altura"></span></label>
-        <div class="grupo"><button id="mq-abaixo" title="Pavimento de baixo">◀</button><span id="mq-pav"></span><button id="mq-acima" title="Pavimento de cima">▶</button></div>
-        <button id="mq-giro" title="Movimento do celular">GIRO</button>
-        <button id="mq-cheia" title="Tela cheia">⛶</button>
-      </div>
-    </div>
+    ${barra}
     <div class="sobre" id="mq-cartao"></div>`;
   document.body.insertBefore(camada, $("preto"));
 
@@ -1365,7 +1450,22 @@ window.TourDaMaquete = async function (base, tour) {
     const h = Math.floor(sol.minutos / 60), mi = sol.minutos % 60;
     $("mq-hora").textContent = `${String(h).padStart(2, "0")}:${String(mi).padStart(2, "0")}`;
     $("mq-altura").textContent = est.paredes >= 3.55 ? "TUDO" : `${m2(est.paredes)} m`;
-    $("mq-play").textContent = est.reproduzindo ? "❚❚" : "▶";
+    $("mq-play").classList.toggle("ativo", est.reproduzindo);
+    if ($("mq-play").dataset.passeando !== String(est.reproduzindo)) {
+      $("mq-play").dataset.passeando = String(est.reproduzindo);
+      $("mq-play-icone").innerHTML = est.reproduzindo ? ICONES.pausa : ICONES.play;
+      $("mq-play-nome").textContent = est.reproduzindo ? "PASSEANDO" : "PASSEAR";
+    }
+    if (toque) {
+      // as barras das laterais: a altura do cheio e o valor na bolha
+      $("mq-vb-sol").querySelector("i").style.height = `${100 * (sol.minutos - 360) / 720}%`;
+      $("mq-vb-sol").querySelector(".bolha").textContent = $("mq-hora").textContent;
+      $("mq-vb-sol").querySelector(".bolha").style.bottom = `${100 * (sol.minutos - 360) / 720}%`;
+      const f = Math.min(1, Math.max(0, (est.paredes - .8) / 2.8));
+      $("mq-vb-corte").querySelector("i").style.height = `${100 * f}%`;
+      $("mq-vb-corte").querySelector(".bolha").textContent = $("mq-altura").textContent;
+      $("mq-vb-corte").querySelector(".bolha").style.bottom = `${100 * f}%`;
+    }
     $("mq-sombra").classList.toggle("ativo", est.sombra);
     $("mq-voltar").style.display = est.modo === "foto" ? "block" : "none";
     $("mq-giro").style.display = toque && (est.modo === "andar" || est.modo === "foto") ? "" : "none";
@@ -1392,12 +1492,28 @@ window.TourDaMaquete = async function (base, tour) {
   $("mq-abaixo").onclick = () => { parar(); mudarPav(est.pav - 1); };
   $("mq-acima").onclick = () => { parar(); mudarPav(est.pav + 1); };
   $("mq-voltar").onclick = () => mudarModo("maquete");
-  $("mq-mais").onclick = () => document.body.classList.toggle("mq-ajustes-abertos");
   $("mq-sombra").onclick = () => { est.sombra = !est.sombra; atualizar(); };
   const solInput = $("mq-sol"), paredesInput = $("mq-paredes");
   solInput.value = sol.minutos; paredesInput.value = est.paredes;
   solInput.oninput = () => { sol.minutos = +solInput.value; luzDoSol(); atualizar(); };
   paredesInput.oninput = () => { est.paredes = +paredesInput.value; atualizar(); };
+  // No celular, o sol e o corte nas barras verticais das laterais: o dedo sobe e desce, a barra engrossa e mostra o valor.
+  function barraVertical(id, entrada) {
+    const el = $(id);
+    if (!el) return;
+    const t = el.querySelector(".t");
+    const valorEm = y => {
+      const r = t.getBoundingClientRect(), f = Math.min(1, Math.max(0, (r.bottom - y) / r.height));
+      const min = +entrada.min, max = +entrada.max, passo = +entrada.step || 1;
+      return Math.round((min + f * (max - min)) / passo) * passo;
+    };
+    const mover = e => { entrada.value = valorEm(e.clientY); entrada.oninput(); };
+    el.addEventListener("pointerdown", e => { e.preventDefault(); e.stopPropagation(); el.setPointerCapture(e.pointerId); el.classList.add("mexendo"); mover(e); });
+    el.addEventListener("pointermove", e => { if (el.classList.contains("mexendo")) { e.stopPropagation(); mover(e); } });
+    const soltar = () => el.classList.remove("mexendo");
+    el.addEventListener("pointerup", soltar); el.addEventListener("pointercancel", soltar);
+  }
+  barraVertical("mq-vb-sol", solInput); barraVertical("mq-vb-corte", paredesInput);
   // ▶: de ambiente em ambiente do pavimento, pelo tamanho, cinco segundos em cada um, a maquete girando devagar.
   function parar() { if (est.reproduzindo) { est.reproduzindo = false; atualizar(); } }
   $("mq-play").onclick = () => {
@@ -1878,7 +1994,7 @@ window.TourDaMaquete = async function (base, tour) {
   if (pedidos.get("foto")) setTimeout(() => entrarNaFoto(+pedidos.get("foto") - 1), 200);
   window.__maquete = { est, orb, orbAlvo, pe, foto, sol, telaQ, comentarios, marcarComentario, escolherAmbiente, mudarModo, entrarNaFoto, irParaFoto, andarEm, get voo() { return voo; } };
   return () => {
-    for (const id of ["parada", "mq-barra", "mq-dica"]) $(id).classList.remove("esconder");
+    for (const id of ["parada", "mq-barra", "mq-dica", ...(toque ? ["mq-topo", "mq-v-sol", "mq-v-corte"] : [])]) $(id).classList.remove("esconder");
     atualizar();
     if (parent !== window) parent.postMessage({ arquionie: true, tipo: "pronto" }, "*");
     return { telaCheia, ligarMovimento: () => {} };
