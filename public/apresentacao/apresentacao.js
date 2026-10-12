@@ -402,7 +402,10 @@
     let x0 = null;
     caixa.addEventListener("pointerdown", ev => { x0 = ev.clientX; });
     caixa.addEventListener("pointerup", ev => { if (x0 !== null && Math.abs(ev.clientX - x0) > 40) ir(atual + (ev.clientX < x0 ? 1 : -1)); x0 = null; });
-    addEventListener("resize", desenhar);
+    // Redesenha quando o carrossel ganha tamanho: ele é montado com a página ainda escondida (largura zero, só o contorno branco aparecia;
+    // ÊDI, 12/10/2026, no primeiro envio de verdade), e depois a cada mudança da largura.
+    if (typeof ResizeObserver === "function") new ResizeObserver(desenhar).observe(caixa);
+    else addEventListener("resize", desenhar);
     desenhar();
     // A tela cheia.
     let cheia = 0;
