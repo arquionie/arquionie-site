@@ -2,7 +2,7 @@
 /*
   O tour como maquete (ÊDI, 10/10/2026, pelo vídeo do aluno com o Claude: "Era disso aqui que eu estava falando"; as sete
   recomendações aceitas, "PODE SEGUIR"). Lê o pacote do TourDaMaquete (formato 6) e desenha o modelo na hora, nosso, em WebGL 2:
-  - MAQUETE: girar em volta, aproximar, arrastar; as paredes cortadas a 2,40 m do piso, com o corte escuro, para ver dentro;
+  - MAQUETE: girar em volta, aproximar, arrastar; as paredes cortadas a 2,40 m do piso (na PLANTA, a 1,60 m), com o corte escuro, para ver dentro;
   - PLANTA: a mesma maquete vista de cima;
   - ANDAR: em pé, sem atravessar parede (chao.js, o mesmo andar do programa); o toque no chão leva até lá;
   - os ambientes com nome e área; o toque leva até o ambiente e abre o cartão (área, medidas, pé-direito, piso, forro);
@@ -213,7 +213,7 @@ window.TourDaMaquete = async function (base, tour) {
       <div class="mq-grupo"><span class="mq-tit">&nbsp;</span><div class="mq-linha"><button id="mq-giro" title="Movimento do celular" aria-label="Movimento do celular">${ICONES.giro}</button>`
         + `<button id="mq-cheia" title="Tela cheia" aria-label="Tela cheia">${ICONES.cheia}</button></div></div>
     </div>`;
-  // Dentro da página do cliente (?embutido=1), o ✕ e o COMENTAR da página ficam nos cantos de cima: a tela cheia e o mapinha se afastam deles.
+  // Dentro da página do cliente (?embutido=1), o ✕ e o SOLICITAR AJUSTE da página ficam nos cantos de cima: a tela cheia e o mapinha se afastam deles.
   if (new URLSearchParams(location.search).get("embutido")) document.body.classList.add("embutido");
   const camada = document.createElement("div");
   camada.innerHTML = `
@@ -1018,7 +1018,7 @@ window.TourDaMaquete = async function (base, tour) {
   // A sombra do sol começa ligada; o botão SOMBRA liga e desliga (ÊDI: só o nome, coral ligada).
   // A sombra do sol: ligada na maquete e em pé, desligada na PLANTA (ÊDI, 11/10/2026: "por padrão ela viesse sem a sombra projetada");
   // o SOMBRA liga e desliga a do modo em que se está.
-  const est = { modo: "maquete", pav: 0, paredes: tour.corte || 2.4, ambiente: null, reproduzindo: false, proximo: 0, sombraNoModo: { maquete: true, andar: true, planta: false, foto: true },
+  const est = { modo: "maquete", pav: 0, paredes: tour.corte || 2.4, paredesNoModo: { maquete: tour.corte || 2.4, planta: 1.6 }, ambiente: null, reproduzindo: false, proximo: 0, sombraNoModo: { maquete: true, andar: true, planta: false, foto: true },
     get sombra() { return this.sombraNoModo[this.modo] ?? true; }, set sombra(v) { this.sombraNoModo[this.modo] = v; } };
   // O pavimento de partida: o térreo (o de ambientes mais perto do nível zero).
   {
@@ -1316,6 +1316,10 @@ window.TourDaMaquete = async function (base, tour) {
       return;
     } else {
       const deDentro = est.modo === "andar";
+      // A altura das paredes é de cada modo: a PLANTA abre cortada a 1,60 m, abaixo do alto das portas, para elas aparecerem (ÊDI,
+      // 13/10/2026); a MAQUETE fica com a dela.
+      if (est.modo in est.paredesNoModo) est.paredesNoModo[est.modo] = est.paredes;
+      if (modo in est.paredesNoModo) { est.paredes = est.paredesNoModo[modo]; const entrada = $("mq-paredes"); if (entrada) { entrada.value = est.paredes; entrada.dispatchEvent(new Event("input")); } }
       est.modo = modo;
       if (deDentro) { orb.alvo = [pe.olho[0], pe.olho[1], pe.olho[2] - ALTURA]; orb.dist = .5; orb.guinada = pe.guinada + Math.PI; orb.inclinacao = .3; }
       if (modo === "planta") { orbAlvo.inclinacao = 89 * rad; orbAlvo.guinada = -Math.PI / 2; }
@@ -1532,8 +1536,11 @@ window.TourDaMaquete = async function (base, tour) {
   const raiz = document.documentElement;
   const pedirTelaCheia = raiz.requestFullscreen ? o => raiz.requestFullscreen(o) : raiz.webkitRequestFullscreen ? () => raiz.webkitRequestFullscreen() : null;
   const telaCheia = () => { if (pedirTelaCheia) Promise.resolve().then(() => pedirTelaCheia({ navigationUI: "hide" })).catch(() => {}); };
-  $("mq-cheia").onclick = telaCheia;
-  if (!pedirTelaCheia) $("mq-cheia").style.display = "none";
+  // Dentro da página do cliente, quem fica em tela cheia é a página, com o tour e a coluna do SOLICITAR AJUSTE (ÊDI, 13/10/2026: em
+  // tela cheia a coluna não aparecia); o tour só pede.
+  const embutido = document.body.classList.contains("embutido") && parent !== window;
+  $("mq-cheia").onclick = embutido ? () => parent.postMessage({ arquionie: true, tipo: "telaCheia" }, "*") : telaCheia;
+  if (!pedirTelaCheia && !embutido) $("mq-cheia").style.display = "none";
   function avisar(texto) { const a = $("aviso"); a.textContent = texto; a.style.display = "block"; clearTimeout(avisar.t); avisar.t = setTimeout(() => a.style.display = "none", 6000); }
   const movimento = { ligado: false, aparelho: null, deslocamento: 0, inclinacao: 0 };
   const mult = (a, b) => [a[0] * b[3] + a[3] * b[0] + a[1] * b[2] - a[2] * b[1], a[1] * b[3] + a[3] * b[1] + a[2] * b[0] - a[0] * b[2],
@@ -1983,7 +1990,7 @@ window.TourDaMaquete = async function (base, tour) {
   if (pedidos.get("hora")) { sol.minutos = Math.round(+pedidos.get("hora") * 60); solInput.value = sol.minutos; luzDoSol(); }
   if (pedidos.get("paredes")) { est.paredes = +pedidos.get("paredes"); paredesInput.value = est.paredes; }
   if (pedidos.get("pavimento")) { const n = pavs.findIndex(p => p.nome.toUpperCase().includes(pedidos.get("pavimento").toUpperCase())); if (n >= 0) mudarPav(n); enquadrarPav(true); }
-  if (pedidos.get("modo") === "planta") { est.modo = "planta"; enquadrarPav(true); }
+  if (pedidos.get("modo") === "planta") { if (!pedidos.get("paredes")) { est.paredes = est.paredesNoModo.planta; paredesInput.value = est.paredes; } est.modo = "planta"; enquadrarPav(true); }
   if (pedidos.get("ambiente")) { const n = ambientes.findIndex(a => a.nome.toUpperCase().includes(pedidos.get("ambiente").toUpperCase())); if (n >= 0) { escolherAmbiente(n); Object.assign(orb, { alvo: orbAlvo.alvo.slice(), dist: orbAlvo.dist, inclinacao: orbAlvo.inclinacao, guinada: orbAlvo.guinada }); } }
   if (pedidos.get("camera")) {
     const [x, y, z, g, i] = pedidos.get("camera").split(",").map(Number);

@@ -17,7 +17,7 @@
   <div id="projeto"><b id="nomeProjeto"></b><span id="fase" class="fase"></span></div>
   <nav id="menu"><a href="#video" data-ir="video">VÍDEO</a><a href="#explorar" data-ir="explorar">EXPLORAR</a><a href="#imagens" data-ir="imagens">IMAGENS</a></nav>
   <div id="acoes">
-    <button id="botaoAjustes" type="button">✎ SOLICITAR AJUSTES</button>
+    <button id="botaoAjustes" type="button">✎ SOLICITAR AJUSTE</button>
     <button id="botaoAprovar" type="button" class="principal">APROVAR O PROJETO</button>
   </div>
   <div id="selo" class="selo" hidden></div>
@@ -36,8 +36,8 @@
     <div class="tour" id="tour">
       <div class="capaTour" id="capaTour"><button id="entrarTour" type="button">ENTRAR NO TOUR <small id="tamanhoTour"></small></button></div>
       <iframe id="quadroTour" title="O tour do projeto" allow="fullscreen; gyroscope; accelerometer; xr-spatial-tracking" allowfullscreen hidden></iframe>
-      <button id="comentar" class="com" type="button" aria-label="Comentar" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg><span class="rotulo">COMENTAR</span></button>
-      <div id="avisoComentar" class="avisoComentar" hidden>Toque no tour onde quer comentar</div>
+      <button id="comentar" class="com" type="button" aria-label="Solicitar ajuste" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg><span class="rotulo">SOLICITAR AJUSTE</span></button>
+      <div id="avisoComentar" class="avisoComentar" hidden>Toque no tour onde quer o ajuste</div>
       <button id="sairTour" class="sair so-celular" type="button" aria-label="Sair do tour" title="Sair do tour" hidden>✕</button>
     </div>
   </section>
@@ -55,18 +55,18 @@
   <div class="feito"><span id="ate"></span><a href="https://www.arquionie.com.br" target="_blank" rel="noopener">feito com ARQUIONIE™</a></div>
 </footer>
 
-<!-- SOLICITAR AJUSTES: o nome e os comentários, cada um com o alfinete no tour, enviados juntos. -->
+<!-- SOLICITAR AJUSTE: o nome e os ajustes, cada um com o alfinete no tour, enviados juntos. -->
 <aside id="painel" class="painelCom" hidden>
-  <div class="cab"><span id="painelTitulo">SOLICITAR AJUSTES</span><button id="fecharPainel" type="button" aria-label="fechar">✕</button></div>
+  <div class="cab"><span id="painelTitulo">SOLICITAR AJUSTE</span><button id="fecharPainel" type="button" aria-label="fechar">✕</button></div>
   <div class="corpo">
     <label class="campo"><span>Seu nome</span><input id="nomeAjustes" maxlength="120" autocomplete="name"></label>
     <div id="enviados"></div>
     <div id="lista"></div>
-    <button id="novoComentario" class="mais" type="button">+ NOVO COMENTÁRIO · toque no tour onde quer comentar</button>
-    <button id="semLugar" class="mais leve" type="button">+ UM COMENTÁRIO SOBRE O PROJETO EM GERAL</button>
+    <button id="novoComentario" class="mais" type="button">+ NOVO AJUSTE · toque no tour onde quer o ajuste</button>
+    <button id="semLugar" class="mais leve" type="button">+ UM AJUSTE NO PROJETO EM GERAL</button>
   </div>
   <div class="pe">
-    <button id="enviarComentarios" class="principal" type="button" disabled>ENVIAR OS COMENTÁRIOS</button>
+    <button id="enviarComentarios" class="principal" type="button" disabled>ENVIAR OS AJUSTES</button>
     <button id="descartar" type="button">DESCARTAR</button>
     <p id="erroAjustes" class="erro" hidden></p>
   </div>

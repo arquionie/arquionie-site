@@ -197,7 +197,7 @@
     const ped = (envio.pedidos || []).at(-1);
     if (ped && !final) {
       const n = ped.comentarios.length;
-      $("pedido").textContent = `✎ AJUSTES SOLICITADOS · ${n} ${n === 1 ? "comentário" : "comentários"} de ${ped.nome} · ${data(ped.em)}`;
+      $("pedido").textContent = `✎ AJUSTES SOLICITADOS · ${n} ${n === 1 ? "ajuste" : "ajustes"} de ${ped.nome} · ${data(ped.em)}`;
       $("pedido").hidden = false;
     }
   }
@@ -211,42 +211,50 @@
     quadro.hidden = false;
     $("capaTour").hidden = true;
     atualizarSituacao();
-    if (toque) {
-      // No celular, o tour em tela cheia (com o giroscópio), e o ✕ SAIR DO TOUR volta à página.
-      const t = $("tour");
-      t.classList.add("cheio"); $("sairTour").hidden = false;
-      (t.requestFullscreen || t.webkitRequestFullscreen || (() => {})).call(t)?.catch?.(() => {});
-    }
+    // No celular, o tour em tela cheia (com o giroscópio), e o ✕ SAIR DO TOUR volta à página.
+    if (toque) tourEmTelaCheia(true);
   }
-  $("sairTour").onclick = () => {
-    $("tour").classList.remove("cheio"); $("sairTour").hidden = true;
-    if (document.fullscreenElement) document.exitFullscreen?.();
-  };
+  // A tela cheia do tour é a da página inteira, com o tour cobrindo tudo e a coluna do SOLICITAR AJUSTE ao lado quando aberta (ÊDI,
+  // 13/10/2026: em tela cheia a coluna não aparecia); o botão de tela cheia do tour pede por mensagem.
+  function tourEmTelaCheia(ligar) {
+    $("tour").classList.toggle("cheio", ligar); document.body.classList.toggle("tourCheio", ligar); $("sairTour").hidden = !ligar;
+    const raiz = document.documentElement;
+    if (ligar && !document.fullscreenElement) (raiz.requestFullscreen || raiz.webkitRequestFullscreen || (() => {})).call(raiz)?.catch?.(() => {});
+    if (!ligar && document.fullscreenElement) document.exitFullscreen?.();
+  }
+  $("sairTour").onclick = () => tourEmTelaCheia(false);
+  // Saindo da tela cheia pelo Esc do navegador, o tour volta ao lugar na página.
+  document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && $("tour").classList.contains("cheio")) tourEmTelaCheia(false); });
   const paraOTour = mensagem => { if (tourPronto) $("quadroTour").contentWindow.postMessage({ arquionie: true, ...mensagem }, "*"); };
   function ligarComentar(ligado) {
     comentando = ligado;
     $("comentar").classList.toggle("on", ligado);
     $("tour").classList.toggle("comentando", ligado);
-    $("comentar").innerHTML = ligado ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg><span class="rotulo">PARAR DE COMENTAR</span>'
-      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg><span class="rotulo">COMENTAR</span>';
-    $("comentar").setAttribute("aria-label", ligado ? "Parar de comentar" : "Comentar");
+    // Um termo só, SOLICITAR AJUSTE (ÊDI, 13/10/2026: o COMENTAR dava duplo entendimento); ligado, o mesmo nome com o ✕.
+    $("comentar").innerHTML = ligado ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg><span class="rotulo">SOLICITAR AJUSTE</span>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg><span class="rotulo">SOLICITAR AJUSTE</span>';
+    $("comentar").setAttribute("aria-label", ligado ? "Parar de marcar os ajustes no tour" : "Solicitar ajuste");
+    $("comentar").title = ligado ? "Parar de marcar os ajustes no tour" : "";
     $("avisoComentar").hidden = !ligado;
     paraOTour({ tipo: "comentar", ligado });
   }
-  $("comentar").onclick = () => ligarComentar(!comentando);
+  // O SOLICITAR AJUSTE do tour abre a coluna e liga a marcação: cada toque no tour vira uma linha nova (no computador, segue ligada).
+  $("comentar").onclick = () => { if (!comentando && !toque) abrirPainel(); ligarComentar(!comentando); };
   addEventListener("message", ev => {
     if (ev.source !== $("quadroTour").contentWindow || !ev.data?.arquionie) return;
     const m = ev.data;
+    if (m.tipo === "telaCheia") tourEmTelaCheia(!$("tour").classList.contains("cheio"));
     if (m.tipo === "pronto") { tourPronto = true; enviarAlfinetes(); if (comentando) paraOTour({ tipo: "comentar", ligado: true }); }
     if (m.tipo === "ponto" && comentando) {
-      ligarComentar(false);
+      // No celular a coluna cobre o tour: a marcação desliga a cada toque; no computador segue ligada, para o próximo.
+      if (toque || $("painel").hidden) ligarComentar(false);
       rascunho.push({ texto: "", lugar: m.lugar });
       guardarRascunho(); abrirPainel(); desenharLista(true);
     }
     if (m.tipo === "alfinete") { abrirPainel(); const el = document.querySelector(`[data-n="${m.n}"]`); el?.scrollIntoView({ block: "center" }); el?.querySelector("textarea")?.focus(); }
   });
 
-  // ---------------------------------------------------------------- SOLICITAR AJUSTES
+  // ---------------------------------------------------------------- SOLICITAR AJUSTE
   const chaveRascunho = () => `rascunho:${codigo || pastaDaProva}:${d.envio.numero}`;
   let rascunho = [];
   const guardarRascunho = () => { try { localStorage.setItem(chaveRascunho(), JSON.stringify({ nome: $("nomeAjustes").value, lista: rascunho })); } catch { } };
@@ -266,7 +274,7 @@
     } catch { }
     $("nomeAprovar").value = $("nomeAjustes").value;
     $("botaoAjustes").onclick = () => { abrirPainel(); if (!rascunho.length) $("novoComentario").focus(); };
-    $("fecharPainel").onclick = () => { $("painel").hidden = true; };
+    $("fecharPainel").onclick = () => { $("painel").hidden = true; document.body.classList.remove("comPainel"); if (comentando) ligarComentar(false); };
     $("nomeAjustes").oninput = () => { guardarRascunho(); conferirBotoes(); };
     $("novoComentario").onclick = () => {
       irPara("explorar");
@@ -276,13 +284,13 @@
     };
     $("semLugar").onclick = () => { rascunho.push({ texto: "", lugar: null }); guardarRascunho(); desenharLista(true); };
     $("descartar").onclick = () => {
-      if (!rascunho.length || confirm("Descartar os comentários que ainda não foram enviados?")) { rascunho = []; guardarRascunho(); desenharLista(); }
+      if (!rascunho.length || confirm("Descartar os ajustes que ainda não foram enviados?")) { rascunho = []; guardarRascunho(); desenharLista(); }
     };
     $("enviarComentarios").onclick = enviarComentarios;
     $("botaoAprovar").onclick = abrirTermo;
     desenharLista();
   }
-  function abrirPainel() { $("painel").hidden = false; desenharLista(); }
+  function abrirPainel() { $("painel").hidden = false; document.body.classList.add("comPainel"); desenharLista(); }
   function desenharLista(focarUltimo = false) {
     const enviados = enviadosLista();
     $("enviados").innerHTML = enviados.length ? `<div class="campo"><span>ENVIADOS AO ESCRITÓRIO (${enviados.length})</span></div>` : "";
@@ -297,7 +305,7 @@
     rascunho.forEach((c, i) => {
       const n = enviados.length + i + 1;
       const el = document.createElement("div"); el.className = "it"; el.dataset.n = n;
-      el.innerHTML = `<div class="n${c.lugar?.ponto ? "" : " geral"}">${n}</div><div class="meio"><small></small><textarea maxlength="2000" placeholder="Escreva o comentário…"></textarea><button class="tirar" type="button">tirar</button></div>`;
+      el.innerHTML = `<div class="n${c.lugar?.ponto ? "" : " geral"}">${n}</div><div class="meio"><small></small><textarea maxlength="2000" placeholder="Escreva o ajuste…"></textarea><button class="tirar" type="button">tirar</button></div>`;
       el.querySelector("small").textContent = ondeFica(c.lugar);
       const caixa = el.querySelector("textarea");
       caixa.value = c.texto;
@@ -310,13 +318,13 @@
   }
   function conferirBotoes() {
     const prontos = rascunho.filter(c => c.texto.trim()).length;
-    $("enviarComentarios").textContent = `ENVIAR OS COMENTÁRIOS${prontos ? ` (${prontos})` : ""}`;
+    $("enviarComentarios").textContent = `ENVIAR OS AJUSTES${prontos ? ` (${prontos})` : ""}`;
     $("enviarComentarios").disabled = !prontos || !$("nomeAjustes").value.trim();
-    $("painelTitulo").textContent = `SOLICITAR AJUSTES · ENVIO ${d.envio.numero}`;
+    $("painelTitulo").textContent = `SOLICITAR AJUSTE · ENVIO ${d.envio.numero}`;
     // Enquanto há comentário por enviar, o APROVAR fica apagado (ÊDI: comentar é pedir ajuste).
     const pendente = rascunho.some(c => c.texto.trim());
     $("botaoAprovar").disabled = pendente;
-    $("botaoAprovar").title = pendente ? "Envie ou descarte os comentários antes de aprovar." : "";
+    $("botaoAprovar").title = pendente ? "Envie ou descarte os ajustes antes de aprovar." : "";
   }
   async function enviarComentarios() {
     const nome = $("nomeAjustes").value.trim(), comentarios = rascunho.filter(c => c.texto.trim()).map(c => ({ texto: c.texto.trim(), ...(c.lugar ? { lugar: c.lugar } : {}) }));
@@ -327,7 +335,7 @@
     d.envio.situacao = "ajustes";
     rascunho = []; guardarRascunho();
     desenharLista(); atualizarSituacao();
-    nota("Comentários enviados ao escritório.");
+    nota("Ajustes enviados ao escritório.");
   }
 
   // ---------------------------------------------------------------- APROVAR O PROJETO: o termo do escritório
