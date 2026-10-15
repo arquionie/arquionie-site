@@ -255,6 +255,11 @@ export default function GestaoCampanhas() {
               {confirmar ? `CONFIRMAR: ENVIAR PARA ${selecionados.size}` : `INICIAR CAMPANHA (${selecionados.size})`}
             </Botao>
           </div>
+          {/* O resultado do TESTE e do INICIAR também aqui, ao lado dos botões: no alto da página ele ficava fora da vista (ÊDI, 15/10/2026). */}
+          <div className="mt-3 text-right" aria-live="polite">
+            <Mensagem>{aviso}</Mensagem>
+            <Mensagem erro>{erro}</Mensagem>
+          </div>
         </Painel>
       </div>
 
