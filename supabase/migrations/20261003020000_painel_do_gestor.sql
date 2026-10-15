@@ -10,8 +10,9 @@ create table if not exists public.administradores (
 alter table public.administradores enable row level security;
 
 -- Quem administra, pelo e-mail da conta do site. Para acrescentar alguém depois, rode só este insert com o e-mail dele.
+-- Desde 15/10/2026 (ÊDI) a gestão é só da conta do Arquionie; a do escritório (palhetaarquitetura@gmail.com) é uma conta comum.
 insert into public.administradores (usuario_id)
-select id from auth.users where email in ('palhetaarquitetura@gmail.com', 'palhetaarquionie@gmail.com')
+select id from auth.users where email in ('palhetaarquionie@gmail.com')
 on conflict do nothing;
 
 create or replace function public.eh_administrador() returns boolean
