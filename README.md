@@ -154,6 +154,20 @@ Configurações feitas no painel, em ordem:
    O site passa às cores novas do programa (o coral sereno, os campos nos tons dele e a terracota no botão principal; o `#E76353`
    fica só no leão).
 
+10. **A LICENÇA ÚNICA e a gestão que vem do Palheta Flow** (plano 18 do repositório do plugin, decisões do ÊDI de 14/10/2026).
+   **Ainda não publicado.** Só com o ÊDI, nesta ordem:
+   1. **Teste local:** `node supabase/testes/gestao-flow.test.mjs` (49 conferências: licença única, preços, cupons, importação do
+      Flow, destinatários, campanha com lotes, intervalo, limite do dia, pausa e cancelamento, descadastro, aulas e feedbacks; roda a
+      migração duas vezes).
+   2. **SQL Editor (Arquionie):** rodar `supabase/migrations/20261015000000_licenca_unica_e_gestao_do_flow.sql` (depois da
+      `20261005010000`; pode rodar duas vezes). A partir daí toda licença vale no programa e no plugin; os computadores continuam
+      três em cada um.
+   3. **SQL Editor (escritório), só leitura:** `supabase/ferramentas/exportar-do-flow.sql` gera o arquivo com preços, cupons,
+      cadastros, descadastros, campanhas, aulas e feedbacks do Flow. Guardar numa pasta particular. A importação entra com a tela
+      do /gestao (ainda por fazer, depois do mockup).
+   Ainda não tem: as telas das abas novas, as funções de campanha e de feedback (pedem a `RESEND_API_KEY`) e o roteiro das contas com
+   senha.
+
 ## Pendente
 
 - Textos da página inicial para ÊDI revisar. As imagens são capturas de amostras do programa (`public/imagens`); faltam
