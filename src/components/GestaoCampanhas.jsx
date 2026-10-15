@@ -128,9 +128,14 @@ export default function GestaoCampanhas() {
         parcela: numero(oferta.parcela), validoAte: oferta.validoAte || null, whatsapp: oferta.whatsapp }
     : null);
 
+  // {cupom} e {desconto} sem cupom escolhido saem vazios ("Cupom : % off", visto no 1º teste do ÊDI, 15/10/2026).
+  const faltaCupom = () => /\{(cupom|desconto)\}/.test(assunto + mensagem) && !cupom;
+  const avisoCupom = 'O texto usa {cupom} ou {desconto}, mas nenhum cupom foi escolhido. Escolha o cupom ou tire essas variáveis.';
+
   const [testando, setTestando] = useState(false);
   async function testar() {
     setErro(''); setAviso('');
+    if (faltaCupom()) { setErro(avisoCupom); return; }
     setTestando(true);
     const r = await testarCampanha({ assunto, mensagem, cupom, desconto: desconto ? Number(desconto) : null, oferta: ofertaPronta() });
     setTestando(false);
@@ -140,6 +145,7 @@ export default function GestaoCampanhas() {
 
   async function iniciar() {
     setErro(''); setAviso('');
+    if (faltaCupom()) { setErro(avisoCupom); setConfirmar(false); return; }
     if (!confirmar) { setConfirmar(true); return; }
     setConfirmar(false);
     const r = await criarCampanha({
