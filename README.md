@@ -168,8 +168,15 @@ Configurações feitas no painel, em ordem:
    4. **Telas (mockup aprovado em 15/10/2026):** o /gestao ganha PREÇOS E CUPONS (com IMPORTAR DADOS DO FLOW), CAMPANHAS, VERSÕES E
       AULAS e FEEDBACKS; o LIBERAR deixa de pedir o produto (licença única). Para conferir sem conta: `/gestao?amostra=1#precos`
       (e `#campanhas`, `#versoes`, `#feedbacks`).
-   Ainda não tem: as funções de campanha e de feedback (pedem a `RESEND_API_KEY`; até lá a campanha fica na fila e o TESTE PARA MIM
-   avisa) e o roteiro das contas com senha.
+   5. **Funções `campanhas` e `feedback`** (testadas por `node supabase/testes/envio.test.mjs`, 19 conferências). Só com o ÊDI:
+      - **Resend:** uma chave só de envio (Sending access, domínio arquionie.com.br), guardada em Edge Functions › Secrets como
+        `RESEND_CAMPANHAS`. **Nunca** com o nome `RESEND_API_KEY`: com esse nome a função `cliente` passaria a mandar e-mail
+        (decisão do ÊDI de 11/10/2026).
+      - **Publicar:** `npx supabase functions deploy campanhas --project-ref sowazotriildoeaxbhkl --no-verify-jwt --use-api` e o mesmo
+        para `feedback`, com uma chave de acesso temporária do Supabase na variável `SUPABASE_ACCESS_TOKEN` do terminal dele.
+      - **SQL Editor:** `supabase/ferramentas/ligar-envio-das-campanhas.sql` sorteia o segredo da tarefa no cofre (ninguém copia) e
+        agenda a `enviar-campanhas` a cada 5 minutos.
+      - **Conferir:** TESTE PARA MIM na aba CAMPANHAS.
 
 ## Pendente
 

@@ -123,6 +123,16 @@ export async function criarCampanha(c) {
   });
 }
 
+// TESTE PARA MIM: a função campanhas manda o mesmo e-mail só para quem está entrando (e confere que é administrador).
+export async function testarCampanha(c) {
+  if (AMOSTRA) return { ok: true, para: 'gestor@exemplo.com.br' };
+  const { data, error } = await supabase.functions.invoke('campanhas', {
+    body: { acao: 'teste', assunto: c.assunto, mensagem: c.mensagem, cupom: c.cupom || null, desconto: c.desconto || null, oferta: c.oferta },
+  });
+  if (error) return { ok: false, motivo: 'Não deu para mandar o teste agora. Tente de novo em instantes.' };
+  return data;
+}
+
 export const pausarCampanha = (id) => (AMOSTRA ? { ok: true } : rpc('gestao_campanha_pausar', { p_id: id }));
 export const retomarCampanha = (id) => (AMOSTRA ? { ok: true } : rpc('gestao_campanha_retomar', { p_id: id }));
 export const cancelarCampanha = (id) => (AMOSTRA ? { ok: true } : rpc('gestao_campanha_cancelar', { p_id: id }));

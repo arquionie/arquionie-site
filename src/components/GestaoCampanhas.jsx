@@ -7,6 +7,7 @@ import { Botao, Campo, Lista, Mensagem } from '@/components/Formulario';
 import { Acao, Cabecalho, Numero, Numeros, Painel, Selo } from '@/components/GestaoPecas';
 import {
   cancelarCampanha, criarCampanha, dia, lerCampanhas, lerCupons, lerDestinatarios, MODELOS, pausarCampanha, quando, retomarCampanha,
+  testarCampanha,
 } from '@/lib/gestaoFlow';
 
 const POR_PAGINA = 10;
@@ -122,16 +123,27 @@ export default function GestaoCampanhas() {
   const mudarOferta = (k) => (v) => setOferta((o) => ({ ...o, [k]: v }));
   const numero = (t) => (t === '' ? null : Number(String(t).replace(',', '.')));
 
+  const ofertaPronta = () => (oferta.chamada || oferta.por
+    ? { chamada: oferta.chamada, de: numero(oferta.de), por: numero(oferta.por), parcelas: numero(oferta.parcelas),
+        parcela: numero(oferta.parcela), validoAte: oferta.validoAte || null, whatsapp: oferta.whatsapp }
+    : null);
+
+  const [testando, setTestando] = useState(false);
+  async function testar() {
+    setErro(''); setAviso('');
+    setTestando(true);
+    const r = await testarCampanha({ assunto, mensagem, cupom, desconto: desconto ? Number(desconto) : null, oferta: ofertaPronta() });
+    setTestando(false);
+    if (r?.ok) setAviso(`Teste enviado para ${r.para}. Confira a caixa de entrada (e o spam, na primeira vez).`);
+    else setErro(r?.motivo ?? 'Não deu para mandar o teste.');
+  }
+
   async function iniciar() {
     setErro(''); setAviso('');
     if (!confirmar) { setConfirmar(true); return; }
     setConfirmar(false);
-    const ofertaPronta = oferta.chamada || oferta.por
-      ? { chamada: oferta.chamada, de: numero(oferta.de), por: numero(oferta.por), parcelas: numero(oferta.parcelas),
-          parcela: numero(oferta.parcela), validoAte: oferta.validoAte || null, whatsapp: oferta.whatsapp }
-      : null;
     const r = await criarCampanha({
-      assunto, mensagem, cupom, desconto: desconto ? Number(desconto) : null, oferta: ofertaPronta,
+      assunto, mensagem, cupom, desconto: desconto ? Number(desconto) : null, oferta: ofertaPronta(),
       destinatarios: lista.filter((d) => selecionados.has(d.email)).map((d) => ({ email: d.email, nome: d.nome })),
       lote: Number(lote), intervaloMin: Number(intervalo), limiteDia: Number(limite),
     });
@@ -238,9 +250,7 @@ export default function GestaoCampanhas() {
           <p className="mb-3 mt-1 text-[12px] text-aqi-muted">Roda no servidor: pode fechar a página.</p>
           <div className="flex flex-wrap justify-end gap-2">
             {confirmar && <Botao nivel={3} type="button" onClick={() => setConfirmar(false)}>VOLTAR</Botao>}
-            <Botao nivel={2} type="button" onClick={() => setAviso('O TESTE PARA MIM chega junto com a função de envio (ela pede a chave do Resend no Arquionie). Até lá, a campanha fica na fila.')}>
-              TESTE PARA MIM
-            </Botao>
+            <Botao nivel={2} type="button" onClick={testar} disabled={testando}>{testando ? 'MANDANDO…' : 'TESTE PARA MIM'}</Botao>
             <Botao principal type="button" onClick={iniciar} disabled={selecionados.size === 0}>
               {confirmar ? `CONFIRMAR: ENVIAR PARA ${selecionados.size}` : `INICIAR CAMPANHA (${selecionados.size})`}
             </Botao>
