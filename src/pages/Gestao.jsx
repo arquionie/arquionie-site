@@ -6,6 +6,10 @@ import { numeroLegivel } from '@/lib/downloads';
 import { ATUACOES } from '@/config';
 import GestaoLicencas from '@/components/GestaoLicencas';
 import GestaoPedidosDePlano, { usePedidosDePlano } from '@/components/GestaoPedidosDePlano';
+import GestaoPrecosCupons from '@/components/GestaoPrecosCupons';
+import GestaoCampanhas from '@/components/GestaoCampanhas';
+import GestaoVersoesAulas from '@/components/GestaoVersoesAulas';
+import GestaoFeedbacks, { useFeedbacksNovos } from '@/components/GestaoFeedbacks';
 
 // Painel do gestor (ÊDI, 03/10/2026, como o /admin do Palheta Flow): quem se cadastrou, quem baixou e quantas vezes.
 // Todo e-mail aqui foi confirmado pelo código, então são contas de verdade. Os dados vêm de funções do banco que só
@@ -173,10 +177,13 @@ export default function Gestao() {
   const { usuario, carregando } = useSessao();
   const admin = useEhAdministrador();
   const [dados, setDados] = useState(null);
-  const [aba, setAba] = useState(() => ({ '#licencas': 'licencas', '#pedidos': 'pedidos' })[window.location.hash] ?? 'contas');
+  // As abas que vieram do Palheta Flow (plano 18, mockup aprovado em 15/10/2026): preços e cupons, campanhas, versões e aulas, feedbacks.
+  const [aba, setAba] = useState(() => (
+    ['licencas', 'pedidos', 'precos', 'campanhas', 'versoes', 'feedbacks'].find((a) => window.location.hash === `#${a}`) ?? 'contas'));
   // o LIBERAR LICENÇAS de um pedido de plano abre o LIBERAR com o e-mail da conta
   const [liberarPara, setLiberarPara] = useState(null);
   const [pedidos, setPedidos, lerPedidos] = usePedidosDePlano();
+  const [feedbacksNovos, setFeedbacksNovos] = useFeedbacksNovos();
 
   const pode = AMOSTRA || admin === true;
   async function atualizar() {
@@ -202,11 +209,15 @@ export default function Gestao() {
   const abertos = (pedidos ?? []).filter((p) => !p.respondidoEm).length;
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-10 sm:px-7">
-      <div role="tablist" aria-label="Painel do gestor" className="mb-6 flex gap-6 border-b border-aqi-borda text-[12px] font-semibold tracking-[0.08em]">
+      <div role="tablist" aria-label="Painel do gestor" className="mb-6 flex flex-wrap gap-x-6 border-b border-aqi-borda text-[12px] font-semibold tracking-[0.08em]">
         {[
           ['contas', 'CONTAS E DOWNLOADS'],
           ['licencas', 'LICENÇAS'],
           ['pedidos', `PEDIDOS DE PLANO${abertos ? ` (${abertos})` : ''}`],
+          ['precos', 'PREÇOS E CUPONS'],
+          ['campanhas', 'CAMPANHAS'],
+          ['versoes', 'VERSÕES E AULAS'],
+          ['feedbacks', `FEEDBACKS${feedbacksNovos ? ` (${feedbacksNovos})` : ''}`],
         ].map(([id, rotulo]) => (
           <button
             key={id}
@@ -220,7 +231,15 @@ export default function Gestao() {
           </button>
         ))}
       </div>
-      {aba === 'pedidos' ? (
+      {aba === 'precos' ? (
+        <GestaoPrecosCupons />
+      ) : aba === 'campanhas' ? (
+        <GestaoCampanhas />
+      ) : aba === 'versoes' ? (
+        <GestaoVersoesAulas />
+      ) : aba === 'feedbacks' ? (
+        <GestaoFeedbacks aoMudarNovos={setFeedbacksNovos} />
+      ) : aba === 'pedidos' ? (
         <GestaoPedidosDePlano pedidos={pedidos} setPedidos={setPedidos} carregar={lerPedidos}
           aoLiberar={(email) => { setLiberarPara({ email, vez: Date.now() }); trocarAba('licencas'); }} />
       ) : aba === 'licencas' ? (

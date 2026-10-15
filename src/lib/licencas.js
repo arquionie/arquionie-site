@@ -1,8 +1,9 @@
 // Licenças por produto e conexão de computadores pelo navegador (migração 20261005010000; plano 17 do repositório do
 // plugin). Aqui ficam os nomes que a pessoa lê, os textos prontos e os dados de amostra para conferir as telas.
 
+// Licença única desde 14/10/2026 (ÊDI): a licença `arquionie` vale no programa e no plugin do Revit.
 export const NOMES_PRODUTO = {
-  arquionie: 'Arquionie™',
+  arquionie: 'Arquionie™ PRO (programa e plugin do Revit)',
   'arquionie-revit': 'Arquionie™ para Revit',
 };
 
@@ -40,7 +41,7 @@ export function textoConvite({ quemPassou, email, produto, expiraEm }) {
     `${quemPassou ? `${quemPassou} passou para você` : 'Você recebeu'} uma licença do ${nomeProduto(produto)}, ` +
     `válida até ${dataCurta(expiraEm)}.\n` +
     `1) Crie sua conta em arquionie.com.br com este e-mail: ${email} (se já tem conta, é só entrar).\n` +
-    `2) No ${produto === 'arquionie-revit' ? 'Revit' : 'programa'}, clique ENTRAR COM A CONTA ARQUIONIE.`
+    `2) No programa ou no Revit, clique ENTRAR COM A CONTA ARQUIONIE.`
   );
 }
 
@@ -49,7 +50,7 @@ export function textoWhatsApp({ email, produto, quantidade = 1, expiraEm }) {
   let t =
     `Olá! Sua licença do ${nomeProduto(produto)} está liberada até ${dataCurta(expiraEm)}.\n` +
     `1) Crie sua conta em arquionie.com.br com este e-mail: ${email} (se já tem conta, é só entrar).\n` +
-    `2) No ${produto === 'arquionie-revit' ? 'Revit' : 'programa'}, clique ENTRAR COM A CONTA ARQUIONIE.`;
+    `2) No programa ou no Revit, clique ENTRAR COM A CONTA ARQUIONIE.`;
   if (quantidade > 1) {
     t += `\nAs ${quantidade} licenças ficaram no seu e-mail: passe cada uma para quem vai usar em arquionie.com.br/conta.`;
   }

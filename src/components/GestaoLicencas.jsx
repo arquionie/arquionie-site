@@ -86,7 +86,7 @@ export default function GestaoLicencas({ liberarPara = null }) {
   const [ocupado, setOcupado] = useState(false);
   // LIBERAR
   const [dono, setDono] = useState('');
-  const [produto, setProduto] = useState('arquionie-revit');
+  const produto = 'arquionie';   // licença única (ÊDI, 14/10/2026): programa e plugin com a mesma licença
   const [plano, setPlano] = useState('pro');
   const [quantidade, setQuantidade] = useState('1');
   const [validade, setValidade] = useState(daquiAUmAno());
@@ -290,8 +290,6 @@ export default function GestaoLicencas({ liberarPara = null }) {
         <form onSubmit={liberar} className="max-w-[640px]">
           <Painel titulo="Liberar licença">
             <Campo id="lib-dono" rotulo="E-MAIL DE QUEM COMPROU" tipo="email" valor={dono} aoMudar={setDono} autoFocus />
-            <Lista id="lib-produto" rotulo="PRODUTO" valor={produto} aoMudar={setProduto}
-              opcoes={[{ valor: 'arquionie-revit', rotulo: nomeProduto('arquionie-revit').toUpperCase() }, { valor: 'arquionie', rotulo: nomeProduto('arquionie').toUpperCase() }]} />
             <Lista id="lib-plano" rotulo="PLANO" valor={plano} aoMudar={setPlano}
               opcoes={[{ valor: 'pro', rotulo: 'PRO (CLIENTE)' }, { valor: 'equipe', rotulo: 'EQUIPE (COLABORADOR)' }]} />
             <Campo id="lib-qtd" rotulo="QUANTIDADE" tipo="number" valor={quantidade} aoMudar={setQuantidade} min="1" max="100" />

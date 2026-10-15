@@ -165,8 +165,11 @@ Configurações feitas no painel, em ordem:
    3. **SQL Editor (escritório), só leitura:** `supabase/ferramentas/exportar-do-flow.sql` gera o arquivo com preços, cupons,
       cadastros, descadastros, campanhas, aulas e feedbacks do Flow. Guardar numa pasta particular. A importação entra com a tela
       do /gestao (ainda por fazer, depois do mockup).
-   Ainda não tem: as telas das abas novas, as funções de campanha e de feedback (pedem a `RESEND_API_KEY`) e o roteiro das contas com
-   senha.
+   4. **Telas (mockup aprovado em 15/10/2026):** o /gestao ganha PREÇOS E CUPONS (com IMPORTAR DADOS DO FLOW), CAMPANHAS, VERSÕES E
+      AULAS e FEEDBACKS; o LIBERAR deixa de pedir o produto (licença única). Para conferir sem conta: `/gestao?amostra=1#precos`
+      (e `#campanhas`, `#versoes`, `#feedbacks`).
+   Ainda não tem: as funções de campanha e de feedback (pedem a `RESEND_API_KEY`; até lá a campanha fica na fila e o TESTE PARA MIM
+   avisa) e o roteiro das contas com senha.
 
 ## Pendente
 
