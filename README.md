@@ -178,6 +178,20 @@ Configurações feitas no painel, em ordem:
         agenda a `enviar-campanhas` a cada 5 minutos.
       - **Conferir:** TESTE PARA MIM na aba CAMPANHAS.
 
+11. **A COMPRA DO PRO** (plano 19 do repositório do plugin, `docs/migracao-arkiton/19-plano-compra-do-pro.md`; mockups aprovados pelo
+   ÊDI em 15/10/2026). **Banco pronto e testado; telas ainda por fazer; nada publicado.** Só com o ÊDI, nesta ordem:
+   1. **Teste local:** `node supabase/testes/compra.test.mjs` (48 conferências: o plano `plugin` da licença, os preços dos planos, o
+      formulário sem conta com o cupom só no anual, liberar, renovar, vencer, encerrar e cancelar; roda a migração duas vezes).
+   2. **SQL Editor (Arquionie):** rodar `supabase/migrations/20261016000000_compra_do_pro.sql` (depois da `20261015000000`; pode rodar
+      duas vezes).
+      - A licença ganha o plano `plugin` (só o plugin); o `pro` continua completo. O programa ignora a `plugin`; o plugin recebe `pro`
+        na ficha.
+      - A tabela `precos` ganha os quatro valores dos planos: plugin 69 e 39, Arquionie 119 e 79 (o anual por mês).
+      - A tabela `pedidos`, com o formulário `pedido_criar` (sem conta) e as funções do /gestao.
+   3. **Telas, depois do banco:** o quadro de preço nas duas páginas, o `/comprar` com COMPRAR PELO WHATSAPP (grava e leva ao
+      WhatsApp de vendas 5511991961580 com a mensagem pronta; se gravar falhar, leva assim mesmo) e a aba PEDIDOS em lista. As telas
+      que mostram o plano da licença (LICENÇAS, MINHA CONTA, /conectar) passam a escrever PLUGIN PRO para o `plugin`.
+
 ## Pendente
 
 - Textos da página inicial para ÊDI revisar. As imagens são capturas de amostras do programa (`public/imagens`); faltam
