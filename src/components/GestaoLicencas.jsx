@@ -338,8 +338,11 @@ export default function GestaoLicencas({ liberarPara = null }) {
         </div>
       )}
 
-      <section className="bg-aqi-barra p-5">
-        <div className="mb-4 flex flex-wrap items-center gap-2">
+      {/* A lista no padrão do cartão da apresentação (MINHA CONTA, aprovado por ÊDI em 12/10/2026; pedido de 15/10/2026): em cima
+          quem comprou, quem usa e o selo; embaixo a faixa com os computadores e a validade e, no fim dela, os botões pela hierarquia
+          (o mais forte à direita; a terracota só onde há algo a fazer, como renovar uma licença que vence). */}
+      <section>
+        <div className="flex flex-wrap items-center gap-2 bg-aqi-barra px-5 py-4">
           <h2 className="mr-auto text-[13px] font-semibold uppercase tracking-[0.12em] text-aqi-coral">
             Licenças <span className="text-aqi-muted">· {lista.length}</span>
           </h2>
@@ -348,69 +351,76 @@ export default function GestaoLicencas({ liberarPara = null }) {
           <select value={filtro} onChange={(e) => setFiltro(e.target.value)} aria-label="Filtro" className="h-[38px] bg-aqi-valor px-3 text-[13px] text-white focus:outline-none">
             {FILTROS.map((f) => <option key={f.valor} value={f.valor}>{f.rotulo}</option>)}
           </select>
-          <button type="button" onClick={baixarPlanilha} className="h-[38px] bg-aqi-campo px-4 text-[12px] font-bold tracking-wide text-white hover:bg-aqi-campohover">
-            BAIXAR PLANILHA
-          </button>
+          <Botao nivel={2} type="button" onClick={baixarPlanilha}>BAIXAR PLANILHA</Botao>
         </div>
         {lista.length === 0 ? (
-          <p className="py-6 text-center text-aqi-muted">Nenhuma licença com esse filtro.</p>
+          <p className="mt-2.5 bg-aqi-barra py-6 text-center text-aqi-muted">Nenhuma licença com esse filtro.</p>
         ) : (
-          <ul className="divide-y divide-[#262D37] border-t border-aqi-borda">
-            {lista.map((l) => (
-              <li key={l.id} className="py-3">
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                  <span className="mr-auto break-all text-[14px] text-white">{l.dono}</span>
+          lista.map((l) => {
+            const urgente = l.situacao === 'vencendo' || l.situacao === 'vencida';
+            return (
+              <article key={l.id} className="mt-2.5 bg-aqi-barra">
+                <div className="flex flex-wrap items-start gap-x-3 gap-y-1 px-3.5 py-3">
+                  <div className="mr-auto min-w-0">
+                    <div className="break-all text-[14px] font-semibold text-white">{l.dono}</div>
+                    <div className="mt-0.5 text-[12.5px] text-aqi-muted">
+                      {[`usa: ${l.titular ? (l.titular === l.dono ? 'o próprio dono' : l.titular) : 'ninguém ainda'}`,
+                        PLANOS[l.plano] ?? l.plano, ORIGENS[l.origem] ?? l.origem, l.bonus ? 'bônus somado' : '', l.observacao ?? '']
+                        .filter(Boolean).join(' · ')}
+                    </div>
+                  </div>
                   {selo(l)}
                 </div>
-                <p className="mt-1 text-[12px] text-aqi-muted">
-                  Usa: {l.titular ? (l.titular === l.dono ? 'o próprio dono' : l.titular) : 'ninguém ainda'} · {nomeProduto(l.produto)} ·{' '}
-                  {PLANOS[l.plano] ?? l.plano} · até {dataCurta(l.expiraEm)} · {ORIGENS[l.origem] ?? l.origem}
-                  {l.bonus ? ' · bônus somado' : ''} · {l.computadores ?? 0} de 3 computadores
-                  {l.observacao ? ` · ${l.observacao}` : ''}
-                </p>
-                <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
-                  {l.situacao === 'revogada' ? (
-                    <button type="button" className="link text-[12px]" onClick={() => setAcao({ tipo: 'reativar', l })}>REATIVAR</button>
-                  ) : (
-                    <>
-                      <button type="button" className="link text-[12px]" onClick={() => setAcao({ tipo: 'renovar', l })}>RENOVAR</button>
-                      <button type="button" className="link text-[12px]" onClick={() => setAcao({ tipo: 'revogar', l })}>REVOGAR</button>
-                      <button type="button" className="link text-[12px]" onClick={() => { setAcao({ tipo: 'trocar', l }); setQual('titular'); setNovoEmail(''); }}>
-                        TROCAR E-MAIL
-                      </button>
-                      <button type="button" className="link text-[12px]" onClick={() => { setMensagem(textoWhatsApp({ email: l.titular || l.dono, produto: l.produto, expiraEm: l.expiraEm })); setCopiada(''); }}>
-                        COPIAR MENSAGEM
-                      </button>
-                    </>
-                  )}
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-[#262D37] bg-aqi-faixa px-3.5 py-2 text-[12.5px] text-aqi-muted">
+                  <span className="mr-auto">
+                    <b className="text-white">{l.computadoresPrograma ?? 0}</b> de 3 no programa · <b className="text-white">{l.computadoresPlugin ?? l.computadores ?? 0}</b> de 3
+                    no Revit · {l.situacao === 'vencida' ? 'venceu em' : 'até'} <b className="text-white">{dataCurta(l.expiraEm)}</b>
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {l.situacao === 'revogada' ? (
+                      <Botao pequeno nivel={2} type="button" onClick={() => setAcao({ tipo: 'reativar', l })}>REATIVAR</Botao>
+                    ) : (
+                      <>
+                        <Botao pequeno nivel={3} type="button" onClick={() => setAcao({ tipo: 'revogar', l })}>REVOGAR</Botao>
+                        <Botao pequeno nivel={3} type="button" onClick={() => { setAcao({ tipo: 'trocar', l }); setQual('titular'); setNovoEmail(''); }}>
+                          TROCAR E-MAIL
+                        </Botao>
+                        <Botao pequeno nivel={2} type="button"
+                          onClick={() => { setMensagem(textoWhatsApp({ email: l.titular || l.dono, produto: l.produto, expiraEm: l.expiraEm })); setCopiada(''); }}>
+                          COPIAR MENSAGEM
+                        </Botao>
+                        <Botao pequeno nivel={urgente ? 1 : 2} type="button" onClick={() => setAcao({ tipo: 'renovar', l })}>RENOVAR</Botao>
+                      </>
+                    )}
+                  </div>
                 </div>
                 {acao?.l.id === l.id && (
-                  <div className="mt-2 bg-aqi-pagina p-3">
+                  <div className="border-t border-[#262D37] px-3.5 py-2.5 text-[13.5px]">
                     {acao.tipo === 'trocar' ? (
-                      <>
+                      <div className="max-w-[560px]">
                         <Lista id={`qual-${l.id}`} rotulo="QUAL E-MAIL" valor={qual} aoMudar={setQual}
                           opcoes={[{ valor: 'titular', rotulo: 'QUEM USA' }, { valor: 'dono', rotulo: 'QUEM COMPROU' }]} />
                         <Campo id={`novo-${l.id}`} rotulo="NOVO E-MAIL" tipo="email" valor={novoEmail} aoMudar={setNovoEmail}
                           placeholder={qual === 'titular' ? 'vazio = sem titular' : 'exemplo@exemplo.com'} />
-                      </>
-                    ) : (
-                      <p className="mb-2 text-[13px]">
-                        {acao.tipo === 'renovar' && `Renovar por 12 meses, a partir de ${dataCurta(new Date(Math.max(Date.now(), new Date(l.expiraEm))).toISOString())}?`}
+                      </div>
+                    ) : null}
+                    <div className="mt-1 flex flex-wrap items-center gap-3">
+                      <span className="min-w-[240px] flex-1">
+                        {acao.tipo === 'renovar' && <>Renovar por 12 meses, a partir de <b className="text-white">{dataCurta(new Date(Math.max(Date.now(), new Date(l.expiraEm))).toISOString())}</b>?</>}
                         {acao.tipo === 'revogar' && 'Revogar esta licença? Os computadores dela voltam ao grátis na próxima conferência.'}
                         {acao.tipo === 'reativar' && 'Reativar esta licença?'}
-                      </p>
-                    )}
-                    <div className="mt-2 flex justify-end gap-2.5">
-                      <Botao type="button" onClick={() => setAcao(null)}>CANCELAR</Botao>
+                        {acao.tipo === 'trocar' && 'O novo e-mail recebe a licença na hora, se já tiver conta.'}
+                      </span>
+                      <Botao nivel={3} type="button" onClick={() => setAcao(null)}>VOLTAR</Botao>
                       <Botao principal type="button" onClick={confirmarAcao} disabled={ocupado}>
                         {{ trocar: 'SALVAR', renovar: 'RENOVAR', revogar: 'REVOGAR', reativar: 'REATIVAR' }[acao.tipo]}
                       </Botao>
                     </div>
                   </div>
                 )}
-              </li>
-            ))}
-          </ul>
+              </article>
+            );
+          })
         )}
       </section>
 

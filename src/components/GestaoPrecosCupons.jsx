@@ -151,26 +151,26 @@ export default function GestaoPrecosCupons() {
       {importar && <ImportarDoFlow aoTerminar={carregar} />}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <form onSubmit={salvar}>
-          <Painel titulo="Preço do PRO (programa e plugin)">
+        <form onSubmit={salvar} className="h-full">
+          <Painel titulo="Preço do PRO (programa e plugin)" className="flex h-full flex-col">
             <Campo id="pr-parcela" rotulo="PARCELA (R$)" valor={parcela} aoMudar={setParcela} inputMode="decimal" />
             <Lista id="pr-parcelas" rotulo="PARCELAS" valor={parcelas} aoMudar={setParcelas}
               opcoes={Array.from({ length: 24 }, (_, i) => ({ valor: String(i + 1), rotulo: `${i + 1} ×` }))} />
             <Campo id="pr-avista" rotulo="À VISTA (R$)" valor={avista} aoMudar={setAvista} inputMode="decimal" />
             <p className="mb-3 mt-2 text-[12px] leading-relaxed text-aqi-muted">NO SITE: {previaSite}</p>
             {precos?.atualizadoEm && <p className="mb-3 text-[12px] text-aqi-muted">Mudado pela última vez em {dia(precos.atualizadoEm)}.</p>}
-            <div className="flex justify-end"><Botao principal type="submit">SALVAR PREÇOS</Botao></div>
+            <div className="mt-auto flex justify-end pt-1"><Botao principal type="submit">SALVAR PREÇOS</Botao></div>
           </Painel>
         </form>
 
-        <form onSubmit={criar}>
-          <Painel titulo="Novo cupom">
+        <form onSubmit={criar} className="h-full">
+          <Painel titulo="Novo cupom" className="flex h-full flex-col">
             <Campo id="cu-codigo" rotulo="CÓDIGO" valor={codigo} aoMudar={(v) => setCodigo(v.toUpperCase())} placeholder="PFPRO15"
               dica={<button type="button" className="font-semibold text-white hover:underline" onClick={() => setCodigo(gerarCodigo())}>GERAR</button>} />
             <Campo id="cu-desconto" rotulo="DESCONTO (%)" tipo="number" valor={desconto} aoMudar={setDesconto} min="1" max="100" />
             <Campo id="cu-validade" rotulo="VALIDADE" tipo="date" valor={validade} aoMudar={setValidade} dica={validade ? '' : 'sem validade'} />
             <Campo id="cu-obs" rotulo="OBSERVAÇÃO" valor={observacao} aoMudar={setObservacao} placeholder="opcional, ex.: só pro João (WhatsApp)" />
-            <div className="mt-3 flex justify-end"><Botao principal type="submit">CRIAR CUPOM</Botao></div>
+            <div className="mt-auto flex justify-end pt-3"><Botao principal type="submit">CRIAR CUPOM</Botao></div>
           </Painel>
         </form>
       </div>

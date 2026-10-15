@@ -86,15 +86,15 @@ export default function GestaoVersoesAulas() {
       </Painel>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <form onSubmit={salvar}>
-          <Painel titulo={aula.id ? 'Editar aula' : 'Nova aula'}>
+        <form onSubmit={salvar} className="h-full">
+          <Painel titulo={aula.id ? 'Editar aula' : 'Nova aula'} className="flex h-full flex-col">
             <Campo id="au-titulo" rotulo="TÍTULO" valor={aula.titulo} aoMudar={mudar('titulo')} placeholder="CRIAR PISO" />
             <Campo id="au-video" rotulo="VÍDEO" valor={aula.youtube} aoMudar={mudar('youtube')} placeholder="link do YouTube ou o código"
               dica={aula.youtube && codigoDoYoutube(aula.youtube) !== aula.youtube.trim() ? codigoDoYoutube(aula.youtube) : ''} />
             <Campo id="au-duracao" rotulo="DURAÇÃO" valor={aula.duracao} aoMudar={mudar('duracao')} placeholder="4:10" />
             <Campo id="au-comando" rotulo="FERRAMENTA" valor={aula.comando} aoMudar={mudar('comando')} placeholder="classe do comando, ex.: CmdPiso" />
             <Campo id="au-descricao" rotulo="DESCRIÇÃO" valor={aula.descricao} aoMudar={mudar('descricao')} placeholder="opcional" />
-            <div className="mt-3 flex justify-end gap-2">
+            <div className="mt-auto flex justify-end gap-2 pt-3">
               {aula.id && <Botao nivel={3} type="button" onClick={() => setAula(VAZIA)}>CANCELAR</Botao>}
               <Botao principal type="submit">SALVAR AULA</Botao>
             </div>

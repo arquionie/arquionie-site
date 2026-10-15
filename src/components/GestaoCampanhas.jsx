@@ -162,7 +162,7 @@ export default function GestaoCampanhas() {
       {ativas.map((c) => <Andamento key={c.id} c={c} aoMudar={carregar} setErro={setErro} />)}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Painel titulo="Nova campanha">
+        <Painel titulo="Nova campanha" className="h-full">
           <Campo id="ca-assunto" rotulo="ASSUNTO" valor={assunto} aoMudar={setAssunto} placeholder="Ex.: Cupom PFPRO10: 10% off no Arquionie PRO" />
           <label htmlFor="ca-mensagem" className="sr-only">Mensagem</label>
           <textarea id="ca-mensagem" ref={texto} value={mensagem} onChange={(e) => setMensagem(e.target.value)} rows={8}
