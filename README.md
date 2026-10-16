@@ -20,7 +20,7 @@ Publicação pela **Vercel**, ligada ao repositório na organização `arquionie
 
 O site usa o modo AMIGÁVEL do sistema de design do Arquionie (ÊDI, 16/10/2026; mockup `docs/mockups/site-amigavel` no
 repositório do programa): claro de fábrica, com Escuro e Automático em Minha conta › Aparência, a letra do aparelho, cápsulas e
-cartões. O /gestao continua no TÉCNICO escuro.
+cartões. O /gestao também (mockup `docs/mockups/gestao-amigavel`, aprovado no mesmo dia).
 
 - As cores, os raios, as alturas e as letras vêm de `src/tokens/` (`tokens.css` e `tailwind-preset.cjs`), que **não se editam
   aqui**. A fonte é `design/tokens/tokens.json` no repositório do programa:
@@ -32,7 +32,7 @@ cartões. O /gestao continua no TÉCNICO escuro.
 - Nas telas, só os nomes dos tokens (`bg-superficie`, `rounded-toque`, `h-amg-altura-campo`, `text-amg-titulo`). Se faltar um papel,
   ele entra no `tokens.json`.
 - As peças: `components/Formulario.jsx` (botões nos três níveis, campos, etiquetas), `components/Listas.jsx` (listas agrupadas) e
-  `components/Cartao.jsx` (as telas de conta). As do /gestao ficam em `components/FormularioTecnico.jsx`, com as cores `aqi`.
+  `components/Cartao.jsx` (as telas de conta); as do /gestao, em `components/GestaoPecas.jsx`.
 
 ## Regras para não ficar preso a nenhum fornecedor
 

@@ -1,15 +1,11 @@
-@import '@fontsource/inter/400.css';
-@import '@fontsource/inter/500.css';
-@import '@fontsource/inter/600.css';
-@import '@fontsource/inter/700.css';
 @import './tokens/tokens.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* O site no modo AMIGÁVEL (ÊDI, 16/10/2026): a letra do aparelho, as cores e os raios dos tokens. O Inter fica para o /gestao, que
-   continua no TÉCNICO. Nenhuma cor, raio ou altura escrita à mão: se faltar um papel, ele entra no tokens.json do Arquionie. */
+/* O site inteiro no modo AMIGÁVEL (ÊDI, 16/10/2026), o /gestao também: a letra do aparelho, as cores e os raios dos tokens. Nenhuma
+   cor, raio ou altura escrita à mão: se faltar um papel, ele entra no tokens.json do Arquionie. */
 @layer base {
   html { background: var(--fundo); }
   body { @apply bg-fundo font-letra text-amg-corpo-celular text-texto antialiased sm:text-amg-corpo; }
@@ -27,8 +23,4 @@
   /* as faixas de cápsulas que rolam de lado no celular, sem a barra de rolagem por baixo */
   .sem-barra { scrollbar-width: none; }
   .sem-barra::-webkit-scrollbar { display: none; }
-
-  /* o /gestao, no técnico */
-  .titulo-secao { @apply text-[13px] font-semibold uppercase tracking-[0.12em] text-aqi-coral; }
-  .link { @apply text-aqi-texto underline hover:text-aqi-forte; }
 }

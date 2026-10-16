@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 // As peças do formulário no modo AMIGÁVEL (design/sistema-de-design do repositório do Arquionie; mockup site-amigavel, aprovado por ÊDI
 // em 16/10/2026). O que se toca é cápsula (raio-toque): botões, campos, listas e etiquetas; o que fica dentro de um cartão usa
-// raio-dentro. As cores, os raios e as alturas vêm só dos tokens. O /gestao usa as do FormularioTecnico.jsx.
+// raio-dentro. As cores, os raios e as alturas vêm só dos tokens. O /gestao usa as mesmas.
 
 // Exemplo esmaecido dentro do campo vazio, para quem chega pela primeira vez ver que ali se digita (teste cego de 05/10/2026).
 const EXEMPLOS = { email: 'exemplo@exemplo.com', password: '••••••••' };

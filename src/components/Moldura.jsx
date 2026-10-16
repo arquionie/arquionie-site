@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet } from 'react-router-dom';
 import { useSessao } from '@/lib/Sessao';
 import { iniciais, primeiroNome } from '@/lib/conta';
 import { useEhAdministrador } from '@/lib/gestao';
@@ -9,7 +9,7 @@ import { EMAIL_CONTATO } from '@/config';
 
 // O site no modo AMIGÁVEL (mockup site-amigavel, aprovado por ÊDI em 16/10/2026): a barra branca no alto com o leão, as abas em
 // cápsula e o Entrar (ou a pessoa), e o rodapé. No celular as abas descem para uma faixa própria, que rola de lado.
-// O /gestao continua no TÉCNICO escuro, com o topo também no técnico (MolduraTecnica, embaixo).
+// O /gestao também, desde o mockup gestao-amigavel (ÊDI, 16/10/2026).
 
 const aba = ({ isActive }) =>
   `inline-flex min-h-amg-toque-minimo shrink-0 items-center whitespace-nowrap rounded-toque px-[15px] no-underline sm:min-h-0 sm:py-[7px] ${
@@ -79,13 +79,11 @@ function Rodape() {
 }
 
 export default function Moldura() {
-  const { pathname } = useLocation();
   const { usuario } = useSessao();
-  const tecnico = pathname === '/gestao' || pathname.startsWith('/gestao/');
 
   useEffect(() => {
-    aplicarAparencia({ tecnico });
-  }, [tecnico]);
+    aplicarAparencia();
+  }, []);
 
   // A aparência guardada na conta vale em todo aparelho em que a pessoa entrar.
   const daConta = usuario?.user_metadata?.aparencia;
@@ -93,7 +91,6 @@ export default function Moldura() {
     if (daConta && daConta !== temaGuardado()) guardarTema(daConta);
   }, [daConta]);
 
-  if (tecnico) return <MolduraTecnica />;
   return (
     <div className="flex min-h-screen flex-col">
       <Topo />
@@ -101,49 +98,6 @@ export default function Moldura() {
         <Outlet />
       </main>
       <Rodape />
-    </div>
-  );
-}
-
-// ------------------------------------------------------------------ o /gestao, no TÉCNICO escuro como era (cores do App.axaml)
-const itemTecnico = ({ isActive }) =>
-  `text-[12px] font-semibold tracking-[0.08em] no-underline ${isActive ? 'text-aqi-coral' : 'text-aqi-muted hover:text-aqi-texto'}`;
-
-function MolduraTecnica() {
-  const { usuario } = useSessao();
-  return (
-    <div className="flex min-h-screen flex-col bg-aqi-pagina font-sans text-[17px] leading-[1.6] text-aqi-texto antialiased">
-      <header className="border-b border-[#262D37] bg-aqi-pagina">
-        <nav className="mx-auto flex max-w-[1100px] flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3.5 sm:px-7" aria-label="Principal">
-          <Link to="/" className="mr-auto flex items-center gap-2.5 text-[15px] font-semibold tracking-[2px] text-white no-underline">
-            <img src="/leao.png" alt="" className="h-[30px] w-[30px]" />
-            ARQUIONIE™
-          </Link>
-          <NavLink to="/" end className={itemTecnico}>
-            O QUE É
-          </NavLink>
-          <NavLink to="/versoes" className={itemTecnico}>
-            VERSÕES
-          </NavLink>
-          <NavLink to="/baixar" className={itemTecnico}>
-            BAIXAR
-          </NavLink>
-          <NavLink to="/gestao" className={itemTecnico}>
-            GESTÃO
-          </NavLink>
-          {usuario && (
-            <NavLink to="/conta" className={itemTecnico} aria-label="Minha conta">
-              <span className="inline-flex items-center gap-2">
-                <span className="grid h-[22px] w-[22px] place-items-center bg-aqi-campo text-[10px] text-white">{iniciais(usuario)}</span>
-                {primeiroNome(usuario).toUpperCase()}
-              </span>
-            </NavLink>
-          )}
-        </nav>
-      </header>
-      <main className="flex-1">
-        <Outlet />
-      </main>
     </div>
   );
 }

@@ -1,8 +1,10 @@
 // FEEDBACKS no /gestao (plano 18; mockup aprovado em 15/10/2026): o que chega pelo botão de feedback do plugin, com os do
 // Flow importados. Novos primeiro; MARCAR COMO LIDO.
+// No modo AMIGÁVEL desde o mockup gestao-amigavel (ÊDI, 16/10/2026).
 import { useEffect, useMemo, useState } from 'react';
-import { Botao, Mensagem } from '@/components/FormularioTecnico';
-import { Cabecalho, Numero, Numeros, Selo } from '@/components/GestaoPecas';
+import { Etiqueta, Mensagem } from '@/components/Formulario';
+import { emFrase, Escolha, Grupo, Linha, TextoDaLinha, Vazio } from '@/components/Listas';
+import { Acao, Cabecalho, Numero, Numeros } from '@/components/GestaoPecas';
 import { CATEGORIAS, EDICOES, lerFeedbacks, marcarFeedback, quando } from '@/lib/gestaoFlow';
 
 export function useFeedbacksNovos() {
@@ -39,9 +41,9 @@ export default function GestaoFeedbacks({ aoMudarNovos }) {
     aoMudarNovos?.(novos);
   }
 
-  if (!dados) return <p className="py-10 text-center text-aqi-muted">Carregando…</p>;
+  if (!dados) return <p className="py-10 text-center text-texto-apagado">Carregando…</p>;
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       <Cabecalho titulo="Feedbacks" />
       <Mensagem erro>{erro}</Mensagem>
       <Numeros colunas={3}>
@@ -49,34 +51,35 @@ export default function GestaoFeedbacks({ aoMudarNovos }) {
         <Numero rotulo="No total" valor={lista.length} detalhe={doFlow ? `${doFlow} ${doFlow === 1 ? 'veio' : 'vieram'} do Flow` : 'todos do Arquionie'} />
         <Numero rotulo="Nota média" valor={media} detalhe="de 0 a 10" />
       </Numeros>
-      <div role="tablist" aria-label="Filtro" className="flex gap-5 text-[12px] font-semibold tracking-[0.08em]">
-        {[['todos', 'TODOS'], ['novos', `NOVOS (${dados.novos})`], ['lidos', 'LIDOS']].map(([id, rotulo]) => (
-          <button key={id} type="button" role="tab" aria-selected={filtro === id} onClick={() => setFiltro(id)}
-            className={filtro === id ? 'text-white' : 'text-aqi-coral hover:text-white'}>
-            {rotulo}
-          </button>
-        ))}
+      <div>
+        <Escolha rotulo="Filtro" valor={filtro} aoMudar={setFiltro}
+          opcoes={[['todos', 'Todos'], ['novos', 'Novos', dados.novos], ['lidos', 'Lidos']]} />
       </div>
       {mostrar.length === 0 ? (
-        <p className="bg-aqi-barra p-5 text-[14px] text-aqi-muted">{filtro === 'novos' ? 'Nenhum feedback novo. Tudo lido.' : 'Nada aqui.'}</p>
+        <Vazio>{filtro === 'novos' ? 'Nenhum feedback novo. Tudo lido.' : 'Nada aqui.'}</Vazio>
       ) : (
-        mostrar.map((f) => (
-          <article key={f.id} className={`bg-aqi-barra p-5 ${f.status === 'lido' ? 'opacity-80' : ''}`}>
-            <div className="flex flex-wrap items-center gap-2 text-[13px]">
-              <Selo tom={f.status === 'novo' ? 'atencao' : undefined}>{f.status === 'novo' ? 'NOVO' : 'LIDO'}</Selo>
-              {f.origem === 'flow' && <Selo tom="apagado">VEIO DO FLOW</Selo>}
-              <span className="text-white">{f.email || 'sem e-mail'}</span>
-              <span className="mr-auto text-aqi-muted">
-                {[EDICOES[f.edicao] ?? f.edicao, f.versao, CATEGORIAS[f.categoria] ?? f.categoria, Number.isInteger(f.nota) ? `nota ${f.nota}` : null, quando(f.criadoEm)]
-                  .filter(Boolean).join(' · ')}
+        <Grupo>
+          {mostrar.map((f) => (
+            <Linha key={f.id} className={`py-3 ${f.status === 'lido' ? 'opacity-80' : ''}`}>
+              {/* no celular o texto ocupa a linha toda e a etiqueta e o botão descem para baixo dele */}
+              <div className="min-w-0 basis-full sm:basis-0 sm:flex-1">
+                <TextoDaLinha
+                  titulo={f.email || 'sem e-mail'}
+                  sub={[emFrase(EDICOES[f.edicao] ?? f.edicao), f.versao, CATEGORIAS[f.categoria] ?? f.categoria, Number.isInteger(f.nota) ? `nota ${f.nota}` : null, quando(f.criadoEm)]
+                    .filter(Boolean).join(' · ')}
+                />
+              </div>
+              <span className="flex flex-wrap items-center gap-1.5">
+                <Etiqueta tipo={f.status === 'novo' ? 'urgente' : 'neutra'}>{f.status === 'novo' ? 'Novo' : 'Lido'}</Etiqueta>
+                {f.origem === 'flow' && <Etiqueta tipo="neutra">Veio do Flow</Etiqueta>}
               </span>
               {f.status === 'novo'
-                ? <Botao nivel={3} pequeno type="button" onClick={() => marcar(f, 'lido')}>MARCAR COMO LIDO</Botao>
-                : <Botao nivel={3} pequeno type="button" onClick={() => marcar(f, 'novo')}>MARCAR COMO NOVO</Botao>}
-            </div>
-            <p className="mt-2.5 whitespace-pre-line text-[14px] leading-relaxed text-aqi-texto">{f.mensagem}</p>
-          </article>
-        ))
+                ? <Acao className="ml-auto sm:ml-0" onClick={() => marcar(f, 'lido')}>Marcar como lido</Acao>
+                : <Acao className="ml-auto sm:ml-0" onClick={() => marcar(f, 'novo')}>Marcar como novo</Acao>}
+              <p className="basis-full whitespace-pre-line break-words leading-relaxed">{f.mensagem}</p>
+            </Linha>
+          ))}
+        </Grupo>
       )}
     </div>
   );

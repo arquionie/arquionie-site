@@ -1,12 +1,17 @@
 // VERSÕES E AULAS no /gestao (plano 18; mockup aprovado em 15/10/2026). As versões só se CONFEREM aqui: publicar é pela
 // ferramenta de publicação assinada, no computador do ÊDI (o PUBLICAR pelo navegador do Flow não vem). As aulas são as que
 // o plugin mostra em AULAS & TUTORIAIS, na mesma ordem; "ferramenta" é a classe do comando (Cmd…), para o VER COMO USAR.
+// No modo AMIGÁVEL desde o mockup gestao-amigavel (ÊDI, 16/10/2026).
 import { useEffect, useState } from 'react';
-import { Botao, Campo, Mensagem } from '@/components/FormularioTecnico';
+import { Botao, Campo, Mensagem } from '@/components/Formulario';
 import { Acao, Cabecalho, Painel, Selo } from '@/components/GestaoPecas';
+import { Confirmacao, Grupo, Linha, TextoDaLinha, Vazio, emFrase } from '@/components/Listas';
 import { apagarAula, codigoDoYoutube, dia, lerAulas, lerVersoes, lerVersoesDoPlugin, ordenarAulas, salvarAula } from '@/lib/gestaoFlow';
 
 const VAZIA = { id: null, titulo: '', youtube: '', duracao: '', comando: '', descricao: '' };
+
+// O lado de texto da linha com uma largura mínima: no celular, as etiquetas e os botões é que descem, e não o texto que espreme.
+const ESQUERDA = 'flex min-w-[min(100%,16rem)] flex-1 items-start gap-3';
 
 export default function GestaoVersoesAulas() {
   const [versoes, setVersoes] = useState(null);
@@ -57,81 +62,100 @@ export default function GestaoVersoesAulas() {
     .map(([v, n]) => `${v} (${n})`).join(' · ');
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       <Cabecalho titulo="Versões e aulas" />
-      <div className="min-h-[20px]" aria-live="polite">
+      {/* vazio, o aviso não ocupa lugar: o -mt-4 desfaz o espaço da coluna */}
+      <div aria-live="polite" className="flex flex-col gap-2 empty:-mt-4">
         <Mensagem>{aviso}</Mensagem>
         <Mensagem erro>{erro}</Mensagem>
       </div>
 
-      <Painel titulo="Versões publicadas">
+      <div>
         {versoes === null ? (
-          <p className="text-aqi-muted">Lendo os manifestos…</p>
+          <section>
+            <h2 className="rotulo mb-1.5 ml-3.5">Versões publicadas</h2>
+            <Vazio>Lendo os manifestos…</Vazio>
+          </section>
         ) : (
-          <ul className="divide-y divide-[#262D37]">
+          <Grupo rotulo="Versões publicadas">
             {versoes.map((v) => (
-              <li key={v.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5 text-[13px]">
-                <span className="min-w-[160px] text-white">{v.nome}</span>
-                <span className="mr-auto text-aqi-muted">{v.canal}</span>
-                {v.versao ? <b className="text-white">{v.versao}</b> : <Selo tom="atencao">SEM MANIFESTO</Selo>}
-                {v.data && <span className="text-aqi-muted">{dia(v.data)}</span>}
-              </li>
+              <Linha key={v.id}>
+                <div className={ESQUERDA}><TextoDaLinha titulo={emFrase(v.nome)} sub={v.canal} /></div>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  {v.versao ? <span className="whitespace-nowrap text-amg-valor tabular-nums">{v.versao}</span> : <Selo tom="atencao">Sem manifesto</Selo>}
+                  {v.data && <span className="whitespace-nowrap text-amg-legenda text-texto-apagado">{dia(v.data)}</span>}
+                </div>
+              </Linha>
             ))}
-          </ul>
+          </Grupo>
         )}
-        <p className="mt-3 text-[12px] leading-relaxed text-aqi-muted">
+        <p className="mx-3.5 mt-2 max-w-[72ch] text-amg-legenda text-texto-apagado">
           Publicar é pela ferramenta de publicação assinada, no computador do ÊDI; esta tela só mostra o que está no ar.
           {versoesTexto ? ` Computadores do plugin por versão: ${versoesTexto}.` : ''}
         </p>
-      </Painel>
+      </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <form onSubmit={salvar} className="h-full">
-          <Painel titulo={aula.id ? 'Editar aula' : 'Nova aula'} className="flex h-full flex-col">
-            <Campo id="au-titulo" rotulo="TÍTULO" valor={aula.titulo} aoMudar={mudar('titulo')} placeholder="CRIAR PISO" />
-            <Campo id="au-video" rotulo="VÍDEO" valor={aula.youtube} aoMudar={mudar('youtube')} placeholder="link do YouTube ou o código"
-              dica={aula.youtube && codigoDoYoutube(aula.youtube) !== aula.youtube.trim() ? codigoDoYoutube(aula.youtube) : ''} />
-            <Campo id="au-duracao" rotulo="DURAÇÃO" valor={aula.duracao} aoMudar={mudar('duracao')} placeholder="4:10" />
-            <Campo id="au-comando" rotulo="FERRAMENTA" valor={aula.comando} aoMudar={mudar('comando')} placeholder="classe do comando, ex.: CmdPiso" />
-            <Campo id="au-descricao" rotulo="DESCRIÇÃO" valor={aula.descricao} aoMudar={mudar('descricao')} placeholder="opcional" />
-            <div className="mt-auto flex justify-end gap-2 pt-3">
-              {aula.id && <Botao nivel={3} type="button" onClick={() => setAula(VAZIA)}>CANCELAR</Botao>}
-              <Botao principal type="submit">SALVAR AULA</Botao>
+      <div className="grid items-start gap-4 xl:grid-cols-2">
+        <form onSubmit={salvar}>
+          <Painel titulo={aula.id ? 'Editar aula' : 'Nova aula'}>
+            <div className="flex flex-col gap-3">
+              <div className="grid gap-2 sm:grid-cols-2">
+                {/* o título e a duração lado a lado; os de texto comprido na largura toda */}
+                <Campo id="au-titulo" rotulo="Título" valor={aula.titulo} aoMudar={mudar('titulo')} placeholder="CRIAR PISO" />
+                <Campo id="au-duracao" rotulo="Duração" valor={aula.duracao} aoMudar={mudar('duracao')} placeholder="4:10" />
+                <div className="sm:col-span-2">
+                  <Campo id="au-video" rotulo="Vídeo" valor={aula.youtube} aoMudar={mudar('youtube')} placeholder="link do YouTube ou o código"
+                    dica={aula.youtube && codigoDoYoutube(aula.youtube) !== aula.youtube.trim() ? codigoDoYoutube(aula.youtube) : ''} />
+                </div>
+                <div className="sm:col-span-2">
+                  <Campo id="au-comando" rotulo="Ferramenta" valor={aula.comando} aoMudar={mudar('comando')} placeholder="classe do comando, ex.: CmdPiso" />
+                </div>
+                <div className="sm:col-span-2">
+                  <Campo id="au-descricao" rotulo="Descrição" valor={aula.descricao} aoMudar={mudar('descricao')} placeholder="opcional" />
+                </div>
+              </div>
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                {aula.id && <Botao type="button" onClick={() => setAula(VAZIA)}>Cancelar</Botao>}
+                <Botao principal type="submit">Salvar aula</Botao>
+              </div>
             </div>
           </Painel>
         </form>
 
-        <Painel titulo={`Aulas (${aulas.length}) · na ordem do plugin`}>
+        <div>
           {aulas.length === 0 ? (
-            <p className="text-[14px] text-aqi-muted">Nenhuma aula ainda. Importe as do Flow em PREÇOS E CUPONS › IMPORTAR DADOS DO FLOW.</p>
+            <section>
+              <h2 className="rotulo mb-1.5 ml-3.5">Aulas · 0 · na ordem do plugin</h2>
+              <Vazio>Nenhuma aula ainda. Importe as do Flow em Preços e cupons › Importar dados do Flow.</Vazio>
+            </section>
           ) : (
-            <ul className="divide-y divide-[#262D37]">
+            <Grupo rotulo={`Aulas · ${aulas.length} · na ordem do plugin`}>
               {aulas.map((a, i) => (
-                <li key={a.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-[13px]">
-                  <span className="w-5 text-aqi-muted">{i + 1}</span>
-                  <span className="mr-auto text-white">{a.titulo}</span>
-                  {!a.comando && <Selo tom="atencao">SEM FERRAMENTA</Selo>}
-                  {a.duracao && <span className="text-aqi-muted">{a.duracao}</span>}
-                  {apagar === a.id ? (
-                    <>
-                      <span className="text-[12px] text-aqi-texto">Apagar?</span>
-                      <Acao onClick={() => setApagar(null)}>VOLTAR</Acao>
-                      <Acao onClick={() => confirmarApagar(a)}>APAGAR</Acao>
-                    </>
-                  ) : (
-                    <>
-                      {i > 0 && <Acao aria-label={`Subir ${a.titulo}`} onClick={() => mover(i, -1)}>↑</Acao>}
-                      {i < aulas.length - 1 && <Acao aria-label={`Descer ${a.titulo}`} onClick={() => mover(i, 1)}>↓</Acao>}
-                      <Acao onClick={() => setAula({ id: a.id, titulo: a.titulo, youtube: a.youtubeId, duracao: a.duracao ?? '', comando: a.comando ?? '', descricao: a.descricao ?? '' })}>EDITAR</Acao>
-                      <Acao onClick={() => setApagar(a.id)}>APAGAR</Acao>
-                    </>
+                <Linha key={a.id}>
+                  <div className={ESQUERDA}>
+                    <span className="w-5 shrink-0 text-amg-legenda text-texto-apagado tabular-nums">{i + 1}</span>
+                    <TextoDaLinha titulo={a.titulo} sub={a.duracao} />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {!a.comando && <Selo tom="atencao">Sem ferramenta</Selo>}
+                    {i > 0 && <Acao aria-label={`Subir ${a.titulo}`} onClick={() => mover(i, -1)}>↑</Acao>}
+                    {i < aulas.length - 1 && <Acao aria-label={`Descer ${a.titulo}`} onClick={() => mover(i, 1)}>↓</Acao>}
+                    <Acao nivel={2} onClick={() => setAula({ id: a.id, titulo: a.titulo, youtube: a.youtubeId, duracao: a.duracao ?? '', comando: a.comando ?? '', descricao: a.descricao ?? '' })}>Editar</Acao>
+                    <Acao onClick={() => setApagar(a.id)}>Apagar</Acao>
+                  </div>
+                  {apagar === a.id && (
+                    <div className="w-full">
+                      <Confirmacao voltar={() => setApagar(null)} acao={() => confirmarApagar(a)} rotulo="Apagar">
+                        Apagar a aula <b>{a.titulo}</b>? Ela sai das aulas do plugin.
+                      </Confirmacao>
+                    </div>
                   )}
-                </li>
+                </Linha>
               ))}
-            </ul>
+            </Grupo>
           )}
-          <p className="mt-3 text-[12px] text-aqi-muted">O robô de aulas do YouTube vai gravar aqui também.</p>
-        </Painel>
+          <p className="mx-3.5 mt-2 text-amg-legenda text-texto-apagado">O robô de aulas do YouTube vai gravar aqui também.</p>
+        </div>
       </div>
     </div>
   );

@@ -10,7 +10,8 @@ import { copiarTexto } from '@/lib/licencas';
 export function emFrase(texto) {
   if (!texto) return texto;
   const t = String(texto);
-  if (/^[A-Z]{2,3}$/.test(t)) return t;
+  // só o que vem todo em caixa alta: "Veio do Flow" já é frase e fica como está
+  if (/^[A-Z]{2,3}$/.test(t) || /\p{Ll}/u.test(t)) return t;
   // a maiúscula só quando a frase começa com letra: "2 AJUSTES" vira "2 ajustes"
   const baixo = t.toLocaleLowerCase('pt-BR');
   return /^\p{L}/u.test(baixo) ? baixo[0].toLocaleUpperCase('pt-BR') + baixo.slice(1) : baixo;
