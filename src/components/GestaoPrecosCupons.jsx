@@ -1,7 +1,7 @@
 // PREÇOS E CUPONS no /gestao (plano 18; mockup aprovado em 15/10/2026): o preço do PRO, que vale para o programa e o
 // plugin (licença única), os cupons e a importação dos dados do Palheta Flow (uma vez só, com prévia).
 import { useEffect, useState } from 'react';
-import { Botao, Campo, Lista, Mensagem } from '@/components/Formulario';
+import { Botao, Campo, Lista, Mensagem } from '@/components/FormularioTecnico';
 import { Acao, Cabecalho, Painel, Selo } from '@/components/GestaoPecas';
 import {
   criarCupom, dia, gerarCodigo, importarDadosFlow, lerCupons, lerPrecos, prorrogarCupom, reais, reativarCupom, revogarCupom, salvarPrecos,

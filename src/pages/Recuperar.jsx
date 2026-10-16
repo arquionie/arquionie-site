@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import Cartao from '@/components/Cartao';
+import Cartao, { Miolo } from '@/components/Cartao';
 import { Botao, Campo, Mensagem } from '@/components/Formulario';
 import { supabase } from '@/lib/supabase';
 import { mensagemDeErro } from '@/lib/erros';
@@ -67,7 +67,7 @@ export default function Recuperar() {
 
   if (etapa === 'email') {
     return (
-      <section className="px-4 py-10">
+      <Miolo>
         <Cartao
           titulo="Esqueci a senha"
           nota="Digite o e-mail da conta. Mandamos um código de 6 dígitos para criar a senha nova."
@@ -75,23 +75,23 @@ export default function Recuperar() {
           botoes={
             <>
               <Botao type="button" onClick={() => navegar(-1)}>
-                VOLTAR
+                Voltar
               </Botao>
               <Botao principal type="submit" disabled={ocupado}>
-                {ocupado ? 'ENVIANDO…' : 'MANDAR CÓDIGO'}
+                {ocupado ? 'Mandando…' : 'Mandar código'}
               </Botao>
             </>
           }
         >
-          <Campo id="email" rotulo="E-MAIL" tipo="email" valor={email} aoMudar={setEmail} autoComplete="email" autoFocus />
+          <Campo id="email" rotulo="E-mail" tipo="email" valor={email} aoMudar={setEmail} autoComplete="email" autoFocus />
           <Mensagem erro>{erro}</Mensagem>
         </Cartao>
-      </section>
+      </Miolo>
     );
   }
 
   return (
-    <section className="px-4 py-10">
+    <Miolo>
       <Cartao
         titulo="Nova senha"
         nota={
@@ -99,38 +99,40 @@ export default function Recuperar() {
             'Digite a senha nova da sua conta.'
           ) : (
             <>
-              Mandamos um código para <b className="font-semibold text-aqi-texto">{email}</b>. Se o e-mail trouxer um link,
+              Mandamos um código para <b className="font-semibold text-texto">{email}</b>. Se o e-mail trouxer um link,
               clique nele neste navegador.
             </>
           )
         }
         aoEnviar={salvar}
-        estado={
+        rodape={
           etapa === 'codigo' && (
-            <button type="button" onClick={reenviar} className="link-apagado">
-              REENVIAR CÓDIGO
-            </button>
+            <Botao pequeno nivel={2} type="button" onClick={reenviar}>
+              Mandar outro código
+            </Botao>
           )
         }
         botoes={
           <>
             <Botao type="button" onClick={() => setEtapa('email')}>
-              VOLTAR
+              Voltar
             </Botao>
             <Botao principal type="submit" disabled={ocupado}>
-              {ocupado ? 'SALVANDO…' : 'SALVAR SENHA'}
+              {ocupado ? 'Salvando…' : 'Salvar senha'}
             </Botao>
           </>
         }
       >
-        {etapa === 'codigo' && (
-          <Campo id="codigo" rotulo="CÓDIGO" valor={codigo} aoMudar={setCodigo} inputMode="numeric" autoComplete="one-time-code" autoFocus />
-        )}
-        <Campo id="senha" rotulo="NOVA SENHA" tipo="password" valor={senha} aoMudar={setSenha} autoComplete="new-password" />
-        <Campo id="repetir" rotulo="REPETIR A SENHA" tipo="password" valor={repetir} aoMudar={setRepetir} autoComplete="new-password" />
+        <div className="flex flex-col gap-2">
+          {etapa === 'codigo' && (
+            <Campo id="codigo" rotulo="Código" valor={codigo} aoMudar={setCodigo} inputMode="numeric" autoComplete="one-time-code" autoFocus />
+          )}
+          <Campo id="senha" rotulo="Nova senha" tipo="password" valor={senha} aoMudar={setSenha} autoComplete="new-password" />
+          <Campo id="repetir" rotulo="Repetir a senha" tipo="password" valor={repetir} aoMudar={setRepetir} autoComplete="new-password" />
+        </div>
         <Mensagem erro>{erro}</Mensagem>
         <Mensagem>{aviso}</Mensagem>
       </Cartao>
-    </section>
+    </Miolo>
   );
 }

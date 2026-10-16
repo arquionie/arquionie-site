@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
-import Cartao from '@/components/Cartao';
+import Cartao, { Miolo } from '@/components/Cartao';
 import { Botao, Lista, Marcar, Mensagem } from '@/components/Formulario';
 import { supabase } from '@/lib/supabase';
 import { mensagemDeErro } from '@/lib/erros';
@@ -25,7 +25,7 @@ export default function Completar() {
     if (usuario && cadastroCompleto(usuario)) navegar(volta, { replace: true });
   }, [usuario, volta, navegar]);
 
-  if (carregando) return <p className="px-4 py-16 text-center text-aqi-muted">Carregando…</p>;
+  if (carregando) return <p className="px-4 py-16 text-center text-texto-apagado">Carregando…</p>;
   if (!usuario) return <Navigate to={`/entrar?volta=${encodeURIComponent(volta)}`} replace />;
 
   const dados = dadosDaConta(usuario);
@@ -34,7 +34,7 @@ export default function Completar() {
     setErro('');
     setTentou(true);
     if (!atuacao && !termos) return setErro('Escolha a sua atuação na lista e marque a caixa dos termos.');
-    if (!atuacao) return setErro('Escolha a sua atuação: clique na lista ATUAÇÃO.');
+    if (!atuacao) return setErro('Escolha a sua atuação: clique na lista Atuação.');
     if (!termos) return setErro('Marque a caixa "Li e aceito" para continuar.');
     setOcupado(true);
     const { error } = await supabase.auth.updateUser({
@@ -46,13 +46,12 @@ export default function Completar() {
   }
 
   return (
-    <section className="px-4 py-10">
+    <Miolo>
       <Cartao
-        compacto
         titulo="Falta pouco"
         nota={
           <>
-            Você entrou como <b className="font-semibold text-aqi-texto">{dados.email}</b>. Faltam dois passos: escolha a sua
+            Você entrou como <b className="font-semibold text-texto">{dados.email}</b>. Faltam dois passos: escolha a sua
             atuação na lista e marque a caixa dos termos.
           </>
         }
@@ -60,23 +59,23 @@ export default function Completar() {
         botoes={
           <>
             <Botao type="button" onClick={() => supabase.auth.signOut().then(() => navegar('/'))}>
-              SAIR
+              Sair
             </Botao>
             <Botao principal type="submit" disabled={ocupado}>
-              {ocupado ? 'SALVANDO…' : 'CONTINUAR'}
+              {ocupado ? 'Salvando…' : 'Continuar'}
             </Botao>
           </>
         }
       >
-        <Lista id="atuacao" rotulo="ATUAÇÃO" valor={atuacao} aoMudar={setAtuacao} opcoes={ATUACOES} falta={tentou && !atuacao} />
+        <Lista id="atuacao" rotulo="Atuação" valor={atuacao} aoMudar={setAtuacao} opcoes={ATUACOES} falta={tentou && !atuacao} />
         <Marcar id="termos" marcado={termos} aoMudar={setTermos} falta={tentou && !termos}>
           <span>
             Li e aceito os{' '}
-            <Link to="/termos" target="_blank" className="text-white underline">
+            <Link to="/termos" target="_blank" className="link-frase">
               termos de uso
             </Link>{' '}
             e a{' '}
-            <Link to="/privacidade" target="_blank" className="text-white underline">
+            <Link to="/privacidade" target="_blank" className="link-frase">
               política de privacidade
             </Link>
           </span>
@@ -86,6 +85,6 @@ export default function Completar() {
         </Marcar>
         <Mensagem erro>{erro}</Mensagem>
       </Cartao>
-    </section>
+    </Miolo>
   );
 }

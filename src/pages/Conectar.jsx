@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import Cartao from '@/components/Cartao';
-import { Botao, Campo, Mensagem } from '@/components/Formulario';
+import { useSearchParams } from 'react-router-dom';
+import Cartao, { Miolo } from '@/components/Cartao';
+import { Botao, Campo, Etiqueta, Icone, Mensagem } from '@/components/Formulario';
 import { supabase } from '@/lib/supabase';
 import { mensagemDeErro } from '@/lib/erros';
 import { useSessao } from '@/lib/Sessao';
@@ -10,8 +10,23 @@ import { AMOSTRA, PLANOS, amostraConexao, dataCurta, estadoDaAmostra, nomeProdut
 // /conectar?codigo=KMTR-4QPX — o programa (ou o plugin do Revit) abre esta página com o código que mostra na tela.
 // A pessoa confere e AUTORIZA; o programa, que pergunta ao servidor a cada 3 segundos, recebe sozinho a credencial do
 // computador (função conectar). Como o "gh auth login". Mockup aprovado pelo ÊDI em 05/10/2026; plano 17 do plugin.
+// No modo AMIGÁVEL desde o mockup site-amigavel (16/10/2026): a conta, o computador e o código numa lista dentro do cartão.
 
 const ondeVolta = (produto) => (produto === 'arquionie-revit' ? 'Revit' : 'programa');
+
+// A lista de dentro do cartão: o nome à esquerda, o valor à direita, que nunca quebra.
+function Linhas({ itens }) {
+  return (
+    <dl className="overflow-hidden rounded-dentro ring-1 ring-inset ring-linha">
+      {itens.map(([nome, valor, forte]) => (
+        <div key={nome} className="flex min-h-amg-toque-minimo items-center gap-3 border-t border-linha px-3.5 first:border-t-0">
+          <dt className="w-[96px] shrink-0 text-texto-apagado">{nome}</dt>
+          <dd className={`ml-auto min-w-0 truncate text-right ${forte ? 'text-amg-secao tabular-nums tracking-[0.04em]' : 'font-medium'}`}>{valor}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
 
 export default function Conectar() {
   const [busca, setBusca] = useSearchParams();
@@ -73,81 +88,84 @@ export default function Conectar() {
   // Sem código na URL: a pessoa digita o que aparece no Revit (ou no programa).
   if (!codigo) {
     return (
-      <div className="px-4 py-10">
+      <Miolo>
         <Cartao
-          compacto
           titulo="Conectar um computador"
           nota="Digite o código que aparece no Revit (ou no programa), na janela ENTRAR COM A CONTA ARQUIONIE."
           aoEnviar={() => digitado.trim() && setBusca({ codigo: digitado.trim().toUpperCase() })}
-          botoes={<Botao principal type="submit">CONTINUAR</Botao>}
+          botoes={<Botao principal type="submit">Continuar</Botao>}
         >
-          <Campo id="codigo" rotulo="CÓDIGO" valor={digitado} aoMudar={setDigitado} placeholder="KMTR-4QPX" autoFocus />
+          <Campo id="codigo" rotulo="Código" valor={digitado} aoMudar={setDigitado} placeholder="KMTR-4QPX" autoFocus />
         </Cartao>
-      </div>
+      </Miolo>
     );
   }
 
   if (!info) {
     return (
-      <div className="px-4 py-10">
-        <Cartao compacto titulo="Conferindo o código…">
+      <Miolo>
+        <Cartao titulo="Conferindo o código…">
           <Mensagem erro>{erro}</Mensagem>
         </Cartao>
-      </div>
+      </Miolo>
     );
   }
 
   const produto = nomeProduto(info.produto);
-  const plano = info.plano === 'gratis' ? 'PLANO GRÁTIS' : `${PLANOS[info.plano] ?? info.plano} ATÉ ${dataCurta(info.licencaAte)}`;
-  const emUso = info.produto ? `${produto.toUpperCase()} · ${info.emUso} DE ${info.limite} COMPUTADORES EM USO` : '';
+  // o plano e os computadores em uso, em etiquetas (o número antes da palavra)
+  const etiquetas = info.produto && (
+    <div className="flex flex-wrap gap-2">
+      <Etiqueta>{`${info.emUso} de ${info.limite} computadores`}</Etiqueta>
+      <Etiqueta tipo={info.plano === 'gratis' ? 'neutra' : 'urgente'}>
+        {info.plano === 'gratis' ? 'Plano grátis' : `${PLANOS[info.plano] ?? info.plano} até ${dataCurta(info.licencaAte)}`}
+      </Etiqueta>
+    </div>
+  );
 
   if (info.situacao === 'aguardando') {
     return (
-      <div className="px-4 py-10">
+      <Miolo>
         <Cartao
-          compacto
           titulo={`Conectar o ${produto}`}
           nota={`O ${produto} no computador ${info.computador} quer usar a sua conta. Confira se o código é o mesmo que aparece no ${ondeVolta(info.produto)}.`}
-          estado={emUso}
-          versao={plano}
           aoEnviar={autorizar}
+          rodape={`Não pediu isso no ${ondeVolta(info.produto)}? Cancele. Ninguém entra na sua conta sem este clique.`}
           botoes={
             <>
-              <Botao type="button" onClick={cancelar}>CANCELAR</Botao>
-              <Botao principal type="submit" disabled={ocupado}>{ocupado ? 'AUTORIZANDO…' : 'AUTORIZAR'}</Botao>
+              <Botao type="button" onClick={cancelar}>Cancelar</Botao>
+              <Botao principal type="submit" disabled={ocupado}>{ocupado ? 'Autorizando…' : 'Autorizar'}</Botao>
             </>
           }
         >
-          <Campo id="conta" rotulo="CONTA" valor={usuario?.email ?? (AMOSTRA ? 'ana@exemplo.com.br' : '')} aoMudar={() => {}} readOnly />
-          <Campo id="computador" rotulo="COMPUTADOR" valor={info.computador} aoMudar={() => {}} readOnly />
-          <Campo id="codigo-conferir" rotulo="CÓDIGO" valor={info.codigo} aoMudar={() => {}} readOnly />
-          <p className="mt-2 text-[12px] text-aqi-muted">
-            Não pediu isso no {ondeVolta(info.produto)}? Clique CANCELAR. Ninguém entra na sua conta sem este clique.
-          </p>
+          <Linhas
+            itens={[
+              ['Conta', usuario?.email ?? (AMOSTRA ? 'ana@exemplo.com.br' : '')],
+              ['Computador', info.computador],
+              ['Código', info.codigo, true],
+            ]}
+          />
+          {etiquetas}
           <Mensagem erro>{erro}</Mensagem>
         </Cartao>
-      </div>
+      </Miolo>
     );
   }
 
   if (info.situacao === 'limite') {
     return (
-      <div className="px-4 py-10">
+      <Miolo>
         <Cartao
-          compacto
           titulo="Escolha um computador para desconectar"
           nota={`A sua conta já usa o ${produto} em ${info.limite} computadores. Para conectar o ${info.computador}, um deles sai. Ele volta quando você entrar de novo nele.`}
-          estado={emUso}
-          versao={plano}
           aoEnviar={autorizar}
           botoes={
             <>
-              <Botao type="button" onClick={cancelar}>CANCELAR</Botao>
-              <Botao principal type="submit" disabled={ocupado}>{ocupado ? 'AUTORIZANDO…' : 'DESCONECTAR E AUTORIZAR'}</Botao>
+              <Botao type="button" onClick={cancelar}>Cancelar</Botao>
+              <Botao principal type="submit" disabled={ocupado}>{ocupado ? 'Autorizando…' : 'Desconectar e autorizar'}</Botao>
             </>
           }
         >
-          <div role="radiogroup" aria-label="Computador para desconectar">
+          <div role="radiogroup" aria-label="Computador para desconectar" className="overflow-hidden rounded-dentro ring-1 ring-inset ring-linha">
             {(info.computadores ?? []).map((c) => (
               <button
                 key={c.id}
@@ -155,42 +173,46 @@ export default function Conectar() {
                 role="radio"
                 aria-checked={escolhido === c.id}
                 onClick={() => setEscolhido(c.id)}
-                className={`mb-1.5 flex min-h-[38px] w-full items-center justify-between gap-3 border px-3 py-2 text-left text-[13px] ${
-                  escolhido === c.id ? 'border-aqi-campo bg-aqi-campo text-white' : 'border-aqi-borda bg-aqi-painel text-aqi-texto hover:border-aqi-muted'
-                }`}
+                className="flex min-h-amg-toque-minimo w-full items-center gap-3 border-t border-linha px-3.5 py-2 text-left first:border-t-0 hover:bg-superficie-2"
               >
-                <span>{c.nome}</span>
-                <span className={escolhido === c.id ? 'text-white' : 'text-aqi-muted'}>último acesso {dataCurta(c.ultimo_acesso)}</span>
+                <span className="flex min-w-0 flex-col">
+                  <b className="truncate font-semibold">{c.nome}</b>
+                  <small className="text-amg-legenda text-texto-apagado">último acesso {dataCurta(c.ultimo_acesso)}</small>
+                </span>
+                {escolhido === c.id && <Icone nome="ok" tamanho={18} className="ml-auto text-destaque" />}
               </button>
             ))}
           </div>
+          {etiquetas}
           {/* mais gente usando ao mesmo tempo: o plano personalizado (mockup aprovado por ÊDI em 11/10/2026) */}
-          <p className="mt-2 text-[12.5px] text-aqi-muted">
-            Mais gente usando ao mesmo tempo?{' '}
-            <a href="/conta/equipe#plano" className="link font-semibold tracking-[0.04em]">SOLICITAR PLANO PERSONALIZADO</a>
-          </p>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="text-amg-legenda text-texto-apagado">Mais gente usando ao mesmo tempo?</span>
+            <Botao pequeno nivel={2} href="/conta/equipe#plano">Solicitar plano personalizado</Botao>
+          </div>
           <Mensagem erro>{erro}</Mensagem>
         </Cartao>
-      </div>
+      </Miolo>
     );
   }
 
   if (info.situacao === 'autorizada') {
     return (
-      <div className="px-4 py-10">
+      <Miolo>
         <Cartao
-          compacto
+          centro
+          feito
           titulo={`Pronto. Pode voltar ao ${ondeVolta(info.produto)}`}
           nota={`O ${info.produto ? produto : 'Arquionie™'} percebe sozinho em poucos segundos. Esta página já pode ser fechada.`}
-          botoes={
-            <Link to="/conta/equipe#licencas" className="inline-flex h-[40px] min-w-[129px] items-center justify-center border border-aqi-borda bg-aqi-barra px-4 text-[13px] font-bold tracking-wide text-aqi-texto no-underline hover:bg-aqi-faixa">
-              VER MINHA CONTA
-            </Link>
-          }
+          botoes={<Botao para="/conta/equipe#licencas">Ver minha conta</Botao>}
         >
-          {info.computador && <Campo id="conectado" rotulo="COMPUTADOR" valor={`${info.computador} · CONECTADO`} aoMudar={() => {}} readOnly />}
+          {info.computador && (
+            <div className="flex w-full min-h-amg-toque-minimo items-center gap-3 rounded-dentro px-3.5 ring-1 ring-inset ring-linha">
+              <b className="truncate font-semibold">{info.computador}</b>
+              <Etiqueta tipo="sucesso" className="ml-auto">Conectado</Etiqueta>
+            </div>
+          )}
         </Cartao>
-      </div>
+      </Miolo>
     );
   }
 
@@ -201,15 +223,10 @@ export default function Conectar() {
   };
   const [titulo, nota] = textos[info.situacao] ?? ['Não deu para conferir o código', 'Tente de novo daqui a pouco.'];
   return (
-    <div className="px-4 py-10">
-      <Cartao
-        compacto
-        titulo={titulo}
-        botoes={<Botao type="button" onClick={outroCodigo}>DIGITAR OUTRO CÓDIGO</Botao>}
-      >
-        <p className={`text-[13px] ${info.situacao === 'cancelada' ? 'text-aqi-muted' : 'text-aqi-alerta'}`}>{nota}</p>
+    <Miolo>
+      <Cartao titulo={titulo} nota={nota} botoes={<Botao principal type="button" onClick={outroCodigo}>Digitar outro código</Botao>}>
         <Mensagem erro>{erro}</Mensagem>
       </Cartao>
-    </div>
+    </Miolo>
   );
 }

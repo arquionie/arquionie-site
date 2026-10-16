@@ -3,7 +3,7 @@
 // sem quem tem licença nem quem pediu para sair) e o ritmo: LOTE e-mails a cada INTERVALO minutos, até LIMITE por dia.
 // A fila fica no banco; quem manda é a função do servidor chamada pelo pg_cron.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Botao, Campo, Lista, Mensagem } from '@/components/Formulario';
+import { Botao, Campo, Lista, Mensagem } from '@/components/FormularioTecnico';
 import { Acao, Cabecalho, Numero, Numeros, Painel, Selo } from '@/components/GestaoPecas';
 import {
   cancelarCampanha, criarCampanha, dia, lerCampanhas, lerCupons, lerDestinatarios, MODELOS, pausarCampanha, quando, retomarCampanha,

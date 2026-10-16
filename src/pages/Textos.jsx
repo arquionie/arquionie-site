@@ -1,16 +1,19 @@
 import { EMAIL_CONTATO } from '@/config';
+import { Botao } from '@/components/Formulario';
 
 // RASCUNHO para os testes internos (decisão de 02/10/2026): o advogado revisa os dois textos antes de o cadastro
 // abrir ao público. Os trechos entre colchetes dependem dele ou de ÊDI.
 
 function Pagina({ titulo, children }) {
   return (
-    <div className="mx-auto max-w-[820px] px-4 py-12 sm:px-7">
-      <p className="mb-6 border-l-4 border-aqi-coral bg-aqi-barra px-4 py-3 text-[14px] text-aqi-alerta">
+    <div className="mx-auto max-w-[820px] px-4 py-8 sm:px-6 sm:py-12">
+      <p className="mb-6 rounded-dentro bg-amg-destaque-suave px-4 py-3 text-destaque-texto">
         Rascunho para os testes internos. O texto final passa pela revisão do advogado antes da abertura ao público.
       </p>
-      <h1 className="mb-6 text-[32px] font-semibold leading-tight text-white">{titulo}</h1>
-      <div className="space-y-4 text-[16px] [&_h2]:mb-1 [&_h2]:mt-8 [&_h2]:text-[18px] [&_h2]:font-semibold [&_h2]:text-white">{children}</div>
+      <h1 className="mb-6 text-amg-titulo-grande">{titulo}</h1>
+      <div className="space-y-4 rounded-cartao bg-superficie p-5 text-amg-frase shadow-cartao sm:p-7 [&_h2]:mb-1 [&_h2]:mt-8 [&_h2]:text-amg-secao [&_h2:first-child]:mt-0">
+        {children}
+      </div>
     </div>
   );
 }
@@ -55,7 +58,7 @@ export function Termos() {
       </p>
       <h2>Lei e contato</h2>
       <p>
-        Estes termos seguem as leis do Brasil [foro a definir]. Dúvidas: <a href={`mailto:${EMAIL_CONTATO}`} className="link">{EMAIL_CONTATO}</a>.
+        Estes termos seguem as leis do Brasil [foro a definir]. Dúvidas: <a href={`mailto:${EMAIL_CONTATO}`} className="link-frase">{EMAIL_CONTATO}</a>.
       </p>
     </Pagina>
   );
@@ -107,12 +110,12 @@ export function Privacidade() {
       <h2>Os seus direitos</h2>
       <p>
         Você pode confirmar se tratamos os seus dados, acessá-los, corrigi-los, pedir a exclusão ou a portabilidade e saber
-        com quem foram compartilhados. Peça pelo e-mail <a href={`mailto:${EMAIL_CONTATO}`} className="link">{EMAIL_CONTATO}</a>, que
+        com quem foram compartilhados. Peça pelo e-mail <a href={`mailto:${EMAIL_CONTATO}`} className="link-frase">{EMAIL_CONTATO}</a>, que
         também é o contato do encarregado [nome do encarregado].
       </p>
       <h2>No navegador</h2>
       <p>
-        O site guarda a sua sessão no navegador só para manter você conectado. Não usamos cookies de propaganda nem de
+        O site guarda no navegador a sua sessão, só para manter você conectado, e a aparência que você escolher em Minha conta. Não usamos cookies de propaganda nem de
         rastreamento.
       </p>
     </Pagina>
@@ -121,11 +124,9 @@ export function Privacidade() {
 
 export function NaoEncontrada() {
   return (
-    <div className="mx-auto max-w-[820px] px-4 py-20 text-center">
-      <h1 className="mb-3 text-[28px] font-semibold text-white">Página não encontrada</h1>
-      <a href="/" className="link">
-        Voltar ao início
-      </a>
+    <div className="mx-auto flex max-w-[820px] flex-col items-center gap-5 px-4 py-20 text-center">
+      <h1 className="text-amg-titulo-grande">Página não encontrada</h1>
+      <Botao para="/">Voltar ao início</Botao>
     </div>
   );
 }

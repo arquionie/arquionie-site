@@ -8,17 +8,27 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Identidade reta do programa: nenhum canto arredondado. */
+/* O site no modo AMIGÁVEL (ÊDI, 16/10/2026): a letra do aparelho, as cores e os raios dos tokens. O Inter fica para o /gestao, que
+   continua no TÉCNICO. Nenhuma cor, raio ou altura escrita à mão: se faltar um papel, ele entra no tokens.json do Arquionie. */
 @layer base {
-  html { color-scheme: dark; }
-  body { @apply bg-aqi-pagina text-aqi-texto font-sans antialiased; font-size: 17px; line-height: 1.6; }
-  *:focus-visible { outline: 2px solid #D47263; outline-offset: 2px; }
-  ::selection { background: #734841; color: #fff; }
+  html { background: var(--fundo); }
+  body { @apply bg-fundo font-letra text-amg-corpo-celular text-texto antialiased sm:text-amg-corpo; }
+  *:focus-visible { outline: 2px solid var(--destaque); outline-offset: 2px; }
+  ::selection { background: var(--amg-destaque-suave); color: var(--amg-destaque-texto); }
   a { @apply underline-offset-2; }
 }
 
 @layer components {
+  /* o rótulo pequeno de seção: o único lugar da caixa alta no amigável */
+  .rotulo { @apply text-amg-rotulo uppercase text-texto-apagado; }
+  /* o link sublinhado, só para navegar dentro de uma frase */
+  .link-frase { @apply text-texto underline hover:text-destaque-texto; }
+
+  /* as faixas de cápsulas que rolam de lado no celular, sem a barra de rolagem por baixo */
+  .sem-barra { scrollbar-width: none; }
+  .sem-barra::-webkit-scrollbar { display: none; }
+
+  /* o /gestao, no técnico */
   .titulo-secao { @apply text-[13px] font-semibold uppercase tracking-[0.12em] text-aqi-coral; }
   .link { @apply text-aqi-texto underline hover:text-aqi-forte; }
-  .link-apagado { @apply text-aqi-muted underline hover:text-aqi-texto; }
 }

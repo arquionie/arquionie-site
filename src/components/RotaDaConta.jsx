@@ -10,7 +10,7 @@ export default function RotaDaConta({ children }) {
   const local = useLocation();
   const volta = encodeURIComponent(local.pathname + local.search);
   if (AMOSTRA) return children; // só no servidor de desenvolvimento, com ?amostra: conferir a tela sem conta
-  if (carregando) return <p className="px-4 py-16 text-center text-aqi-muted">Carregando…</p>;
+  if (carregando) return <p className="px-4 py-16 text-center text-texto-apagado">Carregando…</p>;
   if (!usuario) return <Navigate to={`/entrar?volta=${volta}`} replace />;
   if (!cadastroCompleto(usuario)) return <Navigate to={`/completar?volta=${volta}`} replace />;
   return children;

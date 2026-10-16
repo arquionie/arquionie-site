@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Botao, Campo, Lista, Mensagem } from '@/components/Formulario';
+import { Botao, Campo, Lista, Mensagem } from '@/components/FormularioTecnico';
 import { supabase } from '@/lib/supabase';
 import { mensagemDeErro } from '@/lib/erros';
 import {

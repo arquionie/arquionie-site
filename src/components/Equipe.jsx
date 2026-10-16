@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Botao, Campo, Mensagem } from '@/components/Formulario';
+import { Botao, Campo, Etiqueta, Mensagem } from '@/components/Formulario';
+import { Confirmacao, Linha, TextoDaLinha } from '@/components/Listas';
 import { supabase } from '@/lib/supabase';
 import { mensagemDeErro } from '@/lib/erros';
 import { AMOSTRA, copiarTexto, dataCurta } from '@/lib/licencas';
@@ -10,17 +11,30 @@ import { AMOSTRA_MINHA_EQUIPE, textoConviteDaEquipe } from '@/lib/equipe';
 // por ÊDI em 11/10/2026; migração 20261011010000_equipe_e_plano.sql). O responsável digita o e-mail e CADASTRA; quem já tem conta
 // confirma na própria conta; quem não tem fica ESPERANDO A CONTA, com o COPIAR CONVITE para mandar pelo WhatsApp (o Arquionie não
 // manda e-mail). TIRAR DA EQUIPE vale na hora. O SOLICITAR PLANO PERSONALIZADO fica embaixo dos computadores (PlanoDaConta).
+// No modo AMIGÁVEL desde o mockup site-amigavel (16/10/2026): a tabela virou lista agrupada, com os botões em cada linha.
 
 const SELO = {
-  ativo: ['EQUIPE', 'border border-aqi-borda text-white'],
-  convidado: ['FALTA CONFIRMAR', 'border border-aqi-borda text-aqi-muted'],
-  esperando: ['ESPERANDO A CONTA', 'border border-aqi-borda text-aqi-muted'],
-  recusou: ['RECUSOU', 'border border-aqi-borda text-[#E8877B]'],
+  responsavel: ['Responsável', 'urgente'],
+  ativo: ['Na equipe', 'neutra'],
+  convidado: ['Falta confirmar', 'informacao'],
+  esperando: ['Esperando a conta', 'informacao'],
+  recusou: ['Recusou', 'neutra'],
 };
 
 function Selo({ situacao }) {
-  const [texto, classes] = situacao === 'responsavel' ? ['RESPONSÁVEL', 'bg-aqi-campo text-white'] : SELO[situacao] ?? [situacao.toUpperCase(), 'border border-aqi-borda'];
-  return <span className={`inline-block whitespace-nowrap px-1.5 py-0.5 text-[10.5px] font-bold tracking-wide ${classes}`}>{texto}</span>;
+  const [texto, tipo] = SELO[situacao] ?? [situacao, 'neutra'];
+  return <Etiqueta tipo={tipo}>{texto}</Etiqueta>;
+}
+
+// O cartão aberto dentro da página (o pedido de plano, o convite): o rótulo pequeno em cima.
+export function CartaoAberto({ rotulo, children, ...resto }) {
+  const Tag = resto.onSubmit ? 'form' : 'div';
+  return (
+    <Tag className="mt-3 flex max-w-[640px] flex-col gap-3 rounded-cartao bg-superficie p-4 shadow-cartao sm:p-5" {...resto}>
+      <p className="rotulo">{rotulo}</p>
+      {children}
+    </Tag>
+  );
 }
 
 // SOLICITAR PLANO PERSONALIZADO: quantas pessoas usam ao mesmo tempo, o WhatsApp e a mensagem; chega a ÊDI em /gestao.
@@ -54,35 +68,52 @@ export function PlanoPersonalizado({ pedido, aoEnviar, aberto: abertoNoComeco = 
   const pendente = pedido && !pedido.respondidoEm;
   if (!aberto) {
     return (
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] text-aqi-muted">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-amg-legenda text-texto-apagado">
         {pendente ? (
           <span>
-            <b className="text-white">PEDIDO ENVIADO EM {dataCurta(pedido.em)}</b> · {pedido.pessoas} pessoas · a gente chama no WhatsApp para montar o plano
+            <b className="text-texto">Pedido enviado em {dataCurta(pedido.em)}</b> · {pedido.pessoas} pessoas · a gente chama no WhatsApp para montar o plano
           </span>
         ) : (
           <span>Mais gente usando ao mesmo tempo?</span>
         )}
         <Botao pequeno nivel={2} type="button" onClick={() => setAberto(true)}>
-          {pendente ? 'MUDAR O PEDIDO' : 'SOLICITAR PLANO PERSONALIZADO'}
+          {pendente ? 'Mudar o pedido' : 'Solicitar plano personalizado'}
         </Botao>
       </div>
     );
   }
   return (
-    <form onSubmit={enviar} className="mt-3 max-w-[640px] bg-aqi-barra p-4">
-      <p className="mb-2 text-[13px] font-semibold tracking-[0.08em] text-aqi-coral">SOLICITAR PLANO PERSONALIZADO</p>
-      <Campo id="plano-pessoas" rotulo="PESSOAS" tipo="text" valor={pessoas} aoMudar={setPessoas} placeholder="quantas usam ao mesmo tempo" autoFocus inputMode="numeric" />
-      <Campo id="plano-whatsapp" rotulo="WHATSAPP" tipo="tel" valor={whatsapp} aoMudar={setWhatsapp} placeholder="(DDD) número para conversarmos" />
-      <Campo id="plano-mensagem" rotulo="MENSAGEM" valor={mensagem} aoMudar={setMensagem} placeholder="opcional: como a equipe trabalha" />
-      <p className="mt-2 text-[12.5px] text-aqi-muted">
-        A gente chama no WhatsApp para montar o plano. Com o plano fechado, as contas a mais aparecem em LICENÇAS, para você passar a quem vai usar.
-      </p>
-      <div className="mt-3 flex justify-end gap-2.5">
-        <Botao nivel={3} type="button" onClick={() => { setAberto(false); setErro(''); }}>CANCELAR</Botao>
-        <Botao principal type="submit" disabled={ocupado}>{ocupado ? 'ENVIANDO…' : 'ENVIAR PEDIDO'}</Botao>
+    <CartaoAberto rotulo="Solicitar plano personalizado" onSubmit={enviar}>
+      <div className="flex flex-col gap-2">
+        <Campo id="plano-pessoas" rotulo="Pessoas" tipo="text" valor={pessoas} aoMudar={setPessoas} placeholder="quantas usam ao mesmo tempo" autoFocus inputMode="numeric" />
+        <Campo id="plano-whatsapp" rotulo="WhatsApp" tipo="tel" valor={whatsapp} aoMudar={setWhatsapp} placeholder="(DDD) número para conversarmos" />
+        <Campo id="plano-mensagem" rotulo="Mensagem" valor={mensagem} aoMudar={setMensagem} placeholder="opcional: como a equipe trabalha" />
       </div>
-      <div className="mt-2"><Mensagem erro>{erro}</Mensagem></div>
-    </form>
+      <p className="text-amg-legenda text-texto-apagado">
+        A gente chama no WhatsApp para montar o plano. Com o plano fechado, as contas a mais aparecem em Licenças, para você passar a quem vai usar.
+      </p>
+      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <Botao type="button" onClick={() => { setAberto(false); setErro(''); }}>Cancelar</Botao>
+        <Botao principal type="submit" disabled={ocupado}>{ocupado ? 'Enviando…' : 'Enviar pedido'}</Botao>
+      </div>
+      <Mensagem erro>{erro}</Mensagem>
+    </CartaoAberto>
+  );
+}
+
+// O convite pronto, com o COPIAR CONVITE (o Arquionie não manda e-mail: a pessoa manda pelo WhatsApp).
+export function ConvitePronto({ convite }) {
+  const [copiado, setCopiado] = useState('');
+  return (
+    <CartaoAberto rotulo="Convite pronto para mandar">
+      <p className="whitespace-pre-line">{convite}</p>
+      <div className="flex flex-col-reverse items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end">
+        <span role="status" className="text-amg-legenda text-texto-apagado">{copiado}</span>
+        <Botao principal type="button" onClick={async () => setCopiado((await copiarTexto(convite)) ? 'Copiado.' : 'Selecione o texto acima e copie com Ctrl+C.')}>
+          Copiar convite
+        </Botao>
+      </div>
+    </CartaoAberto>
   );
 }
 
@@ -91,7 +122,6 @@ export default function Equipe({ aoMudar }) {
   const [email, setEmail] = useState('');
   const [erro, setErro] = useState('');
   const [convite, setConvite] = useState(null);
-  const [copiado, setCopiado] = useState('');
   const [tirando, setTirando] = useState(null);
   const [ocupado, setOcupado] = useState(false);
 
@@ -124,7 +154,7 @@ export default function Equipe({ aoMudar }) {
     setOcupado(false);
     if (!r.ok) return setErro(r.motivo);
     setEmail('');
-    if (r.esperandoConta) { setConvite(textoConviteDaEquipe({ escritorio: r.escritorio, email: r.email })); setCopiado(''); }
+    if (r.esperandoConta) setConvite(textoConviteDaEquipe({ escritorio: r.escritorio, email: r.email }));
     if (!AMOSTRA) carregar();
     aoMudar?.();
   }
@@ -145,94 +175,67 @@ export default function Equipe({ aoMudar }) {
   function mostrarConvite(p) {
     setErro('');
     setConvite(textoConviteDaEquipe({ escritorio: dados.escritorio, email: p.email }));
-    setCopiado('');
   }
 
-  if (dados === null) return <p className="text-aqi-muted">Carregando…</p>;
-  const situacao = (p) => (
-    <>
-      {p.situacao === 'ativo' ? `Entrou em ${dataCurta(p.entrouEm)}` : p.situacao === 'esperando' ? 'Ainda não entrou no Arquionie com este e-mail.'
-        : p.situacao === 'convidado' ? 'Tem conta: falta confirmar a entrada na equipe.' : 'Recusou o convite. Cadastre de novo para convidar outra vez.'}
-      {p.situacao === 'ativo' && p.ultimoAcesso && <small className="block text-[12px] text-aqi-muted">último acesso {quandoLegivel(p.ultimoAcesso)}</small>}
-    </>
-  );
+  if (dados === null) return <p className="text-texto-apagado">Carregando…</p>;
+  const situacao = (p) =>
+    p.situacao === 'ativo'
+      ? `Entrou em ${dataCurta(p.entrouEm)}${p.ultimoAcesso ? ` · último acesso ${quandoLegivel(p.ultimoAcesso)}` : ''}`
+      : p.situacao === 'esperando'
+        ? 'Ainda não entrou no Arquionie com este e-mail.'
+        : p.situacao === 'convidado'
+          ? 'Tem conta: falta confirmar a entrada na equipe.'
+          : 'Recusou o convite. Cadastre de novo para convidar outra vez.';
   return (
-    <>
-      <p className="mb-3 max-w-[72ch] text-[14px] text-aqi-muted">
+    <div className="flex flex-col gap-3">
+      <p className="max-w-[72ch] text-texto-apagado">
         Quem você cadastrar aqui entra com o próprio e-mail ou com o Google e vê a área do escritório: as apresentações e os ajustes dos
         clientes. No programa, abre os projetos do escritório.
       </p>
-      <form onSubmit={cadastrar} className="mb-4 grid max-w-[640px] grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
-        <Campo id="equipe-email" rotulo="E-MAIL" tipo="email" valor={email} aoMudar={setEmail} placeholder="nome@escritorio.com.br" />
-        <Botao principal type="submit" disabled={ocupado}>{ocupado ? 'CADASTRANDO…' : 'CADASTRAR'}</Botao>
+      <form onSubmit={cadastrar} className="flex max-w-[640px] flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="min-w-0 flex-1">
+          <Campo id="equipe-email" rotulo="E-mail" tipo="email" valor={email} aoMudar={setEmail} placeholder="nome@escritorio.com.br" />
+        </div>
+        <Botao principal type="submit" disabled={ocupado}>{ocupado ? 'Cadastrando…' : 'Cadastrar'}</Botao>
       </form>
 
-      <p className="mb-1.5 text-[11px] font-semibold tracking-[0.1em] text-aqi-coral">
-        {dados.escritorio ? `${dados.escritorio} · ` : ''}{dados.pessoas.length + 1} {dados.pessoas.length === 0 ? 'PESSOA' : 'PESSOAS'}
-      </p>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[560px] border-collapse text-[14px]">
-          <thead>
-            <tr className="border-b border-aqi-borda text-left text-[11px] tracking-[0.1em] text-aqi-muted">
-              <th className="w-[34%] px-3 py-2 font-semibold">PESSOA</th>
-              <th className="w-[17%] px-3 py-2 font-semibold">PAPEL</th>
-              <th className="px-3 py-2 font-semibold">SITUAÇÃO</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="border-b border-[#262D37] align-top">
-              <td className="px-3 py-2.5"><b className="text-white">Você</b><small className="block break-all text-[12px] text-aqi-muted">{dados.email}</small></td>
-              <td className="px-3 py-2.5"><Selo situacao="responsavel" /></td>
-              <td className="px-3 py-2.5">Cadastra a equipe, cuida da identidade e do termo e pede o plano.</td>
-              <td />
-            </tr>
-            {dados.pessoas.map((p) => (
-              <tr key={p.id} className="border-b border-[#262D37] align-top">
-                <td className="px-3 py-2.5">
-                  <b className="break-all text-white">{p.nome || p.email}</b>
-                  {p.nome && <small className="block break-all text-[12px] text-aqi-muted">{p.email}</small>}
-                </td>
-                <td className="px-3 py-2.5"><Selo situacao={p.situacao} /></td>
-                <td className="px-3 py-2.5">{situacao(p)}</td>
-                <td className="px-3 py-2.5 text-right">
-                  <div className="flex flex-wrap justify-end gap-2">
-                    <Botao pequeno nivel={3} type="button" onClick={() => setTirando(p)}>TIRAR DA EQUIPE</Botao>
-                    {p.situacao === 'esperando' && <Botao pequeno nivel={2} type="button" onClick={() => mostrarConvite(p)}>COPIAR CONVITE</Botao>}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div>
+        <p className="rotulo mb-1.5 ml-3.5">
+          {dados.escritorio ? `${dados.escritorio} · ` : ''}{dados.pessoas.length + 1} {dados.pessoas.length === 0 ? 'pessoa' : 'pessoas'}
+        </p>
+        <div className="overflow-hidden rounded-cartao bg-superficie shadow-cartao">
+          <Linha>
+            <TextoDaLinha titulo="Você" sub={dados.email}>
+              <small className="block text-amg-legenda text-texto-apagado">Cadastra a equipe, cuida da identidade e do termo e pede o plano.</small>
+            </TextoDaLinha>
+            <Selo situacao="responsavel" />
+          </Linha>
+          {dados.pessoas.map((p) => (
+            <Linha key={p.id}>
+              <TextoDaLinha titulo={p.nome || p.email} sub={p.nome ? p.email : null}>
+                <small className="block text-amg-legenda text-texto-apagado">{situacao(p)}</small>
+              </TextoDaLinha>
+              <div className="flex flex-wrap items-center gap-2">
+                <Selo situacao={p.situacao} />
+                <Botao pequeno type="button" onClick={() => setTirando(p)}>Tirar da equipe</Botao>
+                {p.situacao === 'esperando' && <Botao pequeno nivel={2} type="button" onClick={() => mostrarConvite(p)}>Copiar convite</Botao>}
+              </div>
+            </Linha>
+          ))}
+        </div>
       </div>
 
       {tirando && (
-        <div className="mt-3 flex flex-wrap items-center gap-3 bg-aqi-barra px-3.5 py-2.5 text-[13.5px]">
-          <span className="min-w-[260px] flex-1">
-            Tirar <b className="text-white">{tirando.nome || tirando.email}</b> da equipe? Deixa de ver as apresentações e os ajustes do escritório na hora.
-            O que já fez fica no histórico com o nome.
-          </span>
-          <Botao nivel={3} type="button" onClick={() => setTirando(null)}>VOLTAR</Botao>
-          <Botao principal type="button" disabled={ocupado} onClick={() => tirar(tirando)}>{ocupado ? 'TIRANDO…' : 'TIRAR'}</Botao>
-        </div>
+        <Confirmacao voltar={() => setTirando(null)} acao={() => tirar(tirando)} rotulo="Tirar" rotuloOcupado="Tirando…" ocupado={ocupado}>
+          Tirar <b>{tirando.nome || tirando.email}</b> da equipe? Deixa de ver as apresentações e os ajustes do escritório na hora. O que já fez
+          fica no histórico com o nome.
+        </Confirmacao>
       )}
 
-      {convite && (
-        <div className="mt-3 max-w-[640px] bg-aqi-barra p-4">
-          <p className="mb-2 text-[13px] font-semibold tracking-[0.08em] text-aqi-coral">CONVITE PRONTO PARA MANDAR</p>
-          <p className="whitespace-pre-line text-[14px]">{convite}</p>
-          <div className="mt-3 flex flex-wrap items-center justify-end gap-3">
-            <span role="status" className="text-[12px] text-aqi-muted">{copiado}</span>
-            <Botao principal type="button" onClick={async () => setCopiado((await copiarTexto(convite)) ? 'COPIADO' : 'Selecione o texto acima e copie com Ctrl+C.')}>
-              COPIAR CONVITE
-            </Botao>
-          </div>
-        </div>
-      )}
+      {convite && <ConvitePronto convite={convite} />}
 
-      <div className="mt-2"><Mensagem erro>{erro}</Mensagem></div>
-    </>
+      <Mensagem erro>{erro}</Mensagem>
+    </div>
   );
 }
 

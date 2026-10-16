@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Botao, Mensagem } from '@/components/Formulario';
+import { Botao, Mensagem } from '@/components/FormularioTecnico';
 import { supabase } from '@/lib/supabase';
 import { mensagemDeErro } from '@/lib/erros';
 import { AMOSTRA, dataCurta } from '@/lib/licencas';

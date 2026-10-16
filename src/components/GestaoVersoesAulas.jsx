@@ -2,7 +2,7 @@
 // ferramenta de publicação assinada, no computador do ÊDI (o PUBLICAR pelo navegador do Flow não vem). As aulas são as que
 // o plugin mostra em AULAS & TUTORIAIS, na mesma ordem; "ferramenta" é a classe do comando (Cmd…), para o VER COMO USAR.
 import { useEffect, useState } from 'react';
-import { Botao, Campo, Mensagem } from '@/components/Formulario';
+import { Botao, Campo, Mensagem } from '@/components/FormularioTecnico';
 import { Acao, Cabecalho, Painel, Selo } from '@/components/GestaoPecas';
 import { apagarAula, codigoDoYoutube, dia, lerAulas, lerVersoes, lerVersoesDoPlugin, ordenarAulas, salvarAula } from '@/lib/gestaoFlow';
 

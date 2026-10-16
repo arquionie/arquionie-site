@@ -16,6 +16,24 @@ npm run build    # gera dist/
 Publicação pela **Vercel**, ligada ao repositório na organização `arquionie` do GitHub: framework Vite, comando
 `npm run build`, saída `dist`. Plano Hobby enquanto se monta; Pro na abertura ao público.
 
+## O visual: o modo AMIGÁVEL
+
+O site usa o modo AMIGÁVEL do sistema de design do Arquionie (ÊDI, 16/10/2026; mockup `docs/mockups/site-amigavel` no
+repositório do programa): claro de fábrica, com Escuro e Automático em Minha conta › Aparência, a letra do aparelho, cápsulas e
+cartões. O /gestao continua no TÉCNICO escuro.
+
+- As cores, os raios, as alturas e as letras vêm de `src/tokens/` (`tokens.css` e `tailwind-preset.cjs`), que **não se editam
+  aqui**. A fonte é `design/tokens/tokens.json` no repositório do programa:
+  ```bash
+  python ferramentas/tokens/gerar_tokens.py
+  node ferramentas/tokens/copiar-para-o-site.mjs
+  ```
+  (os dois rodam na pasta do repositório do programa).
+- Nas telas, só os nomes dos tokens (`bg-superficie`, `rounded-toque`, `h-amg-altura-campo`, `text-amg-titulo`). Se faltar um papel,
+  ele entra no `tokens.json`.
+- As peças: `components/Formulario.jsx` (botões nos três níveis, campos, etiquetas), `components/Listas.jsx` (listas agrupadas) e
+  `components/Cartao.jsx` (as telas de conta). As do /gestao ficam em `components/FormularioTecnico.jsx`, com as cores `aqi`.
+
 ## Regras para não ficar preso a nenhum fornecedor
 
 - O site é **só arquivos prontos** (o `dist` do Vite). Nada de Next.js, funções, banco, armazenamento ou imagens da

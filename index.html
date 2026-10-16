@@ -5,7 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Arquionie™ · Modelagem e documentação BIM</title>
     <meta name="description" content="Arquionie™: modelagem e documentação BIM da Palheta Arquitetura. Projete, documente e apresente no mesmo programa." />
-    <meta name="theme-color" content="#1A1F25" />
+    <script>
+      // A aparência guardada no navegador antes do primeiro desenho (lib/aparencia.js); o /gestao abre no técnico escuro.
+      try {
+        var tema = localStorage.getItem('arquionie-aparencia');
+        if (tema === 'escuro' || tema === 'auto') document.documentElement.dataset.tema = tema;
+        if (/^\/gestao(\/|$)/.test(location.pathname)) {
+          document.documentElement.dataset.tema = 'escuro';
+          document.documentElement.dataset.modo = 'tecnico';
+        }
+      } catch (e) {}
+    </script>
     <link rel="icon" type="image/png" href="/favicon-32.png" />
   </head>
   <body>

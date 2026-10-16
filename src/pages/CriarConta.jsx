@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import Cartao from '@/components/Cartao';
+import Cartao, { Miolo } from '@/components/Cartao';
 import { BotaoGoogle, Botao, Campo, Lista, Marcar, Mensagem, Ou } from '@/components/Formulario';
 import { supabase } from '@/lib/supabase';
 import { mensagemDeErro } from '@/lib/erros';
@@ -29,7 +29,7 @@ export default function CriarConta() {
     setTentou(true);
     if (!nome.trim() || !email.trim() || !senha) return setErro('Preencha o nome, o e-mail e a senha.');
     if (senha.length < 8) return setErro('A senha precisa ter pelo menos 8 caracteres.');
-    if (!atuacao) return setErro('Escolha a sua atuação: clique na lista ATUAÇÃO.');
+    if (!atuacao) return setErro('Escolha a sua atuação: clique na lista Atuação.');
     if (!termos) return setErro('Marque a caixa "Li e aceito" para criar a conta.');
     setOcupado(true);
     const { data, error } = await supabase.auth.signUp({
@@ -62,16 +62,15 @@ export default function CriarConta() {
   }
 
   return (
-    <section className="px-4 py-10">
+    <Miolo>
       <Cartao
-        compacto
         titulo="Criar conta"
         nota="Grátis no lançamento. Mandamos um código para confirmar o e-mail."
         aoEnviar={criar}
-        estado={
+        rodape={
           <span>
             Já tem conta?{' '}
-            <Link to={`/entrar?volta=${encodeURIComponent(volta)}`} className="link-apagado">
+            <Link to={`/entrar?volta=${encodeURIComponent(volta)}`} className="link-frase">
               Entrar
             </Link>
           </span>
@@ -79,28 +78,30 @@ export default function CriarConta() {
         botoes={
           <>
             <Botao type="button" onClick={() => navegar(-1)}>
-              VOLTAR
+              Voltar
             </Botao>
             <Botao principal type="submit" disabled={ocupado}>
-              {ocupado ? 'CRIANDO…' : 'CRIAR CONTA'}
+              {ocupado ? 'Criando…' : 'Criar conta'}
             </Botao>
           </>
         }
       >
         <BotaoGoogle aoClicar={google} />
         <Ou />
-        <Campo id="nome" rotulo="NOME" valor={nome} aoMudar={setNome} autoComplete="name" autoFocus placeholder="Seu nome" />
-        <Campo id="email" rotulo="E-MAIL" tipo="email" valor={email} aoMudar={setEmail} autoComplete="email" />
-        <Campo id="senha" rotulo="SENHA" tipo="password" valor={senha} aoMudar={setSenha} autoComplete="new-password" placeholder="•••••••• (mínimo de 8)" />
-        <Lista id="atuacao" rotulo="ATUAÇÃO" valor={atuacao} aoMudar={setAtuacao} opcoes={ATUACOES} falta={tentou && !atuacao} />
+        <div className="flex flex-col gap-2">
+          <Campo id="nome" rotulo="Nome" valor={nome} aoMudar={setNome} autoComplete="name" autoFocus placeholder="Seu nome" />
+          <Campo id="email" rotulo="E-mail" tipo="email" valor={email} aoMudar={setEmail} autoComplete="email" />
+          <Campo id="senha" rotulo="Senha" tipo="password" valor={senha} aoMudar={setSenha} autoComplete="new-password" placeholder="mínimo de 8" />
+          <Lista id="atuacao" rotulo="Atuação" valor={atuacao} aoMudar={setAtuacao} opcoes={ATUACOES} falta={tentou && !atuacao} />
+        </div>
         <Marcar id="termos" marcado={termos} aoMudar={setTermos} falta={tentou && !termos}>
           <span>
             Li e aceito os{' '}
-            <Link to="/termos" target="_blank" className="text-white underline">
+            <Link to="/termos" target="_blank" className="link-frase">
               termos de uso
             </Link>{' '}
             e a{' '}
-            <Link to="/privacidade" target="_blank" className="text-white underline">
+            <Link to="/privacidade" target="_blank" className="link-frase">
               política de privacidade
             </Link>
           </span>
@@ -110,6 +111,6 @@ export default function CriarConta() {
         </Marcar>
         <Mensagem erro>{erro}</Mensagem>
       </Cartao>
-    </section>
+    </Miolo>
   );
 }

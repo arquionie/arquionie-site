@@ -21,16 +21,16 @@ export default function Programa() {
 
   return (
     <section className="mx-auto max-w-[640px] px-4 py-16 text-center">
-      <p className="titulo-secao mb-3">Arquionie™</p>
+      <img src="/leao.png" alt="" className="mx-auto mb-4 h-14 w-14" />
       {falhou ? (
         <>
-          <h1 className="mb-3 text-[26px] font-semibold text-white">Não deu para voltar ao programa.</h1>
-          <p className="text-aqi-muted">Volte ao Arquionie™ e clique de novo em CONTINUAR COM O GOOGLE.</p>
+          <h1 className="mb-3 text-amg-titulo">Não deu para voltar ao programa.</h1>
+          <p className="text-texto-apagado">Volte ao Arquionie™ e clique de novo em CONTINUAR COM O GOOGLE.</p>
         </>
       ) : (
         <>
-          <h1 className="mb-3 text-[26px] font-semibold text-white">Voltando ao Arquionie™…</h1>
-          <p className="text-aqi-muted">Se o navegador perguntar, permita abrir o endereço deste computador.</p>
+          <h1 className="mb-3 text-amg-titulo">Voltando ao Arquionie™…</h1>
+          <p className="text-texto-apagado">Se o navegador perguntar, permita abrir o endereço deste computador.</p>
         </>
       )}
     </section>

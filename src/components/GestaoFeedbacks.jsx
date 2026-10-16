@@ -1,7 +1,7 @@
 // FEEDBACKS no /gestao (plano 18; mockup aprovado em 15/10/2026): o que chega pelo botão de feedback do plugin, com os do
 // Flow importados. Novos primeiro; MARCAR COMO LIDO.
 import { useEffect, useMemo, useState } from 'react';
-import { Botao, Mensagem } from '@/components/Formulario';
+import { Botao, Mensagem } from '@/components/FormularioTecnico';
 import { Cabecalho, Numero, Numeros, Selo } from '@/components/GestaoPecas';
 import { CATEGORIAS, EDICOES, lerFeedbacks, marcarFeedback, quando } from '@/lib/gestaoFlow';
 
