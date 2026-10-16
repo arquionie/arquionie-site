@@ -210,6 +210,24 @@ Configurações feitas no painel, em ordem:
       WhatsApp de vendas 5511991961580 com a mensagem pronta; se gravar falhar, leva assim mesmo) e a aba PEDIDOS em lista. As telas
       que mostram o plano da licença (LICENÇAS, MINHA CONTA, /conectar) passam a escrever PLUGIN PRO para o `plugin`.
 
+12. **O COMERCIAL, o CRM grátis** (doc 68 e o contrato no doc 72 do repositório do programa; mockup `docs/mockups/crm-gratis`, aprovado
+   por ÊDI em 16/10/2026). **Banco pronto e testado; a função `comercial` e as telas ainda por fazer; nada publicado.** Só com o ÊDI,
+   nesta ordem:
+   1. **Teste local:** `node supabase/testes/comercial.test.mjs`. São 93 conferências:
+      - o primeiro acesso e o formulário público com cada tipo de resposta;
+      - o quadro e as regras, o orçamento, a proposta pelos três jeitos e o aceite;
+      - os ajustes, a equipe, os limites do grátis e do PRO;
+      - o /gestao e a tarefa diária.
+      Roda a migração duas vezes.
+   2. **SQL Editor (Arquionie):** rodar `supabase/migrations/20261017000000_comercial.sql` (depois da `20261016000000`; pode rodar duas
+      vezes). Ela cria as tabelas do Comercial e as funções. Ninguém lê as tabelas direto. No lançamento, os limites do grátis ficam
+      desligados (`ajustes_comercial.livres_no_lancamento`).
+   3. **Depois das telas:**
+      - a função `comercial` (o Turnstile, o PDF no R2, a tarefa diária), com os segredos `TURNSTILE_SEGREDO` e `COMERCIAL_SAL`;
+      - o site do Turnstile no Cloudflare;
+      - a tarefa diária `mover-parados-comercial`.
+      O roteiro completo vem com elas.
+
 ## Pendente
 
 - Textos da página inicial para ÊDI revisar. As imagens são capturas de amostras do programa (`public/imagens`); faltam
