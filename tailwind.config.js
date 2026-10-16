@@ -1,5 +1,10 @@
-/** Cores do tema escuro do programa (App.axaml do Arquionie): o site é a mesma identidade. */
+import tokens from './src/tokens/tailwind-preset.cjs';
+
+// Os tokens do sistema de design (design/tokens do repositório do Arquionie, copiados por ferramentas/tokens/copiar-para-o-site.mjs):
+// as cores, os raios e as alturas mudam com data-tema e data-modo no <html>. As cores `aqi` abaixo são as do tema escuro do programa
+// (App.axaml), que valem até as telas passarem para o modo AMIGÁVEL.
 export default {
+  presets: [tokens],
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
