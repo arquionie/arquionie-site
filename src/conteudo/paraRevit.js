@@ -5,9 +5,6 @@
 // "O antigo Palheta Flow" no alto da página por 6 meses (ÊDI, 17/10/2026). O build depois desta data já sai sem ele.
 export const NOME_ANTIGO_ATE = '2027-04-17';
 
-// O WhatsApp de vendas. Os botões de compra vão para cá até o formulário arquionie.com.br/comprar entrar no ar (plano 19, etapa 3).
-export const WHATSAPP_VENDAS = '5511991961580';
-
 // O manifesto do plugin para os clientes (o mesmo que a gestão lê em VERSÕES) e a pasta dos instaladores, até o canal revit-estavel.
 export const MANIFESTO_PLUGIN_URL =
   'https://khisoybksdpjdztalmrs.supabase.co/storage/v1/object/public/project-assets/downloads/palheta-flow-externo-latest.json';

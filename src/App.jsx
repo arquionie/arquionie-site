@@ -15,6 +15,7 @@ import Conta from '@/pages/Conta';
 import Gestao from '@/pages/Gestao';
 import Programa from '@/pages/Programa';
 import Conectar from '@/pages/Conectar';
+import Comprar from '@/pages/Comprar';
 import { NaoEncontrada, Privacidade, Termos } from '@/pages/Textos';
 
 // O COMERCIAL (o CRM grátis) e as páginas do cliente dele carregam só quando alguém abre: não pesam no resto do site.
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="/baixar" element={<Baixar />} />
         <Route path="/versoes" element={<Versoes />} />
         <Route path="/para-revit" element={<ParaRevit />} />
+        <Route path="/comprar" element={<Comprar />} />
         <Route path="/entrar" element={<Entrar />} />
         <Route path="/criar-conta" element={<CriarConta />} />
         <Route path="/confirmar" element={<Confirmar />} />

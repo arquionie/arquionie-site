@@ -242,6 +242,8 @@ const DESENHOS = {
   seta: <path d="M9 6l6 6-6 6" />,
   abaixo: <path d="M6 9l6 6 6-6" />,
   ok: <path d="M5 12l5 5 9-10" />,
+  // o balão da conversa, nos botões que levam ao WhatsApp
+  balao: <path d="M4 20l1.4-4A8 8 0 1 1 8.3 19z" />,
   copiar: (
     <>
       <rect x="8" y="8" width="12" height="12" rx="2" />
