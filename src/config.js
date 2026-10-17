@@ -15,7 +15,7 @@ export const EMAIL_CONTATO = 'suporte@arquionie.com.br';
 
 // A chave pública (site key) do Cloudflare Turnstile do formulário do Comercial (/f/CODIGO): confere que quem manda é uma pessoa.
 // Vazia, o formulário não mostra o Turnstile (desenvolvimento); a função comercial confere com o segredo TURNSTILE_SEGREDO.
-export const TURNSTILE_CHAVE = '';
+export const TURNSTILE_CHAVE = '0x4AAAAAAFY--N7t-yCjDCQ7';
 
 // Versão dos termos aceita no cadastro; muda quando o advogado revisar (decisão de 02/10/2026).
 export const VERSAO_TERMOS = 'rascunho-2026-10';

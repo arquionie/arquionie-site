@@ -234,7 +234,7 @@ Configurações feitas no painel, em ordem:
       que mostram o plano da licença (LICENÇAS, MINHA CONTA, /conectar) passam a escrever PLUGIN PRO para o `plugin`.
 
 12. **O COMERCIAL, o CRM grátis** (doc 68 e o contrato no doc 72 do repositório do programa; mockup `docs/mockups/crm-gratis`, aprovado
-   por ÊDI em 16/10/2026). **Banco, função e telas prontos e testados; nada publicado.** Só com o ÊDI, uma vez, nesta ordem:
+   por ÊDI em 16/10/2026). **Publicado em 16/10/2026**, com o ÊDI (o resumo no fim deste item). Só com o ÊDI, uma vez, nesta ordem:
    1. **Teste local**, sem tocar no Supabase nem no R2:
       - `node supabase/testes/comercial.test.mjs` (98 conferências: o primeiro acesso, o formulário com cada tipo de resposta, o
         quadro e as regras, o orçamento, a proposta pelos três jeitos e o aceite, os ajustes, a equipe, os limites do grátis e do PRO,
@@ -262,6 +262,19 @@ Configurações feitas no painel, em ordem:
       corpo `{"acao":"tarefa"}`: a regra PARADO (opcional, em Ajustes) e os PDFs dos pedidos excluídos saindo do R2.
    9. **Site:** juntar a branch `comercial` na `main`, com a `TURNSTILE_CHAVE` preenchida, e o `git push`. Conferir em `https://www.arquionie.com.br/f/ZZZZ`
       ("Formulário não encontrado") e, com uma conta de teste, o primeiro acesso, um pedido pelo formulário e uma proposta pelo modelo.
+   **Publicado em 16/10/2026**, com o ÊDI:
+   - **Banco:** antes, a `20261016000000_compra_do_pro.sql` do item 11, que ainda não tinha rodado (o Comercial vem depois dela); depois, a
+     `20261017000000_comercial.sql`. Conferido: `comercial_formulario_abrir('ZZZZ')` responde `inexistente`.
+   - **Turnstile** `Arquionie Comercial` (os dois domínios, *Managed*). A chave secreta foi trocada (*Rotate*) logo depois de criada, porque
+     apareceu numa foto da tela; a pública está no `src/config.js`.
+   - **R2:** o CORS com o `PUT`. Conferido: a consulta prévia de `www.arquionie.com.br` recebe `GET, HEAD, PUT`.
+   - **Segredos** `TURNSTILE_SEGREDO`, `COMERCIAL_SAL` e `COMERCIAL_TAREFA_SEGREDO`, pelo CLI com a chave temporária, conferidos pelo resumo
+     (`fddf569a…`, `556b2bac…` e `d953ccb0…`); os outros ficaram como estavam.
+   - **Função** `comercial` (`--no-verify-jwt --use-api`). Conferido: a tarefa recusa quem não tem o segredo e roda com ele; um pedido com
+     o Turnstile falso é recusado.
+   - **Tarefa diária** `comercial-diaria`, `0 6 * * *`, pelo SQL Editor (`cron.schedule` com o `net.http_post`), ativa ao lado da
+     `enviar-campanhas` e da `limpar-apresentacoes-vencidas`.
+   - **Site:** a `comercial` juntada na `main` e o `git push`, com as páginas prontas do SEO (seção "SEO e GEO").
 
 ## Pendente
 
