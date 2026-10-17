@@ -35,6 +35,11 @@ function Topo() {
           <NavLink to="/baixar" className={aba}>
             Baixar
           </NavLink>
+          {usuario && (
+            <NavLink to="/painel/comercial" className={aba}>
+              Comercial
+            </NavLink>
+          )}
           {admin && (
             <NavLink to="/gestao" className={aba}>
               Gestão

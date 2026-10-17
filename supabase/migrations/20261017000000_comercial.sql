@@ -12,7 +12,8 @@
 --   formulário e proposta do cliente (sem conta) .. comercial_formulario_abrir, comercial_proposta_abrir, comercial_proposta_aceitar,
 --                                                  comercial_denunciar
 --   função comercial (do servidor) ................ comercial_pedido_criar (depois do Turnstile), comercial_proposta_pdf,
---                                                  comercial_mover_parados (a tarefa diária) — só com a chave secreta
+--                                                  comercial_mover_parados e comercial_lixo_pegar (a tarefa diária) — só com a
+--                                                  chave secreta
 --   site (pessoa com conta; p_area = o escritório, a conta dela ou uma em que está na equipe):
 --     comercial_iniciar, comercial_estado, comercial_pedido, comercial_pedido_novo, comercial_pedido_salvar, comercial_pedido_mover,
 --     comercial_whatsapp, comercial_anotar, comercial_pedido_excluir, comercial_formulario_salvar, comercial_formulario_excluir,
@@ -148,11 +149,25 @@ create table if not exists public.comercial_denuncias (
   criado_em timestamptz not null default now()
 );
 alter table public.comercial_denuncias enable row level security;
+
+-- Os PDFs que saíram do banco (pedido excluído) e ainda estão no R2: a tarefa diária da função comercial apaga e esvazia.
+create table if not exists public.comercial_lixo (
+  arquivo text primary key check (arquivo ~ '^comercial/'),
+  criado_em timestamptz not null default now()
+);
+alter table public.comercial_lixo enable row level security;
 -- Ninguém lê nem escreve as tabelas direto: só pelas funções abaixo.
 
 -- ------------------------------------------------------------------------------------------------ o de fábrica
 -- As seis etapas de fábrica (ÊDI, 16/10/2026): o fluxo da Palheta é um fluxo, não o padrão; quem não responde ou não tem o perfil
 -- vai para RECUSADO, com o motivo. O tipo é o que os indicadores leem; o aviso é quantos dias parado até pedir atenção.
+-- O dia de hoje e o começo do mês no Brasil. O relógio do Supabase é UTC: depois das 21h de Brasília, o current_date já é amanhã e o
+-- "Retorno hoje" virava antes da hora.
+create or replace function public.comercial_hoje() returns date
+language sql stable set search_path = '' as $$ select (now() at time zone 'America/Sao_Paulo')::date $$;
+create or replace function public.comercial_inicio_do_mes() returns timestamptz
+language sql stable set search_path = '' as $$ select date_trunc('month', now() at time zone 'America/Sao_Paulo') at time zone 'America/Sao_Paulo' $$;
+
 create or replace function public.comercial_etapas_de_fabrica() returns jsonb
 language sql immutable set search_path = '' as $$
   select '[
@@ -528,8 +543,8 @@ language plpgsql security definer set search_path = '' as $$
 declare
   v_area uuid := public.comercial_area(p_area);
   a public.comercial_ajustes;
-  v_de date := coalesce(p_de, date_trunc('year', now())::date);
-  v_ate date := coalesce(p_ate, (date_trunc('year', now()) + interval '1 year' - interval '1 day')::date);
+  v_de date := coalesce(p_de, date_trunc('year', public.comercial_hoje())::date);
+  v_ate date := coalesce(p_ate, (date_trunc('year', public.comercial_hoje()) + interval '1 year' - interval '1 day')::date);
   v_pro boolean := public.comercial_pro(v_area);
   v_tipos jsonb;
   v_ind jsonb;
@@ -553,13 +568,13 @@ begin
       'emNegociacao', coalesce(sum(p.valor) filter (where v_tipos ->> p.etapa = 'andamento'), 0))
     into v_ind
     from public.comercial_pedidos p
-   where p.usuario_id = v_area and p.criado_em::date between v_de and v_ate;
+   where p.usuario_id = v_area and (p.criado_em at time zone 'America/Sao_Paulo')::date between v_de and v_ate;
 
   -- HOJE: os retornos de hoje e os vencidos, os parados além do aviso da etapa e as propostas abertas sem resposta
   select coalesce(jsonb_agg(h order by h ->> 'ordem', h ->> 'em'), '[]'::jsonb) into v_hoje from (
     select jsonb_build_object('motivo', 'retorno', 'ordem', '1', 'em', p.retorno, 'pedido', public.comercial_cartao(p)) h
       from public.comercial_pedidos p
-     where p.usuario_id = v_area and v_tipos ->> p.etapa = 'andamento' and p.retorno is not null and p.retorno <= current_date
+     where p.usuario_id = v_area and v_tipos ->> p.etapa = 'andamento' and p.retorno is not null and p.retorno <= public.comercial_hoje()
     union all
     select jsonb_build_object('motivo', 'parado', 'ordem', '2', 'em', p.etapa_desde,
              'dias', floor(extract(epoch from now() - p.etapa_desde) / 86400), 'pedido', public.comercial_cartao(p))
@@ -567,7 +582,7 @@ begin
       join lateral (select public.comercial_etapa(a.etapas, p.etapa) e) x on true
      where p.usuario_id = v_area and x.e ->> 'tipo' = 'andamento' and (x.e ->> 'aviso') is not null
        and now() - p.etapa_desde > make_interval(days => (x.e ->> 'aviso')::int)
-       and (p.retorno is null or p.retorno > current_date)
+       and (p.retorno is null or p.retorno > public.comercial_hoje())
     union all
     select jsonb_build_object('motivo', 'abriu', 'ordem', '3', 'em', x.ultima_abertura, 'aberturas', x.aberturas,
              'pedido', public.comercial_cartao(p))
@@ -575,7 +590,7 @@ begin
       join lateral (select * from public.comercial_propostas y where y.pedido_id = p.id order by y.enviada_em desc limit 1) x on true
      where p.usuario_id = v_area and v_tipos ->> p.etapa = 'andamento' and x.aberturas > 0 and x.aceita_em is null
        and x.ultima_abertura > now() - interval '7 days'
-       and (p.retorno is null or p.retorno > current_date)
+       and (p.retorno is null or p.retorno > public.comercial_hoje())
   ) t;
 
   return jsonb_build_object(
@@ -590,7 +605,7 @@ begin
     'formularios', (select coalesce(jsonb_agg(jsonb_build_object('id', f.id, 'codigo', f.codigo, 'nome', f.nome, 'ativo', f.ativo,
                        'pausadoPeloGestor', f.pausado_pelo_gestor, 'versao', f.versao, 'perguntas', f.perguntas, 'desvio', f.desvio,
                        'respostasNoMes', (select count(*) from public.comercial_pedidos p where p.formulario_id = f.id
-                                           and p.criado_em > date_trunc('month', now())))
+                                           and p.criado_em > public.comercial_inicio_do_mes()))
                        order by f.criado_em), '[]'::jsonb)
                      from public.comercial_formularios f where f.usuario_id = v_area),
     'indicadores', v_ind,
@@ -980,7 +995,7 @@ begin
   return public.comercial_pedido(v_area, p_id);
 end $$;
 
--- EXCLUIR um pedido apaga de verdade (a LGPD): só o responsável. Devolve os PDFs para a função apagar do R2.
+-- EXCLUIR um pedido apaga de verdade (a LGPD): só o responsável. Os PDFs vão para a fila do lixo (a tarefa diária apaga do R2).
 create or replace function public.comercial_pedido_excluir(p_area uuid, p_id uuid) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare
@@ -993,6 +1008,7 @@ begin
   if not found then
     return jsonb_build_object('ok', false, 'motivo', 'Pedido não encontrado.');
   end if;
+  insert into public.comercial_lixo (arquivo) select a #>> '{}' from jsonb_array_elements(v_arquivos) a on conflict do nothing;
   return jsonb_build_object('ok', true, 'arquivos', v_arquivos);
 end $$;
 
@@ -1211,7 +1227,7 @@ begin
   if p ? 'valor' and p ->> 'valor' is not null and (p ->> 'valor') !~ '^[0-9]{1,10}(\.[0-9]{1,2})?$' then
     return jsonb_build_object('ok', false, 'motivo', 'O valor precisa ser um número.');
   end if;
-  v_valida := coalesce((p ->> 'validaAte')::date, current_date + coalesce((a.precos ->> 'validadeDias')::int, 30));
+  v_valida := coalesce((p ->> 'validaAte')::date, public.comercial_hoje() + coalesce((a.precos ->> 'validadeDias')::int, 30));
   loop
     v_codigo := public.comercial_sortear(8);
     exit when not exists (select 1 from public.comercial_propostas where codigo = v_codigo);
@@ -1237,8 +1253,8 @@ begin
     'pedido', (select public.comercial_cartao(x) from public.comercial_pedidos x where x.id = p_pedido));
 end $$;
 
--- O PDF da proposta, registrado pela função comercial depois de subir ao R2 (comercial/<pedido>/<CODIGO>.pdf). Confere o espaço do
--- plano: 300 MB no grátis e 5 GB no PRO, de fábrica.
+-- O PDF da proposta, registrado pela função comercial antes de dar a URL de subida ao R2 (comercial/<pedido>/<CODIGO>.pdf). p_usuario é
+-- quem sobe: o responsável ou alguém da equipe dele. Confere o espaço do plano: 300 MB no grátis e 5 GB no PRO, de fábrica.
 create or replace function public.comercial_proposta_pdf(p_usuario uuid, p_codigo text, p_tamanho bigint) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare
@@ -1248,15 +1264,15 @@ declare
   v_limite bigint;
 begin
   select * into aj from public.ajustes_comercial where id;
-  select * into x from public.comercial_propostas where codigo = p_codigo and usuario_id = p_usuario;
-  if not found or x.jeito <> 'pdf' then
+  select * into x from public.comercial_propostas where codigo = p_codigo;
+  if not found or x.jeito <> 'pdf' or not public.da_equipe(p_usuario, x.usuario_id) then
     return jsonb_build_object('ok', false, 'motivo', 'Proposta não encontrada.');
   end if;
   if p_tamanho is null or p_tamanho < 1 or p_tamanho > 10485760 then
     return jsonb_build_object('ok', false, 'motivo', 'O PDF vai até 10 MB.');
   end if;
-  select coalesce(sum(tamanho), 0) into v_usado from public.comercial_propostas where usuario_id = p_usuario and id <> x.id;
-  v_limite := (case when public.comercial_pro(p_usuario) then aj.espaco_pro_mb else aj.espaco_gratis_mb end)::bigint * 1048576;
+  select coalesce(sum(tamanho), 0) into v_usado from public.comercial_propostas where usuario_id = x.usuario_id and id <> x.id;
+  v_limite := (case when public.comercial_pro(x.usuario_id) then aj.espaco_pro_mb else aj.espaco_gratis_mb end)::bigint * 1048576;
   if v_usado + p_tamanho > v_limite then
     return jsonb_build_object('ok', false, 'motivo', format('Os PDFs passaram de %s MB. Exclua propostas antigas ou veja o PRO.', v_limite / 1048576),
       'limite', true);
@@ -1280,11 +1296,11 @@ begin
   end if;
   select * into v from public.comercial_pedidos where id = x.pedido_id;
   v_situacao := case when x.aceita_em is not null then 'aceita'
-                     when x.valida_ate is not null and x.valida_ate < current_date then 'vencida'
+                     when x.valida_ate is not null and x.valida_ate < public.comercial_hoje() then 'vencida'
                      when x.jeito = 'pdf' and x.arquivo is null then 'preparando'
                      else 'aberta' end;
   if v_situacao in ('aberta', 'aceita') then
-    if x.ultima_abertura is null or x.ultima_abertura::date < current_date then
+    if x.ultima_abertura is null or (x.ultima_abertura at time zone 'America/Sao_Paulo')::date < public.comercial_hoje() then
       perform public.comercial_registrar(x.pedido_id, 'abriu', jsonb_build_object('codigo', x.codigo, 'vez', x.aberturas + 1), null);
     end if;
     update public.comercial_propostas set aberturas = aberturas + 1, ultima_abertura = now() where id = x.id;
@@ -1316,7 +1332,7 @@ begin
   if x.aceita_em is not null then
     return jsonb_build_object('ok', false, 'motivo', 'Esta proposta já foi aceita.', 'aceite', x.aceite);
   end if;
-  if x.valida_ate is not null and x.valida_ate < current_date then
+  if x.valida_ate is not null and x.valida_ate < public.comercial_hoje() then
     return jsonb_build_object('ok', false, 'motivo', 'Esta proposta venceu. Fale com o escritório para receber uma nova.');
   end if;
   if length(v_nome) not between 3 and 120 then
@@ -1368,7 +1384,7 @@ begin
        and public.comercial_etapa(a.etapas, a.regras -> 'parado' ->> 'para') is not null
        and x.e ->> 'tipo' = 'andamento' and (x.e ->> 'aviso') is not null
        and now() - p.etapa_desde > make_interval(days => (x.e ->> 'aviso')::int)
-       and (p.retorno is null or p.retorno < current_date)
+       and (p.retorno is null or p.retorno < public.comercial_hoje())
   loop
     if public.comercial_trocar_etapa(r.id, r.para, r.motivo, null, 'parado') then
       v_total := v_total + 1;
@@ -1376,6 +1392,15 @@ begin
   end loop;
   return jsonb_build_object('ok', true, 'movidos', v_total);
 end $$;
+
+-- A fila do lixo, para a tarefa diária: devolve até 500 PDFs a apagar do R2 e já tira da fila.
+create or replace function public.comercial_lixo_pegar() returns jsonb
+language sql volatile security definer set search_path = '' as $$
+  with fora as (
+    delete from public.comercial_lixo where arquivo in (select arquivo from public.comercial_lixo order by criado_em limit 500)
+    returning arquivo)
+  select coalesce(jsonb_agg(arquivo), '[]'::jsonb) from fora
+$$;
 
 -- EXPORTAR PLANILHA: todos os pedidos com as respostas, sempre grátis ("nenhum arquivo refém").
 create or replace function public.comercial_exportar(p_area uuid) returns jsonb
@@ -1402,7 +1427,7 @@ begin
   return jsonb_build_object(
     'escritorios', (select count(*) from public.comercial_ajustes),
     'pedidos', (select count(*) from public.comercial_pedidos),
-    'pedidosNoMes', (select count(*) from public.comercial_pedidos where criado_em > date_trunc('month', now())),
+    'pedidosNoMes', (select count(*) from public.comercial_pedidos where criado_em > public.comercial_inicio_do_mes()),
     'propostas', (select count(*) from public.comercial_propostas),
     'aceitas', (select count(*) from public.comercial_propostas where aceita_em is not null),
     'denunciados', (select coalesce(jsonb_agg(jsonb_build_object('id', f.id, 'codigo', f.codigo, 'nome', f.nome,
@@ -1436,7 +1461,7 @@ begin
     'comercial_regra(uuid, text, uuid)', 'comercial_mensagem(text, jsonb)', 'comercial_cartao(public.comercial_pedidos)',
     'comercial_perguntas_conferidas(jsonb)', 'comercial_etapas_de_fabrica()', 'comercial_regras_de_fabrica()',
     'comercial_mensagens_de_fabrica()', 'comercial_motivos_de_fabrica()', 'comercial_precos_de_fabrica()',
-    'comercial_formulario_de_fabrica(text)']
+    'comercial_formulario_de_fabrica(text)', 'comercial_hoje()', 'comercial_inicio_do_mes()']
   loop
     execute format('revoke execute on function public.%s from public, anon, authenticated', f);
   end loop;
@@ -1449,7 +1474,7 @@ begin
   end loop;
   -- a função comercial do servidor, com a chave secreta
   foreach f in array array['comercial_pedido_criar(text, jsonb, text, text)', 'comercial_proposta_pdf(uuid, text, bigint)',
-    'comercial_mover_parados()']
+    'comercial_mover_parados()', 'comercial_lixo_pegar()']
   loop
     execute format('revoke execute on function public.%s from public, anon, authenticated', f);
     execute format('grant execute on function public.%s to service_role', f);

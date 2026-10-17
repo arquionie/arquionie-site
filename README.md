@@ -211,22 +211,34 @@ Configurações feitas no painel, em ordem:
       que mostram o plano da licença (LICENÇAS, MINHA CONTA, /conectar) passam a escrever PLUGIN PRO para o `plugin`.
 
 12. **O COMERCIAL, o CRM grátis** (doc 68 e o contrato no doc 72 do repositório do programa; mockup `docs/mockups/crm-gratis`, aprovado
-   por ÊDI em 16/10/2026). **Banco pronto e testado; a função `comercial` e as telas ainda por fazer; nada publicado.** Só com o ÊDI,
-   nesta ordem:
-   1. **Teste local:** `node supabase/testes/comercial.test.mjs`. São 93 conferências:
-      - o primeiro acesso e o formulário público com cada tipo de resposta;
-      - o quadro e as regras, o orçamento, a proposta pelos três jeitos e o aceite;
-      - os ajustes, a equipe, os limites do grátis e do PRO;
-      - o /gestao e a tarefa diária.
-      Roda a migração duas vezes.
-   2. **SQL Editor (Arquionie):** rodar `supabase/migrations/20261017000000_comercial.sql` (depois da `20261016000000`; pode rodar duas
-      vezes). Ela cria as tabelas do Comercial e as funções. Ninguém lê as tabelas direto. No lançamento, os limites do grátis ficam
+   por ÊDI em 16/10/2026). **Banco, função e telas prontos e testados; nada publicado.** Só com o ÊDI, uma vez, nesta ordem:
+   1. **Teste local**, sem tocar no Supabase nem no R2:
+      - `node supabase/testes/comercial.test.mjs` (98 conferências: o primeiro acesso, o formulário com cada tipo de resposta, o
+        quadro e as regras, o orçamento, a proposta pelos três jeitos e o aceite, os ajustes, a equipe, os limites do grátis e do PRO,
+        o /gestao e a tarefa diária; o banco em UTC como o Supabase; roda a migração duas vezes);
+      - `node supabase/testes/comercial-funcao.test.mjs` (11 conferências da função: o Turnstile, o PDF e a tarefa).
+   2. **As telas sem conta** (`npm run dev`): o painel em `/painel/comercial?amostra` (o primeiro acesso em `?amostra=novo`), o
+      formulário do cliente em `/f/LIMA-CASA?amostra` e a proposta em `/p/QX7M2KAB?amostra`.
+   3. **SQL Editor (Arquionie):** rodar `supabase/migrations/20261017000000_comercial.sql` (depois da `20261016000000`; pode rodar duas
+      vezes). Ela cria as tabelas e as funções do Comercial. Ninguém lê as tabelas direto. No lançamento, os limites do grátis ficam
       desligados (`ajustes_comercial.livres_no_lancamento`).
-   3. **Depois das telas:**
-      - a função `comercial` (o Turnstile, o PDF no R2, a tarefa diária), com os segredos `TURNSTILE_SEGREDO` e `COMERCIAL_SAL`;
-      - o site do Turnstile no Cloudflare;
-      - a tarefa diária `mover-parados-comercial`.
-      O roteiro completo vem com elas.
+   4. **Cloudflare › Turnstile › Add widget:** nome `Arquionie Comercial`, domínios `arquionie.com.br` e `www.arquionie.com.br`, modo
+      *Managed*. A **Site Key** (pública) vai em `TURNSTILE_CHAVE`, no `src/config.js`. A **Secret Key** vai no passo 6.
+   5. **R2 › `arquionie-tours` › Settings › CORS Policy:** o PDF da proposta sobe do navegador direto para o R2, então o `PUT` entra
+      junto do `GET`:
+      `[{"AllowedOrigins":["https://www.arquionie.com.br","https://arquionie.com.br"],"AllowedMethods":["GET","HEAD","PUT"],"AllowedHeaders":["*"],"MaxAgeSeconds":86400}]`.
+      O PDF fica em `comercial/<pedido>/<CÓDIGO>.pdf` e abre por `tours.arquionie.com.br`.
+   6. **Supabase › Edge Functions › Secrets:** `TURNSTILE_SEGREDO` (a Secret Key do passo 4), `COMERCIAL_SAL` e
+      `COMERCIAL_TAREFA_SEGREDO` (duas senhas longas quaisquer: o sal da impressão do endereço de quem manda o formulário e a senha da
+      tarefa diária). Os do R2 (`R2_CONTA`, `R2_CHAVE`, `R2_SEGREDO`) já existem desde o item 7.
+   7. **Função `comercial`:** `npx supabase functions deploy comercial --project-ref sowazotriildoeaxbhkl --no-verify-jwt --use-api`
+      (sem a verificação de JWT: o formulário não tem conta; o PDF confere a conta dentro da função). Como no item 8, com uma chave de
+      acesso temporária do Supabase.
+   8. **Tarefa diária:** `comercial-diaria`, `0 6 * * *` (3h em Brasília), POST
+      `https://sowazotriildoeaxbhkl.supabase.co/functions/v1/comercial` com o cabeçalho `x-tarefa` (o `COMERCIAL_TAREFA_SEGREDO`) e o
+      corpo `{"acao":"tarefa"}`: a regra PARADO (opcional, em Ajustes) e os PDFs dos pedidos excluídos saindo do R2.
+   9. **Site:** juntar a branch `comercial` na `main`, com a `TURNSTILE_CHAVE` preenchida, e o `git push`. Conferir em `https://www.arquionie.com.br/f/ZZZZ`
+      ("Formulário não encontrado") e, com uma conta de teste, o primeiro acesso, um pedido pelo formulário e uma proposta pelo modelo.
 
 ## Pendente
 

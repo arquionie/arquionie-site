@@ -7,11 +7,14 @@ const { chamar, tentar, novaConta, db } = banco;
 import { readFileSync } from "node:fs";
 await db.exec(readFileSync(new URL("../migrations/20261017000000_comercial.sql", import.meta.url), "utf8"));
 console.log("migração do Comercial aplicada pela segunda vez: ok");
+await db.exec("set time zone 'UTC'"); // como o Supabase: depois das 21h de Brasília, o dia em UTC já é amanhã
 let certos = 0; const ruins = [];
 const confere = (c, m) => { if (c) certos++; else { ruins.push(m); console.log("  FALHOU: " + m); } };
 const linha = async (sql, p = []) => (await db.query(sql, p)).rows[0];
-const hoje = () => new Date().toISOString().slice(0, 10);
-const emDias = (n) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
+// As datas no Brasil, como o banco (comercial_hoje): depois das 21h de Brasília, o dia em UTC já é amanhã.
+const noBrasil = (ms) => new Date(ms).toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+const hoje = () => noBrasil(Date.now());
+const emDias = (n) => noBrasil(Date.now() + n * 864e5);
 
 const juliana = await novaConta("juliana@limaarquitetura.com.br");
 await db.query(`insert into public.escritorios (usuario_id, nome) values ($1, 'Lima Arquitetura')`, [juliana]);
@@ -97,6 +100,7 @@ r = await chamar("authenticated", juliana, "comercial_pedido_salvar", { p_area: 
 confere(r.ok && Number(r.pedido.valor) === 31500 && r.pedido.orcamento.pacotes.length === 3 && r.pedido.retorno === hoje(), "o orçamento, o valor e o retorno salvam");
 r = await chamar("authenticated", juliana, "comercial_estado", {});
 confere(r.hoje.length === 1 && r.hoje[0].motivo === "retorno" && r.hoje[0].pedido.nome === "Mariana Costa", "o retorno de hoje aparece em HOJE");
+confere((await linha("select public.comercial_hoje()::text as dia")).dia === hoje(), "o dia de hoje é o de Brasília, com o banco em UTC como o Supabase");
 r = await chamar("authenticated", juliana, "comercial_pedido_mover", { p_area: null, p_id: mari.id, p_etapa: "recusado" });
 confere(!r.ok && r.pedeMotivo, "mover para RECUSADO pede o motivo");
 r = await chamar("authenticated", juliana, "comercial_pedido_mover", { p_area: null, p_id: mari.id, p_etapa: "recusado", p_motivo: "Preço" });
@@ -170,6 +174,10 @@ const maria = await novaConta("maria@limaarquitetura.com.br");
 await db.query(`insert into public.equipe (responsavel_id, email, situacao) values ($1, 'maria@limaarquitetura.com.br', 'ativo')`, [juliana]);
 r = await chamar("authenticated", maria, "comercial_estado", { p_area: juliana });
 confere(r.escritorio === "Lima Arquitetura" && r.responsavel === false && r.pedidos.length === 3, "quem é da equipe vê o Comercial do escritório");
+r = await chamar("service_role", null, "comercial_proposta_pdf", { p_usuario: outra, p_codigo: pdf.codigo, p_tamanho: 1048576 });
+confere(!r.ok, "quem não é da equipe não sobe PDF na proposta do escritório");
+r = await chamar("service_role", null, "comercial_proposta_pdf", { p_usuario: maria, p_codigo: pdf.codigo, p_tamanho: 2 * 1048576 });
+confere(r.ok, "quem é da equipe sobe o PDF");
 r = await chamar("authenticated", maria, "comercial_whatsapp", { p_area: juliana, p_id: bruno.id });
 confere(r.ok && r.texto.includes("Aqui é a equipe, da Lima Arquitetura"), "quem não pôs o nome na conta aparece como a equipe: " + r.texto);
 r = await tentar("authenticated", outra, "comercial_estado", { p_area: juliana });
@@ -258,6 +266,10 @@ confere(r.ok && r.pedidos.length === 4 && r.pedidos[0].numero === 1 && r.pedidos
 r = await chamar("authenticated", juliana, "comercial_pedido_excluir", { p_area: null, p_id: bruno.id });
 confere(r.ok && r.arquivos.length === 1 && r.arquivos[0].endsWith(".pdf"), "EXCLUIR apaga o pedido e devolve o PDF para sair do R2");
 confere((await linha(`select count(*)::int n from public.comercial_atividades where pedido_id = $1`, [bruno.id])).n === 0, "a linha do tempo vai junto");
+r = await chamar("service_role", null, "comercial_lixo_pegar", {});
+confere(r.length === 1 && r[0].endsWith(".pdf"), "o PDF do pedido excluído espera na fila do lixo");
+r = await chamar("service_role", null, "comercial_lixo_pegar", {});
+confere(r.length === 0, "a tarefa diária esvazia a fila");
 for (const [papel, nome, args] of [["authenticated", "comercial_trocar_etapa", { p_pedido: mari.id, p_para: "recusado", p_motivo: "x", p_por: juliana, p_porque: "x" }],
                                    ["authenticated", "comercial_pedido_criar", { p_codigo: "LIMA-CASA", p_respostas: respostas() }],
                                    ["anon", "comercial_whatsapp", { p_area: juliana, p_id: mari.id }],
