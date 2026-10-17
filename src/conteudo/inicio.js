@@ -5,7 +5,7 @@
 // O caminho do escritório (ÊDI, 16/10/2026: o Arquionie é um ecossistema, do primeiro contato com o cliente ao projeto aprovado).
 export const PASSOS = [
   ['Captar', 'Um formulário com a marca do escritório para o cliente pedir orçamento. Os pedidos caem num quadro com as suas etapas, e dali saem o orçamento, a proposta com aceite pela internet e a conversa pelo WhatsApp.'],
-  ['Projetar', 'O modelo BIM começa do zero ou vem do Revit, pelo Palheta Flow. Dele saem plantas, cortes, elevações e pontos elétricos, pelas normas brasileiras.'],
+  ['Projetar', 'O modelo BIM começa do zero ou vem do Revit, pelo Arquionie™ para Revit. Dele saem plantas, cortes, elevações e pontos elétricos, pelas normas brasileiras.'],
   ['Apresentar', 'O renderizador próprio mostra o projeto com luz e materiais enquanto você trabalha. Imagens, panoramas 360° e vídeos saem da mesma vista.'],
   ['Aprovar', 'Um link leva ao cliente o vídeo, as imagens e um tour 3D para ele andar pelo projeto no celular. Ele pede ajustes apontando o lugar no tour, ou aprova, e a resposta volta no programa.'],
 ];
@@ -38,7 +38,7 @@ export const DESTAQUES = [
 ];
 
 export const RECURSOS = [
-  ['Trazer do Revit', 'O pacote do Palheta Flow vira paredes, pisos, ambientes, forros, portas e janelas do Arquionie™, com as câmeras do projeto.'],
+  ['Trazer do Revit', 'O pacote do Arquionie™ para Revit vira paredes, pisos, ambientes, forros, portas e janelas do Arquionie™, com as câmeras do projeto.'],
   ['Planta a partir do PDF', 'A planta em PDF exportada pelo Revit vira paredes, pilares, pisos, portas, janelas e ambientes.'],
   ['Pontos elétricos', 'Tomadas, interruptores e pontos de luz com as alturas da NBR 9050, legenda automática e quantidades.'],
   ['Com a sua IA', 'A IA que você já usa, como o Claude ou o ChatGPT, consulta e cria projetos no Arquionie™.'],
@@ -72,7 +72,7 @@ export const PERGUNTAS = [
   ],
   [
     'Ele abre arquivos do Revit?',
-    'Abre o pacote exportado pelo Palheta Flow, o plugin do Revit, e converte paredes, pisos, ambientes, forros, portas e janelas em elementos do Arquionie™. Também lê a planta em PDF exportada pelo Revit. O arquivo .rvt direto, não.',
+    'Abre o pacote exportado pelo Arquionie™ para Revit, o plugin (o antigo Palheta Flow), e converte paredes, pisos, ambientes, forros, portas e janelas em elementos do Arquionie™. Também lê a planta em PDF exportada pelo Revit. O arquivo .rvt direto, não.',
   ],
   ['Onde ficam os meus projetos?', 'No seu computador, em arquivos .aqi. A conta guarda só o cadastro e os computadores conectados; os seus arquivos não vão para servidor nenhum.'],
   ['Em quantos computadores posso usar?', 'A mesma conta fica conectada em até três computadores ao mesmo tempo. Na página Minha conta você vê e desconecta cada um.'],

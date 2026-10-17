@@ -4,6 +4,7 @@ import App from '@/App';
 import { ProvedorSessao } from '@/lib/Sessao';
 import { IMAGEM_PADRAO, PAGINAS, ROBOTS_PUBLICA, enderecoDe } from '@/lib/seo';
 import { DESTAQUES, PASSOS, PERGUNTAS, PUBLICO, RECURSOS } from '@/conteudo/inicio';
+import { ETAPAS, PERGUNTAS_REVIT, PRECOS_PADRAO, REQUISITOS } from '@/conteudo/paraRevit';
 import { EMAIL_CONTATO, MANIFESTO_URL, SITE_URL } from '@/config';
 
 // As páginas públicas prontas no build, para quem não roda JavaScript: os robôs das IAs (GPTBot, ClaudeBot, PerplexityBot) leem só o
@@ -40,9 +41,11 @@ function dadosEstruturados(rota, manifesto) {
     '@type': 'Organization',
     '@id': `${SITE_URL}/#palheta`,
     name: 'Palheta Arquitetura',
+    url: 'https://www.palhetaarquitetura.com.br/',
     logo: `${SITE_URL}/marca-256.png`,
     email: EMAIL_CONTATO,
     address: { '@type': 'PostalAddress', addressCountry: 'BR' },
+    sameAs: ['https://www.instagram.com/edipalhetaarquitetura', 'https://www.youtube.com/@edipalhetaarquiteto'],
   };
   const site = {
     '@type': 'WebSite',
@@ -57,6 +60,7 @@ function dadosEstruturados(rota, manifesto) {
     '@id': `${SITE_URL}/#programa`,
     name: 'Arquionie™',
     alternateName: ['Palheta Arquionie', 'Arquionie'],
+    sameAs: ['https://www.instagram.com/arquionie/', 'https://github.com/arquionie'],
     description: PAGINAS['/'].descricao,
     url: `${SITE_URL}/`,
     applicationCategory: 'DesignApplication',
@@ -80,6 +84,42 @@ function dadosEstruturados(rota, manifesto) {
   if (manifesto?.pacotes?.instalador?.tamanho) programa.fileSize = `${Math.round(manifesto.pacotes.instalador.tamanho / 1048576)} MB`;
 
   const grafo = [organizacao, site, programa];
+  if (rota === '/para-revit') {
+    // O plugin, com o nome antigo para quem ainda procura o Palheta Flow.
+    grafo.push({
+      '@type': 'SoftwareApplication',
+      '@id': `${SITE_URL}/para-revit#plugin`,
+      name: 'Arquionie™ para Revit',
+      alternateName: ['Arquionie para Revit', 'Palheta Flow'],
+      description: PAGINAS[rota].descricao,
+      url: enderecoDe(rota),
+      applicationCategory: 'DesignApplication',
+      applicationSubCategory: 'Plugin para Autodesk Revit',
+      operatingSystem: 'Windows 10, Windows 11 (64 bits)',
+      softwareRequirements: 'Autodesk Revit 2025, 2026, 2027 ou 2028',
+      inLanguage: 'pt-BR',
+      image: `${SITE_URL}/imagens/painel-revit-claro.jpg`,
+      featureList: ETAPAS.flatMap(([etapa, grupos]) => grupos.map(([grupo, ferramentas]) => `${etapa} › ${grupo}: ${ferramentas.map(([f]) => f).join(', ')}`)),
+      offers: [
+        { '@type': 'Offer', price: '0', priceCurrency: 'BRL', description: 'Versão grátis.' },
+        { '@type': 'Offer', price: String(PRECOS_PADRAO.mensal), priceCurrency: 'BRL', description: 'PRO mensal, por mês.' },
+        { '@type': 'Offer', price: String(PRECOS_PADRAO.anual * 12), priceCurrency: 'BRL', description: 'PRO anual, por ano.' },
+      ],
+      isRelatedTo: { '@id': programa['@id'] },
+      publisher: { '@id': organizacao['@id'] },
+      author: { '@id': organizacao['@id'] },
+    });
+    grafo.push({
+      '@type': 'FAQPage',
+      '@id': `${SITE_URL}/para-revit#perguntas`,
+      inLanguage: 'pt-BR',
+      mainEntity: PERGUNTAS_REVIT.map(([pergunta, resposta]) => ({
+        '@type': 'Question',
+        name: pergunta,
+        acceptedAnswer: { '@type': 'Answer', text: resposta },
+      })),
+    });
+  }
   if (rota === '/') {
     grafo.push({
       '@type': 'FAQPage',
@@ -171,7 +211,8 @@ export function textoParaIAs({ manifesto }) {
   final no nível máximo (o render em qualidade máxima, até 200 projetos enviados ao cliente e a conexão com a IA). Abrir, ver, imprimir
   e exportar os projetos é sempre grátis
 - Os projetos ficam no computador de quem usa, em arquivos .aqi; para o servidor vai só o que a pessoa escolhe enviar ao cliente
-- Revit: abre o pacote exportado pelo Palheta Flow, o plugin do Revit, e a planta em PDF exportada pelo Revit; o arquivo .rvt direto, não
+- Revit: abre o pacote exportado pelo Arquionie™ para Revit (o plugin, antigo Palheta Flow) e a planta em PDF exportada pelo Revit; o arquivo
+  .rvt direto, não
 - IA: conecta ao Claude, ao Claude Code, ao Codex e ao ChatGPT pelo botão CONECTAR IA, na versão PRO${versao}
 - Contato: ${EMAIL_CONTATO}
 
@@ -180,6 +221,7 @@ export function textoParaIAs({ manifesto }) {
 - [Início](${enderecoDe('/')}): o que o programa faz, para quem é e as perguntas frequentes
 - [Baixar](${enderecoDe('/baixar')}): o instalador para Windows, com a conta grátis, e como instalar
 - [Versões](${enderecoDe('/versoes')}): o que mudou em cada versão
+- [Arquionie™ para Revit](${enderecoDe('/para-revit')}): o plugin para o Revit 2025 a 2028, antigo Palheta Flow
 
 ## Como funciona
 
@@ -194,8 +236,16 @@ ${lista(RECURSOS)}
 
 ${lista(PUBLICO)}
 
+## Arquionie™ para Revit (o antigo Palheta Flow)
+
+O plugin para o Autodesk Revit que automatiza o trabalho repetido, nas mesmas etapas do painel. Grátis, com versão PRO.
+
+${REQUISITOS.map(([titulo, texto]) => `- ${titulo}: ${texto}`).join('\n')}
+
+${ETAPAS.map(([etapa, grupos]) => `- **${etapa}**: ${grupos.map(([grupo, ferramentas]) => `${grupo} (${ferramentas.map(([f, pro]) => (pro ? `${f}, PRO` : f)).join('; ')})`).join('; ')}`).join('\n')}
+
 ## Perguntas frequentes
 
-${PERGUNTAS.map(([pergunta, resposta]) => `### ${pergunta}\n\n${resposta}`).join('\n\n')}
+${[...PERGUNTAS, ...PERGUNTAS_REVIT].map(([pergunta, resposta]) => `### ${pergunta}\n\n${resposta}`).join('\n\n')}
 `;
 }

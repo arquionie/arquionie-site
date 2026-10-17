@@ -39,7 +39,7 @@ cartões. O /gestao também (mockup `docs/mockups/gestao-amigavel`, aprovado no 
 O `npm run build` faz três passos: o site (`vite build`), o código que desenha as páginas (`vite build --ssr src/prerender.jsx`) e
 `ferramentas/gerar-paginas.mjs`, que escreve no `dist`:
 
-- **As páginas públicas prontas** — `/`, `/baixar` e `/versoes`, com o texto já desenhado pelos mesmos componentes e o `<head>` de
+- **As páginas públicas prontas** — `/`, `/baixar`, `/para-revit` (o Arquionie™ para Revit, antigo Palheta Flow) e `/versoes`, com o texto já desenhado pelos mesmos componentes e o `<head>` de
   cada uma (título, descrição, canônico, Open Graph e os dados estruturados do schema.org: o programa, a Palheta Arquitetura e as
   perguntas frequentes). Os robôs das IAs (GPTBot, ClaudeBot, PerplexityBot) não rodam JavaScript: sem isso, viam a página vazia.
   No navegador, o `main.jsx` só liga os botões no que já veio.

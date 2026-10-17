@@ -30,6 +30,9 @@ function Topo() {
           <NavLink to="/" end className={aba}>
             O que é
           </NavLink>
+          <NavLink to="/para-revit" className={aba}>
+            Para Revit
+          </NavLink>
           <NavLink to="/versoes" className={aba}>
             Versões
           </NavLink>

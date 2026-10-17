@@ -23,4 +23,13 @@
   /* as faixas de cápsulas que rolam de lado no celular, sem a barra de rolagem por baixo */
   .sem-barra { scrollbar-width: none; }
   .sem-barra::-webkit-scrollbar { display: none; }
+
+  /* a foto que muda com o tema (a do painel do plugin na /para-revit) */
+  .so-escuro { display: none; }
+  [data-tema="escuro"] .so-claro { display: none; }
+  [data-tema="escuro"] .so-escuro { display: block; }
+  @media (prefers-color-scheme: dark) {
+    [data-tema="auto"] .so-claro { display: none; }
+    [data-tema="auto"] .so-escuro { display: block; }
+  }
 }

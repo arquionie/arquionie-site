@@ -27,6 +27,12 @@ export const PAGINAS = {
       'Baixe o Arquionie™, programa BIM para Windows 10 e 11 de 64 bits. Grátis, com versão PRO: crie a conta, instale e as versões novas chegam sozinhas.',
     publica: true,
   },
+  '/para-revit': {
+    titulo: 'Arquionie™ para Revit · O plugin, antigo Palheta Flow',
+    descricao:
+      'Plugin para Revit 2025 a 2028 que automatiza pisos, portas, cotas, imagens e pranchas. O antigo Palheta Flow. Grátis, com versão PRO.',
+    publica: true,
+  },
   '/versoes': {
     titulo: 'Versões do Arquionie™ · O que mudou em cada uma',
     descricao: 'As notas de cada versão do Arquionie™, o programa BIM da Palheta Arquitetura: o que entrou, o que mudou e quando.',
