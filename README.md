@@ -34,10 +34,33 @@ cartões. O /gestao também (mockup `docs/mockups/gestao-amigavel`, aprovado no 
 - As peças: `components/Formulario.jsx` (botões nos três níveis, campos, etiquetas), `components/Listas.jsx` (listas agrupadas) e
   `components/Cartao.jsx` (as telas de conta); as do /gestao, em `components/GestaoPecas.jsx`.
 
+## SEO e GEO (Google, Bing e as IAs que buscam na web)
+
+O `npm run build` faz três passos: o site (`vite build`), o código que desenha as páginas (`vite build --ssr src/prerender.jsx`) e
+`ferramentas/gerar-paginas.mjs`, que escreve no `dist`:
+
+- **As páginas públicas prontas** — `/`, `/baixar` e `/versoes`, com o texto já desenhado pelos mesmos componentes e o `<head>` de
+  cada uma (título, descrição, canônico, Open Graph e os dados estruturados do schema.org: o programa, a Palheta Arquitetura e as
+  perguntas frequentes). Os robôs das IAs (GPTBot, ClaudeBot, PerplexityBot) não rodam JavaScript: sem isso, viam a página vazia.
+  No navegador, o `main.jsx` só liga os botões no que já veio.
+- **`app.html`** — a casca vazia, com `noindex`, que atende a conta, o Comercial, a gestão e as páginas do cliente.
+- **`sitemap.xml`** e **`llms.txt`** (o resumo em Markdown para as IAs, com os textos de `src/conteudo/inicio.js`).
+
+O `public/robots.txt` deixa as páginas públicas abertas a todos os robôs, inclusive os das IAs, e fecha a conta e as páginas do
+cliente. Os títulos e as descrições ficam em `src/lib/seo.js`.
+
+- **Página pública nova:** `publica: true` em `PAGINAS` (`src/lib/seo.js`) e o rewrite dela no `vercel.json`, antes do `/(.*)`. O build
+  para com um aviso se faltar o rewrite.
+- **Os textos do início** estão em `src/conteudo/inicio.js`: a tela, o `llms.txt` e as perguntas dos dados estruturados leem dali.
+- **Versão nova no R2:** a página de versões pronta e a versão nos dados estruturados são as do último build. O navegador confere de
+  novo ao abrir; para os robôs verem a nova, basta publicar o site de novo (Vercel › Deployments › Redeploy).
+- **Conferir antes de publicar:** `npm run build` e `npm run preview` (`ferramentas/servir-pronto.mjs`, que segue o `vercel.json`
+  como a Vercel; o `vite preview` entrega a página inicial em toda rota).
+
 ## Regras para não ficar preso a nenhum fornecedor
 
 - O site é **só arquivos prontos** (o `dist` do Vite). Nada de Next.js, funções, banco, armazenamento ou imagens da
-  Vercel; o `vercel.json` só redireciona as páginas para o `index.html`. Trocar de hospedagem é publicar a mesma pasta
+  Vercel; o `vercel.json` só aponta cada rota para o seu arquivo (as páginas prontas e a `app.html`). Trocar de hospedagem é publicar a mesma pasta
   noutro lugar e mudar um registro de DNS.
 - A lógica fica no **Supabase** (contas, banco, funções), os arquivos para baixar no **Cloudflare R2**, o DNS na
   **Cloudflare**.

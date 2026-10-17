@@ -1,0 +1,20 @@
+# Arquionie™ — www.arquionie.com.br
+# As páginas públicas ficam abertas para todos os buscadores e para as IAs (ChatGPT, Claude, Perplexity, Gemini, Copilot).
+# Ficam de fora a conta, o Comercial, a gestão e as páginas que cada escritório manda para o cliente dele.
+
+User-agent: *
+Allow: /
+Disallow: /conta
+Disallow: /painel
+Disallow: /gestao
+Disallow: /conectar
+Disallow: /programa/
+Disallow: /completar
+Disallow: /confirmar
+Disallow: /t/
+Disallow: /f/
+Disallow: /p/
+Disallow: /apresentacao/
+Disallow: /tour/
+
+Sitemap: https://www.arquionie.com.br/sitemap.xml

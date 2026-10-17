@@ -34,17 +34,17 @@ export function Termos() {
       <p>
         O uso do Arquionie™ segue a licença de uso aceita na instalação: você pode usá-lo em projetos pessoais e
         profissionais, inclusive comerciais, e não pode modificá-lo, descompilá-lo, remover a marca nem redistribuí-lo
-        alterado. Durante o lançamento, a conta usa o programa por completo, sem custo.
+        alterado. O programa tem a versão grátis e a versão PRO, paga.
       </p>
       <h2>Os seus projetos</h2>
       <p>
         Os projetos que você cria são seus e ficam no seu computador. Abrir e ver um arquivo do Arquionie™ não depende de
         conta; criar e salvar pedem a conta.
       </p>
-      <h2>Assinatura no futuro</h2>
+      <h2>A versão PRO</h2>
       <p>
-        Quando houver cobrança, avisamos antes, por e-mail, com os preços e as condições. Nenhum arquivo fica preso: sem
-        assinatura, o programa continua abrindo, mostrando, imprimindo e exportando os seus projetos.
+        A versão PRO é paga, com os preços e as condições mostrados na compra. Nenhum arquivo fica preso: sem o PRO, o
+        programa continua abrindo, mostrando, imprimindo e exportando os seus projetos.
       </p>
       <h2>Sem garantia</h2>
       <p>

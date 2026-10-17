@@ -65,7 +65,7 @@ export default function CriarConta() {
     <Miolo>
       <Cartao
         titulo="Criar conta"
-        nota="Grátis no lançamento. Mandamos um código para confirmar o e-mail."
+        nota="Grátis, com versão PRO. Mandamos um código para confirmar o e-mail."
         aoEnviar={criar}
         rodape={
           <span>

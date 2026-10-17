@@ -44,7 +44,7 @@ export default function Baixar() {
         <Navigate to="/completar?volta=%2Fbaixar" replace />
       ) : !usuario ? (
         <div className={`${CARTAO} flex flex-col gap-3.5`}>
-          <p>Para baixar, entre na sua conta ou crie uma. É grátis no lançamento e leva um minuto.</p>
+          <p>Para baixar, entre na sua conta ou crie uma. É grátis e leva um minuto.</p>
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Botao para="/entrar?volta=%2Fbaixar">Entrar</Botao>
             <Botao principal para="/criar-conta?volta=%2Fbaixar">Criar conta</Botao>

@@ -637,7 +637,6 @@ export default function Conta() {
               </LinhaDeValor>
             </Grupo>
           </div>
-          <p className="text-amg-legenda text-texto-apagado">Durante o lançamento, a conta usa o Arquionie™ por completo, sem custo.</p>
         </Bloco>
         <Bloco id="senha" titulo="Senha">
           <TrocarSenha temSenha={d.pelaSenha} />

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { dataLegivel, lerManifesto } from '@/lib/manifesto';
+import { dataLegivel, lerManifesto, manifestoDaPagina } from '@/lib/manifesto';
 
 // As mesmas notas do aviso de atualização no programa: a fonte é o manifesto de versões. Um cartão por versão (modo AMIGÁVEL).
 export default function Versoes() {
-  const [manifesto, setManifesto] = useState(undefined);
+  const [manifesto, setManifesto] = useState(manifestoDaPagina);
   useEffect(() => {
-    lerManifesto().then(setManifesto);
+    // Sem resposta agora, fica o manifesto que veio na página pronta, se veio.
+    lerManifesto().then((novo) => setManifesto((antes) => novo ?? antes ?? null));
   }, []);
 
   const historico = manifesto ? [manifesto, ...(manifesto.anteriores ?? [])] : [];

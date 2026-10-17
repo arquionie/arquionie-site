@@ -5,8 +5,16 @@
       "destination": "/apresentacao/index.html"
     },
     {
+      "source": "/baixar",
+      "destination": "/baixar/index.html"
+    },
+    {
+      "source": "/versoes",
+      "destination": "/versoes/index.html"
+    },
+    {
       "source": "/(.*)",
-      "destination": "/"
+      "destination": "/app.html"
     }
   ]
 }

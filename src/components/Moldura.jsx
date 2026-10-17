@@ -4,6 +4,7 @@ import { useSessao } from '@/lib/Sessao';
 import { iniciais, primeiroNome } from '@/lib/conta';
 import { useEhAdministrador } from '@/lib/gestao';
 import { aplicarAparencia, guardarTema, temaGuardado } from '@/lib/aparencia';
+import { MetaDaPagina } from '@/lib/seo';
 import { Botao } from '@/components/Formulario';
 import { EMAIL_CONTATO } from '@/config';
 
@@ -98,6 +99,7 @@ export default function Moldura() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <MetaDaPagina />
       <Topo />
       <main className="flex-1">
         <Outlet />

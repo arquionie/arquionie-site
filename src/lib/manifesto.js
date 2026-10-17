@@ -17,6 +17,12 @@ export async function lerManifesto() {
   }
 }
 
+// O manifesto que veio dentro da página pronta de /versoes (ferramentas/gerar-paginas.mjs), para a primeira tela já mostrar as notas.
+// Sem ele, undefined: a página procura o manifesto como sempre.
+export function manifestoDaPagina() {
+  return globalThis.__ARQUIONIE_MANIFESTO__ ?? undefined;
+}
+
 export function tamanhoLegivel(bytes) {
   if (!bytes) return '';
   const mb = bytes / (1024 * 1024);
@@ -25,6 +31,9 @@ export function tamanhoLegivel(bytes) {
 
 export function dataLegivel(iso) {
   if (!iso) return '';
+  // Só a data (2026-10-16), como no manifesto: sem passar pelo fuso, que no Brasil a mostraria um dia antes.
+  const dia = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (dia) return `${dia[3]}/${dia[2]}/${dia[1]}`;
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString('pt-BR');
 }
