@@ -5,11 +5,13 @@ import { dadosDaConta, iniciais, primeiroNome } from '@/lib/conta';
 import { AMOSTRA, useEhAdministrador } from '@/lib/gestao';
 import { supabase } from '@/lib/supabase';
 import { MetaDaPagina } from '@/lib/seo';
+import { TEMAS, escolherTema, useTema } from '@/lib/aparencia';
 import { useAparenciaDaConta } from '@/components/Moldura';
+import { Icone } from '@/components/Formulario';
 
 // As telas de quem entrou no jeito de sistema (ÊDI, 19/10/2026, pela referência do menu lateral do Sistema Palheta): o menu solto
 // da borda em três blocos do tamanho do que guardam — o leão num círculo no alto, a navegação numa pílula no meio do espaço que
-// sobra e, embaixo, a Gestão (só de quem administra) e a conta —, os ícones em círculos de 46 px e o ativo no coral suave. No
+// sobra e, embaixo, a Gestão (só de quem administra), a aparência e a conta —, os ícones em círculos de 46 px e o ativo no coral suave. No
 // celular os mesmos ícones descem para uma pílula embaixo. Sem a barra do alto e sem o rodapé do site.
 
 // os ícones, com os traços do Lucide (licença ISC), no tamanho do Sistema Palheta
@@ -76,7 +78,7 @@ const TRACOS = {
       <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662" />
     </>
   ),
-  aparencia: (
+  claro: (
     <>
       <circle cx="12" cy="12" r="4" />
       <path d="M12 2v2" />
@@ -87,6 +89,20 @@ const TRACOS = {
       <path d="M20 12h2" />
       <path d="m6.34 17.66-1.41 1.41" />
       <path d="m19.07 4.93-1.41 1.41" />
+    </>
+  ),
+  escuro: <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />,
+  auto: (
+    <>
+      <path d="M12 8a2.83 2.83 0 0 0 4 4 4 4 0 1 1-4-4" />
+      <path d="M12 2v2" />
+      <path d="M12 20v2" />
+      <path d="m4.9 4.9 1.4 1.4" />
+      <path d="m17.7 17.7 1.4 1.4" />
+      <path d="M2 12h2" />
+      <path d="M20 12h2" />
+      <path d="m6.3 17.7-1.4 1.4" />
+      <path d="m19.1 4.9-1.4 1.4" />
     </>
   ),
   sair: (
@@ -117,10 +133,23 @@ export const ITENS = [
 ];
 const GESTAO = { id: 'gestao', nome: 'Gestão', para: '/gestao', ativo: (c) => c.startsWith('/gestao') };
 
-// no celular, 42 px: os sete cabem na largura de um telefone de 375 px
+// Os botões do menu. No celular, só o círculo de 40 px: os oito de quem administra cabem na largura de um telefone de 375 px. No menu
+// lateral, o círculo de 46 px com o nome ao lado, que fica escondido enquanto o menu está fechado e aparece quando ele se abre.
+const cor = (ativo) => (ativo ? 'bg-amg-destaque-suave text-destaque-texto' : 'text-texto-apagado hover:bg-superficie-2 hover:text-texto');
 const circulo = (ativo, pequeno) =>
-  `grid ${pequeno ? 'h-[42px] w-[42px]' : 'h-[46px] w-[46px]'} shrink-0 place-items-center rounded-full transition-colors ${
-    ativo ? 'bg-amg-destaque-suave text-destaque-texto' : 'text-texto-apagado hover:bg-superficie-2 hover:text-texto'}`;
+  pequeno
+    ? `grid h-10 w-10 shrink-0 place-items-center rounded-full transition-colors ${cor(ativo)}`
+    : `flex h-[46px] w-full shrink-0 items-center overflow-hidden rounded-full no-underline transition-colors ${cor(ativo)}`;
+
+function ComNome({ nome, pequeno, children }) {
+  if (pequeno) return children;
+  return (
+    <>
+      <span className="grid h-[46px] w-[46px] shrink-0 place-items-center">{children}</span>
+      <span className="whitespace-nowrap pl-1 pr-4 font-medium">{nome}</span>
+    </>
+  );
+}
 
 // na área de um escritório, Apresentações e Equipe ficam nele (/conta/escritorio/<nome>/equipe); a Minha área volta pelas cápsulas do alto
 function Item({ item, pequeno }) {
@@ -129,42 +158,44 @@ function Item({ item, pequeno }) {
   const area = pathname.match(/^\/conta\/escritorio\/[^/]+\//)?.[0];
   const para = area && item.para.startsWith('/conta/') ? area + item.para.slice('/conta/'.length) : item.para;
   return (
-    <Link to={para} title={item.nome} aria-label={item.nome} aria-current={ativo ? 'page' : undefined} className={circulo(ativo, pequeno)}>
-      <IconeDoMenu nome={item.id} />
+    <Link to={para} aria-label={item.nome} aria-current={ativo ? 'page' : undefined} className={circulo(ativo, pequeno)}>
+      <ComNome nome={item.nome} pequeno={pequeno}>
+        <IconeDoMenu nome={item.id} />
+      </ComNome>
     </Link>
   );
 }
 
 // a foto da conta (a do Google, quando entrou por ele) ou as iniciais
-function Foto({ usuario }) {
+function Foto({ usuario, pequeno }) {
   const foto = usuario?.user_metadata?.avatar_url || usuario?.user_metadata?.picture;
-  if (foto) return <img src={foto} alt="" referrerPolicy="no-referrer" className="h-[38px] w-[38px] rounded-full object-cover" />;
+  const tamanho = pequeno ? 'h-[34px] w-[34px]' : 'h-[38px] w-[38px]';
+  if (foto) return <img src={foto} alt="" referrerPolicy="no-referrer" className={`${tamanho} rounded-full object-cover`} />;
   return (
-    <span className="grid h-[38px] w-[38px] place-items-center rounded-full bg-amg-destaque-suave text-amg-rotulo text-destaque-texto">
+    <span className={`grid ${tamanho} place-items-center rounded-full bg-amg-destaque-suave text-amg-rotulo text-destaque-texto`}>
       {usuario ? iniciais(usuario) : <IconeDoMenu nome="dados" />}
     </span>
   );
 }
 
-// a conta: a foto abre Meus dados, Aparência e Sair; à direita da foto no computador, acima dela no celular
-function MenuDaConta({ pequeno }) {
-  const { usuario } = useSessao();
-  const navegar = useNavigate();
+// o que abre ao lado do botão (a aparência, a conta): à direita dele no computador, acima dele no celular. Fecha ao clicar fora, no
+// Esc (o foco volta ao botão) e ao trocar de página.
+function Flutuante({ rotulo, nome, pequeno, botao, children }) {
   const { pathname } = useLocation();
   const [aberto, setAberto] = useState(false);
   const caixa = useRef(null);
-  const botao = useRef(null);
+  const ref = useRef(null);
+  const fechar = () => {
+    setAberto(false);
+    ref.current?.focus();
+  };
 
   useEffect(() => setAberto(false), [pathname]);
   useEffect(() => {
     if (!aberto) return undefined;
-    caixa.current?.querySelector('a, button')?.focus();
+    (caixa.current?.querySelector('[aria-checked="true"]') ?? caixa.current?.querySelector('a, button'))?.focus();
     const fora = (e) => !caixa.current?.parentElement.contains(e.target) && setAberto(false);
-    const tecla = (e) => {
-      if (e.key !== 'Escape') return;
-      setAberto(false);
-      botao.current?.focus();
-    };
+    const tecla = (e) => e.key === 'Escape' && fechar();
     document.addEventListener('mousedown', fora);
     document.addEventListener('keydown', tecla);
     return () => {
@@ -173,38 +204,81 @@ function MenuDaConta({ pequeno }) {
     };
   }, [aberto]);
 
+  return (
+    <div className={`relative ${pequeno ? '' : 'w-full'}`}>
+      <button ref={ref} type="button" onClick={() => setAberto((a) => !a)} aria-expanded={aberto} aria-label={rotulo}
+        className={circulo(false, pequeno)}>
+        <ComNome nome={nome} pequeno={pequeno}>{botao}</ComNome>
+      </button>
+      {aberto && (
+        <div ref={caixa} className="absolute bottom-[calc(100%+12px)] right-0 z-50 w-60 rounded-cartao bg-superficie p-1.5 shadow-amg-janela md:bottom-0 md:left-[calc(100%+27px)] md:right-auto">
+          {children(fechar)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const linha = 'flex min-h-amg-toque-minimo w-full items-center gap-2.5 rounded-dentro px-3 text-left font-medium text-texto no-underline hover:bg-superficie-2 sm:min-h-[38px]';
+
+// a aparência num botão próprio, fora da conta (ÊDI, 19/10/2026): o ícone é o do tema que está valendo e abre Claro, Escuro e
+// Automático. Vale já neste navegador e fica guardada na conta.
+function MenuDaAparencia({ pequeno }) {
+  const tema = useTema();
+  const nomeDoTema = TEMAS.find(([id]) => id === tema)?.[1];
+  return (
+    <Flutuante pequeno={pequeno} rotulo={`Aparência: ${nomeDoTema}`} nome="Aparência" botao={<IconeDoMenu nome={tema} />}>
+      {(fechar) => (
+        <>
+          <p id={`aparencia${pequeno ? '-celular' : ''}`} className="px-3 pb-1.5 pt-2 font-semibold">Aparência</p>
+          <div role="radiogroup" aria-labelledby={`aparencia${pequeno ? '-celular' : ''}`}>
+            {TEMAS.map(([id, nome]) => (
+              <button key={id} type="button" role="radio" aria-checked={tema === id} className={linha}
+                aria-label={id === 'auto' ? `${nome}, segue o aparelho` : nome}
+                onClick={() => {
+                  escolherTema(id, { naConta: !AMOSTRA });
+                  fechar();
+                }}>
+                <span className="text-texto-apagado"><IconeDoMenu nome={id} tamanho={16} /></span>
+                <span className="mr-auto">{nome}</span>
+                {tema === id && <Icone nome="ok" tamanho={16} className="text-destaque" />}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </Flutuante>
+  );
+}
+
+// a conta: a foto abre Meus dados e Sair
+function MenuDaConta({ pequeno }) {
+  const { usuario } = useSessao();
+  const navegar = useNavigate();
+
   async function sair() {
     await supabase.auth.signOut();
     navegar('/', { replace: true });
   }
 
-  const linha = 'flex min-h-amg-toque-minimo w-full items-center gap-2.5 rounded-dentro px-3 text-left font-medium text-texto no-underline hover:bg-superficie-2 sm:min-h-[38px]';
   const nome = usuario ? primeiroNome(usuario) : 'Minha conta';
   return (
-    <div className="relative">
-      <button ref={botao} type="button" onClick={() => setAberto((a) => !a)} aria-expanded={aberto} aria-label={`Conta de ${nome}`} title={nome}
-        className={`${circulo(false, pequeno)} hover:bg-transparent`}>
-        <Foto usuario={usuario} />
-      </button>
-      {aberto && (
-        <div ref={caixa} className="absolute bottom-[calc(100%+12px)] right-0 z-50 w-60 rounded-cartao bg-superficie p-1.5 shadow-amg-janela md:bottom-0 md:left-[calc(100%+27px)] md:right-auto">
+    <Flutuante pequeno={pequeno} rotulo={`Conta de ${nome}`} nome={nome} botao={<Foto usuario={usuario} pequeno={pequeno} />}>
+      {() => (
+        <>
           <p className="truncate px-3 pb-1.5 pt-2 font-semibold">{usuario ? dadosDaConta(usuario).nome || dadosDaConta(usuario).email : 'Minha conta'}</p>
           <Link to="/conta/dados" className={linha}>
             <span className="text-texto-apagado"><IconeDoMenu nome="dados" tamanho={16} /></span>
             Meus dados
-          </Link>
-          <Link to="/conta/aparencia" className={linha}>
-            <span className="text-texto-apagado"><IconeDoMenu nome="aparencia" tamanho={16} /></span>
-            Aparência
           </Link>
           <div className="my-1 h-px bg-linha" />
           <button type="button" onClick={sair} className={linha}>
             <span className="text-texto-apagado"><IconeDoMenu nome="sair" tamanho={16} /></span>
             Sair
           </button>
-        </div>
+        </>
       )}
-    </div>
+    </Flutuante>
   );
 }
 
@@ -213,22 +287,30 @@ export default function MolduraDoSistema() {
   // a Gestão só para quem administra; no servidor de desenvolvimento com ?amostra, aparece para conferir a tela
   const admin = useEhAdministrador() || AMOSTRA;
 
-  const pilula = 'flex items-center gap-1.5 rounded-full bg-superficie shadow-cartao';
+  // Fechado, cada bloco tem 76 px e os ícones ficam no meio; ao passar o mouse (ou chegar pelo teclado), o menu se abre por cima da
+  // página e mostra os nomes (ÊDI, 19/10/2026: "quando a gente aproximar, o painel se expandir mostrando os títulos"). Abre com um
+  // instante de espera, para não piscar quando o mouse só passa, e fica aberto enquanto a aparência ou a conta estão abertas.
+  const bloco = 'w-full rounded-[38px] bg-superficie shadow-cartao transition-shadow group-hover/menu:shadow-amg-janela group-hover/menu:ring-1 group-hover/menu:ring-linha';
   return (
     <div className="flex min-h-screen">
       <MetaDaPagina />
-      <aside className="sticky top-0 hidden h-screen shrink-0 py-3 pl-3 md:block">
-        <div className="flex h-full w-[76px] flex-col gap-3">
-          <Link to="/" title="Arquionie™" aria-label="Arquionie™, o site" className="grid h-[76px] w-[76px] shrink-0 place-items-center rounded-full bg-superficie shadow-cartao">
-            <img src="/leao.png" alt="" className="h-9 w-9" />
+      <aside className="sticky top-0 hidden h-screen w-[88px] shrink-0 md:block">
+        <div className="group/menu absolute inset-y-3 left-3 z-30 flex w-[76px] flex-col gap-3 transition-[width] duration-200 ease-out hover:w-[236px] hover:delay-150 has-[:focus-visible]:w-[236px] has-[[aria-expanded=true]]:w-[236px]">
+          <Link to="/" aria-label="Arquionie™, o site" className={`${bloco} flex h-[76px] shrink-0 items-center overflow-hidden text-texto no-underline`}>
+            <span className="grid h-[76px] w-[76px] shrink-0 place-items-center">
+              <img src="/leao.png" alt="" className="h-9 w-9" />
+            </span>
+            <span className="whitespace-nowrap text-amg-secao">Arquionie™</span>
           </Link>
           <div className="flex min-h-0 flex-1 flex-col justify-center">
-            <nav aria-label="Menu" className={`${pilula} min-h-0 flex-col overflow-y-auto py-4`}>
+            <nav aria-label="Menu" className={`${bloco} flex min-h-0 flex-col gap-1.5 overflow-y-auto overflow-x-hidden px-[15px] py-4`}>
               {ITENS.map((item) => <Item key={item.id} item={item} />)}
             </nav>
           </div>
-          <div className={`${pilula} shrink-0 flex-col py-3`}>
+          {/* a Gestão (só de quem administra), a aparência e a conta */}
+          <div className={`${bloco} flex shrink-0 flex-col gap-1.5 px-[15px] py-3`}>
             {admin && <Item item={GESTAO} />}
+            <MenuDaAparencia />
             <MenuDaConta />
           </div>
         </div>
@@ -242,9 +324,10 @@ export default function MolduraDoSistema() {
           separa deles (ÊDI, 19/10/2026: "sem contraste em relação aos cartões do fundo"): os cartões somem no fundo antes de chegar
           nela, e ela fica um tom acima deles, com contorno e sombra de janela */}
       <nav aria-label="Menu" className="fixed inset-x-0 bottom-0 z-40 flex justify-center bg-gradient-to-t from-fundo from-40% to-transparent px-3 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-8 md:hidden">
-        <div className="flex items-center gap-1 rounded-full bg-superficie-2 p-1.5 shadow-amg-janela ring-1 ring-linha">
+        <div className="flex items-center gap-0.5 rounded-full bg-superficie-2 p-1 shadow-amg-janela ring-1 ring-linha">
           {ITENS.map((item) => <Item key={item.id} item={item} pequeno />)}
           {admin && <Item item={GESTAO} pequeno />}
+          <MenuDaAparencia pequeno />
           <MenuDaConta pequeno />
         </div>
       </nav>

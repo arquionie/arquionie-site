@@ -7,7 +7,7 @@ import { mensagemDeErro } from '@/lib/erros';
 import { useSessao } from '@/lib/Sessao';
 import { dadosDaConta } from '@/lib/conta';
 import { dataLegivel } from '@/lib/manifesto';
-import { TEMAS, guardarTema, useTema } from '@/lib/aparencia';
+import { TEMAS, escolherTema, useTema } from '@/lib/aparencia';
 import { ATUACOES, EMAIL_CONTATO } from '@/config';
 import MeusTours from '@/components/MeusTours';
 import Apresentacoes from '@/components/Apresentacoes';
@@ -332,10 +332,7 @@ function Aparencia() {
   const [erro, setErro] = useState('');
   async function escolher(novo) {
     setErro('');
-    guardarTema(novo);
-    if (AMOSTRA) return;
-    const { error } = await supabase.auth.updateUser({ data: { aparencia: novo } });
-    if (error) setErro('A aparência ficou neste navegador, mas não deu para guardar na conta agora. Tente de novo daqui a pouco.');
+    if (await escolherTema(novo, { naConta: !AMOSTRA })) setErro('A aparência ficou neste navegador, mas não deu para guardar na conta agora. Tente de novo daqui a pouco.');
   }
   const previa = (id) =>
     id === 'auto' ? (

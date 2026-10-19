@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
 
 // Conta › Aparência (mockup site-amigavel, aprovado por ÊDI em 16/10/2026): o site abre no claro de fábrica; a pessoa escolhe Escuro ou
 // Automático (segue o aparelho). A escolha fica neste navegador e, com a conta aberta, na conta (user_metadata.aparencia), para abrir
@@ -59,6 +60,15 @@ export function guardarTema(tema) {
   document.documentElement.dataset.tema = tema;
   atualizarCorDoNavegador();
   window.dispatchEvent(new Event(EVENTO));
+}
+
+// Escolher o tema: vale já neste navegador e, com a conta aberta, fica guardado nela (o mesmo tema no computador e no celular).
+// Devolve o erro quando a conta não guardou.
+export async function escolherTema(tema, { naConta = true } = {}) {
+  guardarTema(tema);
+  if (!naConta) return null;
+  const { error } = await supabase.auth.updateUser({ data: { aparencia: tema } });
+  return error ?? null;
 }
 
 // O tema escolhido, que muda junto quando outra parte da página (ou a conta) troca.
