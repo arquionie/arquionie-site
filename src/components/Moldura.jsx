@@ -30,6 +30,10 @@ function Topo() {
           <NavLink to="/" end className={aba}>
             O que é
           </NavLink>
+          {/* o Comercial para todos: quem não entrou conhece na /comercial; quem entrou vai direto ao painel */}
+          <NavLink to={usuario ? '/painel/comercial' : '/comercial'} className={aba}>
+            Comercial
+          </NavLink>
           <NavLink to="/para-revit" className={aba}>
             Para Revit
           </NavLink>
@@ -39,11 +43,6 @@ function Topo() {
           <NavLink to="/baixar" className={aba}>
             Baixar
           </NavLink>
-          {usuario && (
-            <NavLink to="/painel/comercial" className={aba}>
-              Comercial
-            </NavLink>
-          )}
           {admin && (
             <NavLink to="/gestao" className={aba}>
               Gestão

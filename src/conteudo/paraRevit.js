@@ -19,8 +19,8 @@ export const CANAL_DAS_AULAS = 'https://www.youtube.com/@palhetaflowoficial/vide
 export const PRECOS_PADRAO = { mensal: 69, anual: 39, desconto: 43 };
 
 export const NUMEROS = [
-  ['220+', 'projetos entregues'],
-  ['8', 'países atendidos'],
+  ['230+', 'projetos entregues'],
+  ['9', 'países atendidos'],
   ['30 dias', 'da concepção à documentação'],
 ];
 

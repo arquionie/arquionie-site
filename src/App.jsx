@@ -7,6 +7,7 @@ import Inicio from '@/pages/Inicio';
 import Baixar from '@/pages/Baixar';
 import Versoes from '@/pages/Versoes';
 import ParaRevit from '@/pages/ParaRevit';
+import PaginaDoComercial from '@/pages/PaginaDoComercial';
 import Entrar from '@/pages/Entrar';
 import CriarConta from '@/pages/CriarConta';
 import Confirmar from '@/pages/Confirmar';
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="/" element={<Inicio />} />
         <Route path="/baixar" element={<Baixar />} />
         <Route path="/versoes" element={<Versoes />} />
+        <Route path="/comercial" element={<PaginaDoComercial />} />
         <Route path="/para-revit" element={<ParaRevit />} />
         <Route path="/comprar" element={<Comprar />} />
         <Route path="/entrar" element={<Entrar />} />

@@ -9,6 +9,10 @@
       "destination": "/baixar/index.html"
     },
     {
+      "source": "/comercial",
+      "destination": "/comercial/index.html"
+    },
+    {
       "source": "/para-revit",
       "destination": "/para-revit/index.html"
     },
