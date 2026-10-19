@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { Botao, Campo, Etiqueta, Icone, Mensagem } from '@/components/Formulario';
 import { Escolha, Grupo, Vazio } from '@/components/Listas';
 import { Numero } from '@/components/GestaoPecas';
@@ -111,25 +111,18 @@ export default function Comercial() {
   const areas = [{ responsavel: null, escritorio: 'Minha área' }, ...equipes];
   return (
     <section className="mx-auto max-w-[1180px] px-4 py-6 sm:px-6 sm:py-8">
-      <nav aria-label="Produtos" className="sem-barra -mx-4 mb-5 flex gap-1 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        {[['Comercial', null], ['Apresentações', '/conta/apresentacoes'], ['Programa', '/baixar'], ['Equipe', '/conta/equipe']].map(([nome, para]) =>
-          para ? (
-            <Link key={nome} to={para} className="inline-flex min-h-amg-toque-minimo shrink-0 items-center rounded-toque px-[15px] font-medium text-texto-apagado no-underline hover:text-texto sm:min-h-0 sm:py-[7px]">{nome}</Link>
-          ) : (
-            <span key={nome} aria-current="page" className="inline-flex min-h-amg-toque-minimo shrink-0 items-center rounded-toque bg-superficie-2 px-[15px] font-semibold sm:min-h-0 sm:py-[7px]">{nome}</span>
+      {/* os produtos (Comercial, Apresentações, Equipe) ficam no menu lateral do sistema; aqui, só as áreas */}
+      {areas.length > 1 && (
+        <nav aria-label="Áreas" className="sem-barra -mx-4 mb-5 flex gap-1 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+          {areas.map((a) => (
+            <button key={a.responsavel ?? 'eu'} type="button" aria-pressed={area === a.responsavel}
+              onClick={() => setBusca(a.responsavel ? { area: a.responsavel } : {})}
+              className={`min-h-amg-toque-minimo shrink-0 rounded-toque px-3 sm:min-h-0 sm:py-[7px] ${area === a.responsavel ? 'bg-amg-destaque-suave font-semibold text-destaque-texto' : 'text-texto-apagado'}`}>
+              {a.escritorio}
+            </button>
           ))}
-        {areas.length > 1 && (
-          <span className="ml-auto flex shrink-0 items-center gap-1">
-            {areas.map((a) => (
-              <button key={a.responsavel ?? 'eu'} type="button" aria-pressed={area === a.responsavel}
-                onClick={() => setBusca(a.responsavel ? { area: a.responsavel } : {})}
-                className={`min-h-amg-toque-minimo rounded-toque px-3 sm:min-h-0 sm:py-[7px] ${area === a.responsavel ? 'bg-amg-destaque-suave font-semibold text-destaque-texto' : 'text-texto-apagado'}`}>
-                {a.escritorio}
-              </button>
-            ))}
-          </span>
-        )}
-      </nav>
+        </nav>
+      )}
 
       {!['formularios', 'ajustes'].includes(vista) && (
         <header className="mb-5 flex flex-wrap items-center gap-3">

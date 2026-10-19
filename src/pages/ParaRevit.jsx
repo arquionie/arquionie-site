@@ -50,7 +50,7 @@ function usePrecos() {
 }
 
 // O instalador da versão mais nova, lido do manifesto do plugin; sem ele, o botão leva aos requisitos.
-function useInstalador() {
+export function useInstalador() {
   const [instalador, setInstalador] = useState(null);
   useEffect(() => {
     fetch(MANIFESTO_PLUGIN_URL, { cache: 'no-cache' })

@@ -20,6 +20,25 @@ const PASSOS = [
   'Pronto: as versões novas chegam sozinhas, com o aviso na barra de estado do Arquionie™.',
 ];
 
+// os passos da instalação, aqui e no PROGRAMA do painel
+export function ComoInstalar() {
+  return (
+    <div className="mt-4">
+      <h2 className="rotulo mb-1.5 ml-3.5">Como instalar</h2>
+      <ol className="overflow-hidden rounded-cartao bg-superficie shadow-cartao">
+        {PASSOS.map((passo, i) => (
+          <li key={i} className="flex min-h-amg-toque-minimo items-start gap-3 border-t border-linha px-4 py-3 first:border-t-0">
+            <span aria-hidden="true" className="grid h-7 w-7 shrink-0 place-items-center rounded-toque bg-amg-destaque-suave text-amg-legenda font-bold text-destaque-texto">
+              {i + 1}
+            </span>
+            <span className="pt-0.5">{passo}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 export default function Baixar() {
   const { usuario, carregando } = useSessao();
   const [manifesto, setManifesto] = useState(undefined);
@@ -74,19 +93,7 @@ export default function Baixar() {
         </div>
       )}
 
-      <div className="mt-4">
-        <h2 className="rotulo mb-1.5 ml-3.5">Como instalar</h2>
-        <ol className="overflow-hidden rounded-cartao bg-superficie shadow-cartao">
-          {PASSOS.map((passo, i) => (
-            <li key={i} className="flex min-h-amg-toque-minimo items-start gap-3 border-t border-linha px-4 py-3 first:border-t-0">
-              <span aria-hidden="true" className="grid h-7 w-7 shrink-0 place-items-center rounded-toque bg-amg-destaque-suave text-amg-legenda font-bold text-destaque-texto">
-                {i + 1}
-              </span>
-              <span className="pt-0.5">{passo}</span>
-            </li>
-          ))}
-        </ol>
-      </div>
+      <ComoInstalar />
     </div>
   );
 }

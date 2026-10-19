@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import Moldura from '@/components/Moldura';
+import MolduraDoSistema from '@/components/MolduraDoSistema';
 import RotaDaConta from '@/components/RotaDaConta';
 import Inicio from '@/pages/Inicio';
 import Baixar from '@/pages/Baixar';
@@ -16,6 +17,7 @@ import Gestao from '@/pages/Gestao';
 import Programa from '@/pages/Programa';
 import Conectar from '@/pages/Conectar';
 import Comprar from '@/pages/Comprar';
+import { InicioDoPainel, ProgramaDoPainel } from '@/pages/Painel';
 import { NaoEncontrada, Privacidade, Termos } from '@/pages/Textos';
 
 // O COMERCIAL (o CRM grátis) e as páginas do cliente dele carregam só quando alguém abre: não pesam no resto do site.
@@ -42,6 +44,21 @@ export default function App() {
         <Route path="/recuperar" element={<Recuperar />} />
         <Route path="/completar" element={<Completar />} />
         <Route
+          path="/conectar"
+          element={
+            <RotaDaConta>
+              <Conectar />
+            </RotaDaConta>
+          }
+        />
+        <Route path="/programa/:porta" element={<Programa />} />
+        <Route path="/termos" element={<Termos />} />
+        <Route path="/privacidade" element={<Privacidade />} />
+        <Route path="*" element={<NaoEncontrada />} />
+      </Route>
+      {/* as telas de quem entrou: o jeito de sistema, com o menu lateral em pílulas */}
+      <Route element={<MolduraDoSistema />}>
+        <Route
           path="/conta/*"
           element={
             <RotaDaConta>
@@ -50,14 +67,21 @@ export default function App() {
           }
         />
         <Route
-          path="/conectar"
+          path="/painel"
           element={
             <RotaDaConta>
-              <Conectar />
+              <InicioDoPainel />
             </RotaDaConta>
           }
         />
-        <Route path="/painel" element={<Navigate to="/painel/comercial" replace />} />
+        <Route
+          path="/painel/programa"
+          element={
+            <RotaDaConta>
+              <ProgramaDoPainel />
+            </RotaDaConta>
+          }
+        />
         <Route
           path="/painel/comercial"
           element={
@@ -69,10 +93,6 @@ export default function App() {
           }
         />
         <Route path="/gestao" element={<Gestao />} />
-        <Route path="/programa/:porta" element={<Programa />} />
-        <Route path="/termos" element={<Termos />} />
-        <Route path="/privacidade" element={<Privacidade />} />
-        <Route path="*" element={<NaoEncontrada />} />
       </Route>
     </Routes>
   );
