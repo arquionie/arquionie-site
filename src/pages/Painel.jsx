@@ -9,6 +9,7 @@ import { dataLegivel, lerManifesto, tamanhoLegivel } from '@/lib/manifesto';
 import { registrarDownload } from '@/lib/downloads';
 import { Botao, Icone } from '@/components/Formulario';
 import { IconeDoMenu } from '@/components/MolduraDoSistema';
+import { AULA, estadoDaAula } from '@/lib/aula';
 import { ComoInstalar } from '@/pages/Baixar';
 import { useInstalador } from '@/pages/ParaRevit';
 import { REQUISITOS } from '@/conteudo/paraRevit';
@@ -51,6 +52,7 @@ const plural = (n, um, varios) => (n === 1 ? um : varios);
 function useComercial() {
   const [estado, setEstado] = useState(undefined);
   useEffect(() => {
+    if (AULA) return setEstado(estadoDaAula());
     if (AMOSTRA_DO_COMERCIAL) return setEstado(AMOSTRA_ESTADO);
     const ano = new Date().getFullYear();
     rpc('comercial_estado', { p_area: null, p_de: `${ano}-01-01`, p_ate: `${ano}-12-31` }).then(setEstado, () => setEstado(null));
@@ -61,6 +63,7 @@ function useComercial() {
 function useApresentacoes() {
   const [dados, setDados] = useState(undefined);
   useEffect(() => {
+    if (AULA) return setDados({ limite: 500, apresentacoes: [] });
     if (AMOSTRA) return setDados(AMOSTRA_APRESENTACOES);
     supabase.rpc('minhas_apresentacoes', {}).then(({ data, error }) => setDados(error ? null : data));
   }, []);
@@ -70,6 +73,7 @@ function useApresentacoes() {
 function useLicencas() {
   const [dados, setDados] = useState(undefined);
   useEffect(() => {
+    if (AULA) return setDados({ usa: [], comprou: [] });
     if (AMOSTRA) return setDados(AMOSTRA_MINHAS_LICENCAS);
     supabase.rpc('minhas_licencas').then(({ data, error }) => setDados(error ? null : data));
   }, []);

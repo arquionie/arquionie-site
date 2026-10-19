@@ -1,26 +1,31 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Botao, Campo, Icone, Lista, Marcar, Mensagem } from '@/components/Formulario';
-import { ARQUIVOS_URL, TURNSTILE_CHAVE } from '@/config';
+import { ARQUIVOS_URL, TURNSTILE_CHAVE as CHAVE_DO_TURNSTILE } from '@/config';
 import { mensagemDeErro } from '@/lib/erros';
 import {
-  AMOSTRA, AMOSTRA_FORMULARIO_PUBLICO, AMOSTRA_PROPOSTA_PUBLICA, coresDoEscritorio, dataCurta, funcao, linkWhatsApp, reais, rpc,
+  AMOSTRA, AMOSTRA_FORMULARIO_PUBLICO, AMOSTRA_PROPOSTA_PUBLICA, coresDoEscritorio, dataCurta, funcao, linkWhatsApp, pagamentoEmReais, reais, rpc,
+  urlDoLogo,
 } from '@/lib/comercial';
+import { AULA, aceiteNaAula, formularioDaAula, pedidoNovoNaAula, propostaPublicaDaAula } from '@/lib/aula';
+
+// na amostra nada vai ao servidor, então o formulário não pede a verificação de pessoa
+const TURNSTILE_CHAVE = AMOSTRA ? '' : CHAVE_DO_TURNSTILE;
 
 // As páginas do cliente do COMERCIAL (mockup docs/mockups/crm-gratis, seções 5 e 7, aprovado por ÊDI em 16/10/2026): o formulário
 // (/f/CODIGO) e a proposta (/p/CODIGO), sem conta, claras, com a logo e a cor do escritório no lugar da terracota, as cápsulas grandes para
 // o dedo e o selo "Feito com Arquionie" no rodapé do grátis. Ficam fora da moldura do site.
 
-function Pagina({ escritorio, passo, selo, children, rodape }) {
+export function Pagina({ escritorio, passo, selo, children, rodape, previa }) {
   const iniciais = (escritorio?.nome || '·').split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
   useEffect(() => {
-    if (escritorio?.nome) document.title = escritorio.nome;
-  }, [escritorio?.nome]);
+    if (escritorio?.nome && !previa) document.title = escritorio.nome;
+  }, [escritorio?.nome, previa]);
   return (
-    <div data-tema="claro" className="flex min-h-screen flex-col bg-fundo text-texto" style={coresDoEscritorio(escritorio?.cor)}>
+    <div data-tema="claro" className={`flex flex-col bg-fundo text-texto ${previa ? 'rounded-cartao' : 'min-h-screen'}`} style={coresDoEscritorio(escritorio?.cor)}>
       <header className="mx-auto flex w-full max-w-[560px] items-center gap-2.5 px-4 pb-3 pt-4">
         {escritorio?.logo ? (
-          <img src={`${ARQUIVOS_URL}/${escritorio.logo}`} alt="" className="h-9 w-9 rounded-toque object-contain" />
+          <img src={urlDoLogo(escritorio.logo)} alt="" className="h-9 w-9 rounded-toque object-contain" />
         ) : (
           <span aria-hidden="true" className="grid h-9 w-9 place-items-center rounded-toque bg-botao-1 text-amg-rotulo text-botao-1-texto">{iniciais}</span>
         )}
@@ -200,7 +205,7 @@ export function FormularioDoCliente() {
   useEffect(() => {
     (async () => {
       try {
-        setForm(AMOSTRA ? AMOSTRA_FORMULARIO_PUBLICO : await rpc('comercial_formulario_abrir', { p_codigo: codigo }));
+        setForm(AULA ? formularioDaAula() : AMOSTRA ? AMOSTRA_FORMULARIO_PUBLICO : await rpc('comercial_formulario_abrir', { p_codigo: codigo }));
       } catch {
         setForm({ situacao: 'inexistente' });
       }
@@ -263,6 +268,7 @@ export function FormularioDoCliente() {
     setEnviando(true);
     try {
       const lista = [...passos.map((p) => ({ id: p.id, valor: respostas[p.id] ?? null })), { id: 'privacidade', valor: true }];
+      if (AULA) pedidoNovoNaAula(lista, busca.get('de') ?? '');
       const r = AMOSTRA ? { ok: true } : await funcao({ acao: 'pedido', codigo: form.codigo, respostas: lista, origem: busca.get('de') ?? '', turnstile: token });
       if (r.desvio) return setFim('desvio');
       if (!r.ok) {
@@ -327,7 +333,7 @@ export function PropostaDoCliente() {
     aberta.current = true;
     (async () => {
       try {
-        const d = AMOSTRA ? AMOSTRA_PROPOSTA_PUBLICA : await rpc('comercial_proposta_abrir', { p_codigo: codigo });
+        const d = AULA ? propostaPublicaDaAula() : AMOSTRA ? AMOSTRA_PROPOSTA_PUBLICA : await rpc('comercial_proposta_abrir', { p_codigo: codigo });
         setP(d);
         setNome(d.cliente ?? '');
         setPacote(d.conteudo?.pacotes?.[0]?.nome ?? null);
@@ -374,6 +380,7 @@ export function PropostaDoCliente() {
     if (!concordo) return setErro('Para aceitar, marque que leu e concorda com a proposta.');
     setOcupado(true);
     try {
+      if (AULA) aceiteNaAula(nome, pacote);
       const r = AMOSTRA ? { ok: true } : await rpc('comercial_proposta_aceitar', { p_codigo: p.codigo, p_nome: nome, p_concordo: true, p_pacote: p.jeito === 'modelo' ? pacote : null });
       if (!r.ok) return setErro(r.motivo);
       setTela('aceita');
@@ -412,47 +419,10 @@ export function PropostaDoCliente() {
       </Pagina>
     );
 
-  const pag = p.conteudo?.pagamento;
   return (
     <Pagina escritorio={p.escritorio} selo={p.selo}>
       <div className="flex flex-1 flex-col gap-3">
-        {p.validaAte && <span className="self-start rounded-toque bg-amg-sucesso-suave px-2.5 py-[3px] text-amg-rotulo text-sucesso">Válida até {dataCurta(p.validaAte)}</span>}
-        <h1 className="text-amg-titulo">Proposta para {p.cliente}</h1>
-        {p.conteudo?.projeto && <p className="-mt-1 text-texto-apagado">{p.conteudo.projeto}</p>}
-
-        {p.jeito === 'modelo' && (
-          <>
-            {p.conteudo.pacotes.length > 1 && <h2 className="rotulo mt-1">Escolha o pacote</h2>}
-            <div role="radiogroup" aria-label="Pacotes" className="flex flex-col gap-2">
-              {p.conteudo.pacotes.map((k) => {
-                const marcado = pacote === k.nome;
-                return (
-                  <button key={k.nome} type="button" role="radio" aria-checked={marcado} onClick={() => setPacote(k.nome)}
-                    className={`grid grid-cols-[1fr_auto] gap-x-3 gap-y-0.5 rounded-cartao px-4 py-3 text-left ring-inset ${
-                      marcado ? 'bg-amg-destaque-suave text-destaque-texto ring-2 ring-botao-1' : 'bg-superficie ring-1 ring-linha'}`}>
-                    <b className="font-semibold">{k.nome}</b>
-                    <span className="whitespace-nowrap font-bold tabular-nums">{reais(k.valor)}</span>
-                    {k.inclui?.length > 0 && <small className="col-span-2 text-amg-legenda opacity-80">{k.inclui.join(' · ')}</small>}
-                  </button>
-                );
-              })}
-            </div>
-            {pag && (
-              <p className="text-amg-legenda text-texto-apagado">
-                {pag.entrada}% na assinatura e {pag.parcelas} parcelas{pag.desconto ? `, ou ${pag.desconto}% de desconto à vista` : ''}.
-              </p>
-            )}
-          </>
-        )}
-        {p.jeito === 'pdf' && (
-          <>
-            <iframe title="A proposta em PDF" src={`${ARQUIVOS_URL}/${p.arquivo}`} className="h-[62vh] w-full rounded-cartao bg-superficie-2" />
-            <Botao grande href={`${ARQUIVOS_URL}/${p.arquivo}`} target="_blank" rel="noreferrer">Abrir em tela cheia</Botao>
-          </>
-        )}
-        {p.jeito === 'link' && (
-          <Botao grande nivel={2} href={p.link} target="_blank" rel="noreferrer">Abrir a proposta <Icone nome="seta" /></Botao>
-        )}
+        <CorpoDaProposta p={p} pacote={pacote} aoPacote={setPacote} />
 
         <div className={`mt-auto grid gap-2 pt-4 ${whats ? 'grid-cols-2' : ''}`}>
           {whats}
@@ -460,5 +430,101 @@ export function PropostaDoCliente() {
         </div>
       </div>
     </Pagina>
+  );
+}
+
+/** O corpo da proposta como o cliente vê: a página do cliente e a prévia de SUA PROPOSTA usam o mesmo. Mais completa desde 19/10/2026
+ * (ÊDI: a prévia "muito simplória"): sobre o escritório, cada pacote com o que inclui e o que não inclui, o pagamento do pacote
+ * escolhido em reais e as condições. As propostas de antes, sem as palavras, mostram só o que têm. */
+export function CorpoDaProposta({ p, pacote, aoPacote }) {
+  const c = p.conteudo ?? {};
+  const pag = c.pagamento;
+  const pacotes = c.pacotes ?? [];
+  const escolhido = pacotes.find((k) => k.nome === pacote) ?? pacotes[0];
+  const itens = [...new Set(pacotes.flatMap((k) => k.inclui ?? []))];
+  const contas = escolhido && pag ? pagamentoEmReais(escolhido.valor, pag) : null;
+  const condicoes = (c.condicoes ?? []).filter(Boolean);
+  const bloco = 'flex flex-col gap-2 rounded-cartao bg-superficie px-4 py-4';
+  return (
+    <>
+      {p.validaAte && <span className="self-start rounded-toque bg-amg-sucesso-suave px-2.5 py-[3px] text-amg-rotulo text-sucesso">Válida até {dataCurta(p.validaAte)}</span>}
+      <h1 className="text-amg-titulo">Proposta para {p.cliente}</h1>
+      {c.projeto && <p className="-mt-1 text-texto-apagado">{c.projeto}</p>}
+
+      {c.apresentacao && (
+        <section className={bloco}>
+          <h2 className="rotulo">Sobre {p.escritorio?.nome || 'o escritório'}</h2>
+          <p className="whitespace-pre-line">{c.apresentacao}</p>
+        </section>
+      )}
+
+      {p.jeito === 'modelo' && (
+        <>
+          <h2 className="rotulo mt-2">{pacotes.length > 1 ? 'Escolha o pacote' : 'O pacote'}</h2>
+          <div role="radiogroup" aria-label="Pacotes" className="flex flex-col gap-2.5">
+            {pacotes.map((k) => {
+              const marcado = escolhido?.nome === k.nome;
+              return (
+                <button key={k.nome} type="button" role="radio" aria-checked={marcado} onClick={() => aoPacote(k.nome)}
+                  className={`flex flex-col gap-2.5 rounded-cartao px-4 py-3.5 text-left ring-inset ${
+                    marcado ? 'bg-amg-destaque-suave ring-2 ring-botao-1' : 'bg-superficie ring-1 ring-linha'}`}>
+                  <span className="flex items-baseline justify-between gap-3">
+                    <b className={`text-[17px] font-semibold ${marcado ? 'text-destaque-texto' : ''}`}>{k.nome}</b>
+                    <b className="whitespace-nowrap text-[19px] font-bold tabular-nums">{reais(k.valor)}</b>
+                  </span>
+                  {itens.length > 0 && (
+                    <ul className="flex flex-col gap-1 text-amg-legenda">
+                      {itens.map((item) => {
+                        const tem = (k.inclui ?? []).includes(item);
+                        return (
+                          <li key={item} className={`flex items-start gap-2 ${tem ? '' : 'text-texto-apagado'}`}>
+                            {tem ? <Icone nome="ok" tamanho={14} className="mt-[3px] text-sucesso" /> : <span aria-hidden="true" className="w-[14px] text-center">—</span>}
+                            <span>{item}{tem ? '' : <span className="sr-only">, não inclui</span>}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          {contas && (
+            <section className={bloco}>
+              <h2 className="rotulo">O pagamento do {escolhido.nome}</h2>
+              <div className="flex flex-col">
+                {[
+                  [`Entrada, na assinatura (${pag.entrada}%)`, contas.entrada],
+                  contas.parcelas > 0 && [`Depois, ${contas.parcelas} ${contas.parcelas === 1 ? 'parcela' : 'parcelas'} de`, contas.parcela],
+                  Number(pag.desconto) > 0 && [`Ou à vista, com ${pag.desconto}% de desconto`, contas.avista],
+                ].filter(Boolean).map(([rotulo, valor]) => (
+                  <div key={rotulo} className="flex items-baseline justify-between gap-3 border-t border-linha py-2 first:border-t-0">
+                    <span>{rotulo}</span><b className="whitespace-nowrap tabular-nums">{reais(valor)}</b>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </>
+      )}
+      {p.jeito === 'pdf' && (
+        <>
+          <iframe title="A proposta em PDF" src={`${ARQUIVOS_URL}/${p.arquivo}`} className="h-[62vh] w-full rounded-cartao bg-superficie-2" />
+          <Botao grande href={`${ARQUIVOS_URL}/${p.arquivo}`} target="_blank" rel="noreferrer">Abrir em tela cheia</Botao>
+        </>
+      )}
+      {p.jeito === 'link' && (
+        <Botao grande nivel={2} href={p.link} target="_blank" rel="noreferrer">Abrir a proposta <Icone nome="seta" /></Botao>
+      )}
+
+      {condicoes.length > 0 && (
+        <section className={bloco}>
+          <h2 className="rotulo">Condições</h2>
+          <ul className="flex list-disc flex-col gap-1 pl-5 text-amg-legenda">
+            {condicoes.map((x) => <li key={x}>{x}</li>)}
+          </ul>
+        </section>
+      )}
+    </>
   );
 }

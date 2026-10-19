@@ -4,12 +4,17 @@ import { Confirmacao, Escolha, Grupo, LinkCopiavel } from '@/components/Listas';
 import { SITE_URL } from '@/config';
 import { mensagemDeErro } from '@/lib/erros';
 import { AMOSTRA, AMOSTRA_ESTADO, CHAVES, COM_OPCOES, TIPOS_DE_PERGUNTA, nomeDoTipo, rpc } from '@/lib/comercial';
+import { AULA, iniciarAula } from '@/lib/aula';
 import { Janela, PontoDaEtapa } from '@/components/ComercialPecas';
 import { PerguntaDoCliente } from '@/pages/ComercialPublico';
+import {
+  PassoMarca, PassoPacotes, PassoPagamento, PassoPrecos, PassoPrevia, PassoTexto, Pontos, gravarMarca, gravarPrecos, useMarca, validarMarca,
+} from '@/pages/ComercialProposta';
 
 // Os FORMULÁRIOS (o criador), os AJUSTES e o PRIMEIRO ACESSO do Comercial (mockup crm-gratis, seções 6, 8 e 9, aprovado por ÊDI em
 // 16/10/2026). O criador: à esquerda as perguntas em ordem, no meio a escolhida, à direita como o cliente vê. Os ajustes: as etapas
-// livres (o tipo é o que os indicadores leem), os preços da ficha, as regras, as mensagens do WhatsApp e os motivos de recusa.
+// livres (o tipo é o que os indicadores leem), as regras, as mensagens do WhatsApp e os motivos de recusa. Os preços, os pacotes e o
+// pagamento saíram dos ajustes para SUA PROPOSTA, passo a passo (ComercialProposta.jsx, 19/10/2026).
 
 const CAMPO = 'h-amg-altura-campo min-w-0 rounded-toque bg-superficie px-4 text-[16px] ring-1 ring-inset ring-linha focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destaque';
 const AREA_DE_TEXTO = 'w-full rounded-dentro bg-superficie p-3.5 text-[16px] ring-1 ring-inset ring-linha focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destaque';
@@ -367,25 +372,6 @@ export function Ajustes({ estado, area, aoSalvar, aoVoltar }) {
             <button type="button" onClick={novaEtapa} className="flex min-h-amg-toque-minimo w-full items-center gap-2 border-t border-linha px-4 font-semibold text-destaque-texto">+ Nova etapa</button>
           </Grupo>
 
-          <Grupo rotulo="Preços da ficha">
-            {Object.entries(precos.m2 ?? {}).map(([tipo, valor]) => (
-              <div key={tipo} className="flex min-h-amg-toque-minimo items-center gap-3 border-t border-linha px-4 first:border-t-0">
-                <span className="flex-1">{tipo}</span>
-                <input aria-label={`R$ por m² de ${tipo}`} inputMode="decimal" value={valor} onChange={(e) => setPrecos({ ...precos, m2: { ...precos.m2, [tipo]: Number(e.target.value.replace(/[^\d.]/g, '')) } })}
-                  className="h-botao-pequeno w-[100px] rounded-toque bg-superficie-2 px-3 text-right tabular-nums" />
-                <span className="w-[104px] whitespace-nowrap text-amg-legenda text-texto-apagado">por m²</span>
-              </div>
-            ))}
-            {[['honorarios', 'Honorários', '% da obra'], ['intermediario', 'Intermediário', '% do completo'], ['basico', 'Básico', '% do completo'],
-              ['entrada', 'Entrada', '%'], ['parcelas', 'Parcelas', 'vezes'], ['desconto', 'À vista', '% de desconto'], ['validadeDias', 'Validade', 'dias']].map(([k, rot, un]) => (
-              <div key={k} className="flex min-h-amg-toque-minimo items-center gap-3 border-t border-linha px-4">
-                <span className="flex-1">{rot}</span>
-                <input aria-label={rot} inputMode="decimal" value={precos[k] ?? ''} onChange={(e) => setPrecos({ ...precos, [k]: Number(e.target.value.replace(/[^\d.]/g, '')) })}
-                  className="h-botao-pequeno w-[100px] rounded-toque bg-superficie-2 px-3 text-right tabular-nums" />
-                <span className="w-[104px] whitespace-nowrap text-amg-legenda text-texto-apagado">{un}</span>
-              </div>
-            ))}
-          </Grupo>
         </div>
 
         <div className="flex flex-col gap-5">
@@ -432,80 +418,67 @@ export function Ajustes({ estado, area, aoSalvar, aoVoltar }) {
 }
 
 // ------------------------------------------------------------------------------------------------ o primeiro acesso
-const CORES = ['#E76353', '#A9513F', '#2F7D6D', '#3D6FB6', '#6B4FA0', '#C9973A', '#20252B'];
+// Uma coisa por tela (ÊDI, 19/10/2026): a marca, o jeito de trabalhar, os preços, os pacotes, o pagamento, as palavras da proposta, a
+// prévia e o formulário no ar. Cada passo já vem com o de fábrica: dá para seguir só com CONTINUAR e ajustar depois em SUA PROPOSTA.
 const MODELOS = [
   ['arquitetura', 'Arquitetura', 'Construir, reformar e regularizar'],
   ['interiores', 'Interiores', 'Ambientes, marcenaria e decoração'],
   ['engenharia', 'Engenharia', 'Estrutural, elétrico e hidrossanitário'],
 ];
+const TOTAL = 8;
 
 export function PrimeiroAcesso({ estado, aoTerminar }) {
   const [passo, setPasso] = useState(0);
-  const [nome, setNome] = useState(estado.escritorio?.includes('@') ? '' : estado.escritorio ?? '');
-  const [cor, setCor] = useState('#A9513F');
+  const [marca, setMarca] = useMarca(estado.escritorio?.includes('@') ? '' : estado.escritorio ?? '');
   const [modelo, setModelo] = useState('arquitetura');
   const [pronto, setPronto] = useState(null);
+  const [precos, setPrecos] = useState(null);
   const [erro, setErro] = useState('');
   const [ocupado, setOcupado] = useState(false);
 
-  async function gravarEscritorio() {
+  async function agir(f) {
     setErro('');
-    if (!nome.trim()) return setErro('Escreva o nome do escritório.');
     setOcupado(true);
     try {
-      if (!AMOSTRA) {
-        const atual = await rpc('meu_escritorio');
-        const r = await rpc('gravar_escritorio', { p: { ...atual, nome: nome.trim(), cor, termo: atual?.termo ?? null } });
-        if (r && r.ok === false) return setErro(r.motivo);
-      }
-      setPasso(1);
+      await f();
     } catch (e) {
       setErro(mensagemDeErro(e));
     } finally {
       setOcupado(false);
     }
   }
-  async function iniciar() {
-    setErro('');
-    setOcupado(true);
-    try {
-      const e = AMOSTRA ? AMOSTRA_ESTADO : await rpc('comercial_iniciar', { p_modelo: modelo });
-      setPronto(e);
-      setPasso(2);
-    } catch (er) {
-      setErro(mensagemDeErro(er));
-    } finally {
-      setOcupado(false);
-    }
-  }
-  const pontos = (
-    <div className="flex gap-1.5" aria-label={`Passo ${passo + 1} de 3`}>
-      {[0, 1, 2].map((i) => <span key={i} className={`h-2 rounded-toque ${i === passo ? 'w-[22px] bg-botao-1' : 'w-2 bg-linha'}`} />)}
+  const gravarEscritorio = () => agir(async () => {
+    const falta = validarMarca(marca);
+    if (falta) return setErro(falta);
+    const motivo = await gravarMarca(marca);
+    if (motivo) return setErro(motivo);
+    setPasso(1);
+  });
+  const iniciar = () => agir(async () => {
+    const e = AULA ? iniciarAula(modelo) : AMOSTRA ? AMOSTRA_ESTADO : await rpc('comercial_iniciar', { p_modelo: modelo });
+    setPronto(e);
+    setPrecos(e.ajustes.precos);
+    setPasso(2);
+  });
+  const gravarAProposta = () => agir(async () => {
+    setPronto({ ...(await gravarPrecos(pronto, null, precos)), escritorio: marca.nome.trim() });
+    setPasso(7);
+  });
+
+  const voltar = <Botao grande type="button" onClick={() => { setErro(''); setPasso(passo - 1); }}>Voltar</Botao>;
+  const seguir = (acao, rotulo = 'Continuar') => (
+    <div className="grid grid-cols-2 gap-2">
+      {passo > 0 && passo !== 2 ? voltar : <span />}
+      <Botao grande principal type="button" onClick={acao} disabled={ocupado}>{ocupado ? 'Um instante…' : rotulo}</Botao>
     </div>
   );
   const codigo = pronto?.formularios?.[0]?.codigo;
+  if (!marca) return <p className="px-4 py-10 text-center text-texto-apagado">Carregando…</p>;
   return (
     <section className="px-4 py-8 sm:py-12">
-      <div className="mx-auto flex w-full max-w-[420px] flex-col gap-4 rounded-cartao bg-superficie p-5 shadow-cartao sm:p-6">
-        {pontos}
-        {passo === 0 && (
-          <>
-            <h1 className="text-amg-titulo">O seu escritório</h1>
-            <p className="text-texto-apagado">O nome e a cor vão no formulário e na proposta que o cliente abre. A logo, você troca em Minha conta.</p>
-            <Campo rotulo="Nome" id="pa-nome" valor={nome} aoMudar={setNome} placeholder="Lima Arquitetura" autoFocus />
-            <div>
-              <h2 className="rotulo mb-2 ml-1">Cor</h2>
-              <div className="flex flex-wrap gap-2.5" role="radiogroup" aria-label="Cor do escritório">
-                {CORES.map((c) => (
-                  <button key={c} type="button" role="radio" aria-checked={cor === c} aria-label={`Cor ${c}`} onClick={() => setCor(c)}
-                    className={`h-[34px] w-[34px] rounded-toque ${cor === c ? 'ring-2 ring-texto ring-offset-2 ring-offset-superficie' : ''}`} style={{ backgroundColor: c }} />
-                ))}
-              </div>
-            </div>
-            <Mensagem erro>{erro}</Mensagem>
-            <Botao principal grande cheio type="button" onClick={gravarEscritorio} disabled={ocupado}>Continuar</Botao>
-          </>
-        )}
+      <div className={`mx-auto flex w-full flex-col gap-5 rounded-cartao bg-superficie p-5 shadow-cartao sm:p-7 ${passo === 0 || passo === 1 || passo === 7 ? 'max-w-[560px]' : 'max-w-[760px]'}`}>
+        <Pontos passo={passo} total={TOTAL} />
+        {passo === 0 && <PassoMarca marca={marca} aoMudar={setMarca} />}
         {passo === 1 && (
           <>
             <h1 className="text-amg-titulo">Como você trabalha?</h1>
@@ -520,22 +493,27 @@ export function PrimeiroAcesso({ estado, aoTerminar }) {
                 </button>
               ))}
             </div>
-            <Mensagem erro>{erro}</Mensagem>
-            <div className="grid grid-cols-2 gap-2">
-              <Botao grande type="button" onClick={() => setPasso(0)}>Voltar</Botao>
-              <Botao grande principal type="button" onClick={iniciar} disabled={ocupado}>{ocupado ? 'Preparando…' : 'Continuar'}</Botao>
-            </div>
           </>
         )}
-        {passo === 2 && (
+        {passo === 2 && <PassoPrecos precos={precos} aoMudar={setPrecos} />}
+        {passo === 3 && <PassoPacotes precos={precos} aoMudar={setPrecos} />}
+        {passo === 4 && <PassoPagamento precos={precos} aoMudar={setPrecos} />}
+        {passo === 5 && <PassoTexto precos={precos} aoMudar={setPrecos} />}
+        {passo === 6 && <PassoPrevia marca={marca} precos={precos} />}
+        {passo === 7 && (
           <>
             <span className="grid h-16 w-16 place-items-center rounded-toque bg-amg-sucesso-suave text-sucesso"><Icone nome="ok" tamanho={30} /></span>
             <h1 className="text-amg-titulo">Seu formulário está no ar</h1>
             <p className="text-texto-apagado">Ponha o link na bio do Instagram ou mande no WhatsApp.</p>
             {codigo && <LinkCopiavel link={`${SITE_URL}/f/${codigo}`} curto={`arquionie.com.br/f/${codigo}`} />}
-            <Botao principal grande cheio type="button" onClick={() => aoTerminar(pronto)}>Abrir o Comercial</Botao>
           </>
         )}
+        <Mensagem erro>{erro}</Mensagem>
+        {passo === 0 && seguir(gravarEscritorio)}
+        {passo === 1 && seguir(iniciar)}
+        {passo >= 2 && passo <= 5 && seguir(() => { setErro(''); setPasso(passo + 1); })}
+        {passo === 6 && seguir(gravarAProposta, 'Está ótima')}
+        {passo === 7 && <Botao principal grande cheio type="button" onClick={() => aoTerminar(pronto)}>Abrir o Comercial</Botao>}
       </div>
     </section>
   );

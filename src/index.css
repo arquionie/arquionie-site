@@ -23,6 +23,9 @@
   /* as faixas de cápsulas que rolam de lado no celular, sem a barra de rolagem por baixo */
   .sem-barra { scrollbar-width: none; }
   .sem-barra::-webkit-scrollbar { display: none; }
+  /* a barra de rolagem discreta (o quadro do Comercial, ÊDI 19/10/2026): fina, no tom da linha, mais forte só ao passar o mouse */
+  .barra-fina { scrollbar-width: thin; scrollbar-color: var(--linha) transparent; }
+  .barra-fina:hover { scrollbar-color: var(--texto-apagado) transparent; }
 
   /* a foto que muda com o tema (a do painel do plugin na /para-revit) */
   .so-escuro { display: none; }

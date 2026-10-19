@@ -2,7 +2,7 @@
 // do programa, aprovados por ÊDI em 16/10/2026): as chamadas ao banco e à função comercial, a conta do orçamento, as cores do
 // escritório nas páginas do cliente e os dados de amostra para conferir as telas com ?amostra no servidor de desenvolvimento.
 import { supabase } from '@/lib/supabase';
-import { SUPABASE_URL, SUPABASE_CHAVE_PUBLICAVEL } from '@/config';
+import { ARQUIVOS_URL, SUPABASE_URL, SUPABASE_CHAVE_PUBLICAVEL } from '@/config';
 
 export const AMOSTRA = import.meta.env.DEV && new URLSearchParams(window.location.search).has('amostra');
 
@@ -13,11 +13,11 @@ export async function rpc(nome, args = {}) {
   return data;
 }
 
-/** Chama a função comercial do servidor (o pedido do formulário público e a subida do PDF). */
-export async function funcao(corpo) {
+/** Chama uma função do servidor: a comercial (o pedido do formulário público e a subida do PDF) ou a das apresentações (a logo). */
+export async function funcao(corpo, nome = 'comercial') {
   const { data } = await supabase.auth.getSession();
   const token = data?.session?.access_token;
-  const r = await fetch(`${SUPABASE_URL}/functions/v1/comercial`, {
+  const r = await fetch(`${SUPABASE_URL}/functions/v1/${nome}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', apikey: SUPABASE_CHAVE_PUBLICAVEL, Authorization: `Bearer ${token ?? SUPABASE_CHAVE_PUBLICAVEL}` },
     body: JSON.stringify(corpo),
@@ -25,6 +25,20 @@ export async function funcao(corpo) {
   if (!r.ok && r.status >= 500) throw new Error('O servidor não respondeu. Tente de novo em instantes.');
   return r.json();
 }
+
+/** A logo do escritório vai pela função das apresentações (a mesma do programa): pede o endereço, sobe e confirma. */
+export async function enviarLogo(arquivo) {
+  const tipo = { 'image/png': 'png', 'image/svg+xml': 'svg', 'image/jpeg': 'jpg' }[arquivo.type];
+  if (!tipo) return { ok: false, motivo: 'A logo vai em PNG, SVG ou JPG.' };
+  if (arquivo.size > 2 * 1024 * 1024) return { ok: false, motivo: 'A logo passa de 2 MB.' };
+  const r = await funcao({ acao: 'logo', tipo, tamanho: arquivo.size }, 'apresentacoes');
+  if (!r.ok) return { ok: false, motivo: r.motivo ?? 'Não deu para subir a logo agora.' };
+  const put = await fetch(r.url, { method: 'PUT', body: arquivo, headers: { 'Content-Type': arquivo.type } });
+  if (!put.ok) return { ok: false, motivo: 'A logo não subiu. Tente de novo.' };
+  return funcao({ acao: 'logoConcluir', logo: r.logo }, 'apresentacoes');
+}
+// a logo guardada (escritorios/…/logo-N.png) ou, na amostra, a imagem que a pessoa escolheu
+export const urlDoLogo = (logo) => (!logo ? null : logo.startsWith('data:') ? logo : `${ARQUIVOS_URL}/${logo}`);
 
 // ------------------------------------------------------------------------------------------------ textos e números
 export const reais = (v, centavos = false) =>
@@ -72,7 +86,7 @@ export function etiquetaDoPedido(p, etapa) {
 }
 
 // ------------------------------------------------------------------------------------------------ o orçamento (a ficha do sistema Palheta)
-const PACOTES = [['completo', 'Completo', 1], ['intermediario', 'Intermediário', null], ['basico', 'Básico', null]];
+export const PACOTES = [['completo', 'Completo', 1], ['intermediario', 'Intermediário', null], ['basico', 'Básico', null]];
 
 /** A conta do orçamento: obra = área × R$/m²; o COMPLETO = obra × honorários; os outros pacotes pela porcentagem do completo. */
 export function calcularOrcamento(o, precos) {
@@ -108,7 +122,15 @@ export function conteudoDaProposta(pedido, orcamento, precos) {
     projeto,
     pacotes: pacotes.map((p) => ({ nome: p.nome, valor: p.valor, inclui: escopoDoPacote(precos?.escopo, p.id) })),
     pagamento: { entrada: c.entradaPct, parcelas: c.parcelas, desconto: c.desconto },
+    apresentacao: precos?.apresentacao ?? '',
+    condicoes: precos?.condicoes ?? [],
   };
+}
+
+/** O pagamento de um valor, em reais: a entrada, as parcelas e o à vista. */
+export function pagamentoEmReais(valor, pag) {
+  const v = Number(valor ?? 0), entrada = Math.round((v * Number(pag?.entrada ?? 0)) / 100), parcelas = Number(pag?.parcelas ?? 0);
+  return { entrada, parcelas, parcela: parcelas > 0 ? Math.round((v - entrada) / parcelas) : 0, avista: Math.round(v * (1 - Number(pag?.desconto ?? 0) / 100)) };
 }
 
 // ------------------------------------------------------------------------------------------------ as cores do escritório (páginas do cliente)
@@ -166,7 +188,14 @@ export const AMOSTRA_ETAPAS = [
 
 export const AMOSTRA_PRECOS = {
   m2: { 'Construção do zero': 3500, Reforma: 2200, Interiores: 1800, Regularização: 1200, Comercial: 3000 },
-  honorarios: 5, intermediario: 70, basico: 50, entrada: 30, parcelas: 7, desconto: 10, validadeDias: 30,
+  honorarios: 3, intermediario: 70, basico: 50, entrada: 30, parcelas: 7, desconto: 10, validadeDias: 30,
+  apresentacao: 'Cuidamos do seu projeto do primeiro estudo até a obra pronta, com atenção a cada detalhe e ao seu orçamento.',
+  condicoes: [
+    'As taxas da prefeitura, do conselho profissional e de cartório não estão incluídas.',
+    'Visitas à obra além das previstas no pacote são cobradas à parte.',
+    'Mudanças depois do projeto aprovado são orçadas à parte.',
+    'O prazo começa a contar depois do pagamento da entrada.',
+  ],
   escopo: [
     { item: 'Levantamento e programa', desde: 'basico' }, { item: 'Estudo preliminar com 3D', desde: 'basico' },
     { item: 'Projeto legal para a prefeitura', desde: 'intermediario' }, { item: 'Projeto executivo', desde: 'completo' },

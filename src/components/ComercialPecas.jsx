@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Botao } from '@/components/Formulario';
 import { mensagemDeErro } from '@/lib/erros';
 import { AMOSTRA, linkWhatsApp, rpc } from '@/lib/comercial';
+import { AULA, whatsappNaAula } from '@/lib/aula';
 
 // As peças do COMERCIAL que o painel, o orçamento e os ajustes usam (mockup crm-gratis, aprovado por ÊDI em 16/10/2026): a janela por
 // cima da página, o ponto da etapa, o botão do WhatsApp e a abertura do WhatsApp com a mensagem pronta.
@@ -63,7 +64,8 @@ export async function abrirWhatsApp(area, pedido, aoTerminar, aoErro) {
   const janela = window.open('', '_blank');
   try {
     const r = AMOSTRA
-      ? { ok: true, whatsapp: pedido.whatsapp, texto: `Olá, ${pedido.nome.split(' ')[0]}! Aqui é Juliana, da Lima Arquitetura. Recebi o seu pedido de projeto. Podemos conversar?` }
+      ? { ok: true, whatsapp: pedido.whatsapp, texto: `Olá, ${pedido.nome.split(' ')[0]}! Aqui é Juliana, da Lima Arquitetura. Recebi o seu pedido de projeto. Podemos conversar?`,
+        pedido: AULA ? whatsappNaAula(pedido.id) : undefined }
       : await rpc('comercial_whatsapp', { p_area: area, p_id: pedido.id });
     if (!r.ok) {
       janela?.close();

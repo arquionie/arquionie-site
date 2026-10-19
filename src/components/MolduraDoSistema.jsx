@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useSessao } from '@/lib/Sessao';
 import { dadosDaConta, iniciais, primeiroNome } from '@/lib/conta';
 import { AMOSTRA, useEhAdministrador } from '@/lib/gestao';
+import { AULA } from '@/lib/aula';
 import { supabase } from '@/lib/supabase';
 import { MetaDaPagina } from '@/lib/seo';
 import { TEMAS, escolherTema, useTema } from '@/lib/aparencia';
@@ -284,8 +285,8 @@ function MenuDaConta({ pequeno }) {
 
 export default function MolduraDoSistema() {
   useAparenciaDaConta();
-  // a Gestão só para quem administra; no servidor de desenvolvimento com ?amostra, aparece para conferir a tela
-  const admin = useEhAdministrador() || AMOSTRA;
+  // a Gestão só para quem administra; no servidor de desenvolvimento com ?amostra, aparece para conferir a tela (na aula, não)
+  const admin = useEhAdministrador() || (AMOSTRA && !AULA);
 
   // Fechado, cada bloco tem 76 px e os ícones ficam no meio; ao passar o mouse (ou chegar pelo teclado), o menu se abre por cima da
   // página e mostra os nomes (ÊDI, 19/10/2026: "quando a gente aproximar, o painel se expandir mostrando os títulos"). Abre com um

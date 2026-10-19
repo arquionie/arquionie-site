@@ -11,9 +11,11 @@ import { whatsappLegivel } from '@/lib/equipe';
 import {
   AMOSTRA, AMOSTRA_ESTADO, etiquetaDoPedido, hojeISO, quandoChegou, reais, reaisCurtos, rpc,
 } from '@/lib/comercial';
+import { AULA, estadoDaAula, moverNaAula } from '@/lib/aula';
 import Ficha from '@/pages/ComercialFicha';
 import { BotaoWhatsApp, Janela, PontoDaEtapa, abrirWhatsApp } from '@/components/ComercialPecas';
 import { Ajustes, Formularios, PrimeiroAcesso } from '@/pages/ComercialAjustes';
+import { SuaProposta } from '@/pages/ComercialProposta';
 
 // O COMERCIAL, o CRM grátis do painel do escritório (mockup docs/mockups/crm-gratis, aprovado por ÊDI em 16/10/2026; doc 68; contrato
 // no doc 72 do repositório do programa): o título grande, os cinco números, HOJE, o quadro com as etapas livres (a lista, para o leitor
@@ -64,6 +66,7 @@ export default function Comercial() {
 
   async function carregar() {
     setErro('');
+    if (AULA) return setEstado(estadoDaAula());
     if (AMOSTRA) return setEstado(estado ?? { ...AMOSTRA_ESTADO, novo: new URLSearchParams(window.location.search).get('amostra') === 'novo' });
     try {
       const [de, ate] = datasDoPeriodo(periodo);
@@ -98,6 +101,10 @@ export default function Comercial() {
     if (!e || p.etapa === etapaId) return;
     if (e.tipo === 'perdido' && !motivo) return setMover({ pedido: p, etapa: e });
     setMover(null);
+    if (AULA) {
+      moverNaAula(p.id, etapaId, motivo);
+      return setEstado(estadoDaAula());
+    }
     if (AMOSTRA) return setEstado({ ...estado, pedidos: estado.pedidos.map((x) => (x.id === p.id ? { ...x, etapa: etapaId, motivo: motivo ?? '' } : x)) });
     try {
       const r = await rpc('comercial_pedido_mover', { p_area: area, p_id: p.id, p_etapa: etapaId, p_motivo: motivo ?? null });
@@ -124,7 +131,7 @@ export default function Comercial() {
         </nav>
       )}
 
-      {!['formularios', 'ajustes'].includes(vista) && (
+      {!['formularios', 'ajustes', 'proposta'].includes(vista) && (
         <header className="mb-5 flex flex-wrap items-center gap-3">
           <div className="mr-2">
             <h1 className="text-amg-titulo-grande">Comercial</h1>
@@ -133,6 +140,7 @@ export default function Comercial() {
           <Escolha rotulo="Vista" valor={vista} aoMudar={setVista}
             opcoes={[['quadro', 'Quadro'], ['lista', 'Lista'], ['indicadores', 'Indicadores']]} />
           <div className="flex w-full flex-wrap gap-2 sm:ml-auto sm:w-auto">
+            <Botao type="button" onClick={() => setVista('proposta')}>Sua proposta</Botao>
             <Botao type="button" onClick={() => setVista('formularios')}>Formulários</Botao>
             {estado.responsavel && <Botao type="button" onClick={() => setVista('ajustes')}>Ajustes</Botao>}
             {formulario && (
@@ -149,6 +157,7 @@ export default function Comercial() {
       {aviso && <div className="mb-4"><Mensagem erro>{aviso}</Mensagem></div>}
 
       {vista === 'formularios' && <Formularios estado={estado} area={area} aoMudar={carregar} aoVoltar={() => setVista('quadro')} />}
+      {vista === 'proposta' && <SuaProposta estado={estado} area={area} aoSalvar={(e) => { setEstado(e); setVista('quadro'); }} aoVoltar={() => setVista('quadro')} />}
       {vista === 'ajustes' && <Ajustes estado={estado} area={area} aoSalvar={(e) => { setEstado(e); setVista('quadro'); }} aoVoltar={() => setVista('quadro')} />}
 
       {['quadro', 'lista', 'indicadores'].includes(vista) && (
@@ -165,9 +174,9 @@ export default function Comercial() {
           {vista === 'lista' && <ListaDePedidos estado={estado} etapaDe={etapaDe} aoAbrir={(p) => setAberto(p.id)} aoWhatsApp={aoWhats} />}
           {vista === 'indicadores' && <Indicadores estado={estado} periodo={periodo} aoPeriodo={setPeriodo} />}
           {estado.pedidos.length === 0 && (
-            <Vazio>
+            <div className="mt-4"><Vazio>
               Seu primeiro pedido aparece aqui. Copie o link do formulário e coloque na bio do Instagram ou mande no WhatsApp.
-            </Vazio>
+            </Vazio></div>
           )}
         </>
       )}
@@ -250,7 +259,7 @@ function Quadro({ estado, etapaDe, aoAbrir, aoWhatsApp, aoMover }) {
       </div>
 
       {/* no computador: as colunas, que rolam para o lado; arrastar o cartão muda a etapa */}
-      <div className="hidden gap-4 overflow-x-auto pb-2 sm:flex" role="list" aria-label="Quadro de pedidos">
+      <div className="barra-fina hidden gap-4 overflow-x-auto pb-3 sm:flex" role="list" aria-label="Quadro de pedidos">
         {etapas.map((e) => (
           <div key={e.id} role="listitem" aria-label={`${e.nome}, ${porEtapa[e.id]?.length ?? 0} pedidos`}
             onDragOver={(ev) => { ev.preventDefault(); setSobre(e.id); }} onDragLeave={() => setSobre(null)}
