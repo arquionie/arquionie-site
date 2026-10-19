@@ -22,7 +22,9 @@ export function Pagina({ escritorio, passo, selo, children, rodape, previa }) {
     if (escritorio?.nome && !previa) document.title = escritorio.nome;
   }, [escritorio?.nome, previa]);
   return (
-    <div data-tema="claro" className={`flex flex-col bg-fundo text-texto ${previa ? 'rounded-cartao' : 'min-h-screen'}`} style={coresDoEscritorio(escritorio?.cor)}>
+    // Sempre clara, mesmo com o site no Escuro: o data-tema traz as cores claras e o modo-amigavel refaz aqui os nomes curtos (--fundo,
+    // --texto…), que no :root já vieram resolvidos com as cores escuras (19/10/2026: o pacote escolhido saía com letra branca no claro).
+    <div data-tema="claro" className={`modo-amigavel flex flex-col bg-fundo text-texto [color-scheme:light] ${previa ? 'rounded-cartao' : 'min-h-screen'}`} style={coresDoEscritorio(escritorio?.cor)}>
       <header className="mx-auto flex w-full max-w-[560px] items-center gap-2.5 px-4 pb-3 pt-4">
         {escritorio?.logo ? (
           <img src={urlDoLogo(escritorio.logo)} alt="" className="h-9 w-9 rounded-toque object-contain" />
