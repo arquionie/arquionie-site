@@ -37,7 +37,8 @@ export function Pagina({ escritorio, passo, selo, children, rodape, previa }) {
       <main className="mx-auto flex w-full max-w-[560px] flex-1 flex-col px-4 pb-6">{children}</main>
       <footer className="mx-auto flex w-full max-w-[560px] flex-wrap items-center justify-center gap-x-4 gap-y-1 px-4 pb-6 text-amg-legenda text-texto-apagado">
         {selo && (
-          <a href="/" target="_blank" rel="noreferrer" className="inline-flex min-h-amg-toque-minimo items-center gap-1.5 text-texto-apagado no-underline">
+          // o selo leva à página do Comercial, com a origem "selo" para a conta que nascer dali (lib/origem.js)
+          <a href="/comercial?de=selo" target="_blank" rel="noreferrer" className="inline-flex min-h-amg-toque-minimo items-center gap-1.5 text-texto-apagado no-underline">
             <img src="/leao.png" alt="" className="h-4 w-4" />
             Feito com Arquionie
           </a>

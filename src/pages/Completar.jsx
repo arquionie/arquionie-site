@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { mensagemDeErro } from '@/lib/erros';
 import { useSessao } from '@/lib/Sessao';
 import { cadastroCompleto, dadosDaConta, destinoSeguro } from '@/lib/conta';
+import { origemGuardada } from '@/lib/origem';
 import { ATUACOES, VERSAO_TERMOS } from '@/config';
 
 // Quem entrou pelo Google já tem nome e e-mail; na primeira vez falta só a atuação e o aceite dos termos.
@@ -37,8 +38,12 @@ export default function Completar() {
     if (!atuacao) return setErro('Escolha a sua atuação: clique na lista Atuação.');
     if (!termos) return setErro('Marque a caixa "Li e aceito" para continuar.');
     setOcupado(true);
+    // pelo Google, a origem vai aqui, no primeiro acesso; o banco guarda só a primeira (lib/origem.js)
+    const origem = usuario.user_metadata?.origem ? null : origemGuardada();
     const { error } = await supabase.auth.updateUser({
-      data: { nome: dados.nome, atuacao, novidades, aceite_termos_em: new Date().toISOString(), versao_termos: VERSAO_TERMOS },
+      data: {
+        nome: dados.nome, atuacao, novidades, aceite_termos_em: new Date().toISOString(), versao_termos: VERSAO_TERMOS, ...(origem && { origem }),
+      },
     });
     setOcupado(false);
     if (error) return setErro(mensagemDeErro(error));

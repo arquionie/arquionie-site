@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useSessao } from '@/lib/Sessao';
-import { AMOSTRA, lerPainel, planilhaDasContas, useEhAdministrador } from '@/lib/gestao';
+import { AMOSTRA, lerContasPorOrigem, lerPainel, planilhaDasContas, useEhAdministrador } from '@/lib/gestao';
 import { numeroLegivel } from '@/lib/downloads';
 import { ATUACOES } from '@/config';
 import { Botao, Mensagem } from '@/components/Formulario';
@@ -161,6 +161,67 @@ function Contas({ contas }) {
   );
 }
 
+const PERIODOS = [
+  ['30', 'Últimos 30 dias'],
+  ['90', 'Últimos 90 dias'],
+  ['todas', 'Desde o começo'],
+];
+const porcento = (a, b) => (b ? `${Math.round((100 * a) / b)}%` : '—');
+
+// De onde vieram as contas (passo 4 da configuração do Comercial, 19/10/2026): o anúncio se mede pelas contas do banco, não pelo
+// número da Meta. A origem vem de lib/origem.js; a conta, de gestao_contas_por_origem.
+function ContasPorOrigem() {
+  const [periodo, setPeriodo] = useState('30');
+  const [estado, setEstado] = useState(null);
+  useEffect(() => {
+    let ativo = true;
+    setEstado(null);
+    lerContasPorOrigem(periodo === 'todas' ? null : Number(periodo)).then((r) => ativo && setEstado(r));
+    return () => {
+      ativo = false;
+    };
+  }, [periodo]);
+  const linhas = estado?.linhas ?? [];
+  return (
+    <Painel titulo="Contas por origem" direita={<Selecao valor={periodo} aoMudar={setPeriodo} opcoes={PERIODOS} rotulo="Período" />}>
+      {!estado ? (
+        <p className="text-texto-apagado">Carregando…</p>
+      ) : estado.erro ? (
+        <Mensagem erro>Não deu para ler as origens: {estado.erro.message}. Confira se a migração da origem da conta foi rodada no Supabase.</Mensagem>
+      ) : linhas.length === 0 ? (
+        <p className="text-texto-apagado">Nenhuma conta nesse período.</p>
+      ) : (
+        <Tabela minimo={620}>
+          <thead>
+            <tr>
+              <th className={TH}>Origem</th>
+              <th className={`${TH} text-right`}>Contas</th>
+              <th className={`${TH} text-right`}>Confirmadas</th>
+              <th className={`${TH} text-right`}>Ativadas em 7 dias</th>
+              <th className={`${TH} text-right`}>Ativação</th>
+            </tr>
+          </thead>
+          <tbody>
+            {linhas.map((l) => (
+              <tr key={`${l.fonte}|${l.meio}|${l.campanha}`}>
+                <td className={TD}>
+                  <b className="font-semibold">{l.fonte}</b>
+                  {(l.meio || l.campanha) && <div className="text-amg-legenda text-texto-apagado">{[l.meio, l.campanha].filter(Boolean).join(' · ')}</div>}
+                </td>
+                <td className={`${TD} ${NUM} font-semibold`}>{numeroLegivel(l.contas)}</td>
+                <td className={`${TD} ${NUM}`}>{numeroLegivel(l.confirmadas)}</td>
+                <td className={`${TD} ${NUM}`}>{numeroLegivel(l.ativadas)}</td>
+                <td className={`${TD} ${NUM}`}>{porcento(l.ativadas, l.contas)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </Tabela>
+      )}
+      <p className="mt-3 text-amg-legenda text-texto-apagado">Ativada: recebeu o primeiro pedido pelo formulário em até 7 dias.</p>
+    </Painel>
+  );
+}
+
 function UltimosDownloads({ downloads }) {
   return (
     <section>
@@ -292,6 +353,7 @@ export default function Gestao() {
                   </p>
                 </Painel>
               </div>
+              <ContasPorOrigem />
               <Contas contas={dados.contas} />
               <UltimosDownloads downloads={dados.downloads} />
             </>

@@ -20,9 +20,12 @@ export const TURNSTILE_CHAVE = '0x4AAAAAAFY--N7t-yCjDCQ7';
 // Versão dos termos aceita no cadastro; muda quando o advogado revisar (decisão de 02/10/2026).
 export const VERSAO_TERMOS = 'rascunho-2026-10';
 
+// O designer de interiores entrou em 19/10/2026 (um dos três públicos do Comercial). O banco só aceita depois da migração
+// 20261019010000_origem_da_conta.sql: rodar ela antes de publicar o site, senão a conta de quem escolhe DESIGNER não nasce.
 export const ATUACOES = [
   { valor: 'arquiteto', rotulo: 'ARQUITETO(A)' },
   { valor: 'engenheiro', rotulo: 'ENGENHEIRO(A)' },
+  { valor: 'designer', rotulo: 'DESIGNER DE INTERIORES' },
   { valor: 'estudante', rotulo: 'ESTUDANTE' },
   { valor: 'outra', rotulo: 'OUTRA' },
 ];

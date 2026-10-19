@@ -3,7 +3,11 @@ import { createRoot, hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from '@/App';
 import { ProvedorSessao } from '@/lib/Sessao';
+import { registrarOrigem } from '@/lib/origem';
 import '@/index.css';
+
+// de onde a pessoa veio, para ir junto no cadastro (lib/origem.js)
+registrarOrigem();
 
 const site = (
   <React.StrictMode>
