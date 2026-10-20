@@ -102,3 +102,123 @@ export const linkDoWhatsapp = (texto) => `https://wa.me/${WHATSAPP_VENDAS}?text=
 
 // O link de cada cartão do quadro de preço.
 export const linkDeCompra = (produto, periodo, origem) => `/comprar?produto=${produto}&periodo=${periodo}&origem=${origem}`;
+
+// ------------------------------------------------------------------------------------------------ /gestao › PEDIDOS
+// A aba PEDIDOS do gestor (plano 19, item 3.2, PEDIDOS v3 aprovado por ÊDI em 15/10/2026; no modo AMIGÁVEL do mockup gestao-amigavel):
+// a situação vem de gestao_pedidos (pedido_situacao no banco); aqui ficam os textos do selo, das mensagens prontas e os dados de amostra.
+
+// O link que o gestor manda para quem pede pelo WhatsApp: sem produto, o formulário mostra o quadro de preço para escolher.
+export const LINK_DO_FORMULARIO = 'https://arquionie.com.br/comprar?origem=whatsapp';
+
+export const ORIGENS_DO_PEDIDO = {
+  arquionie: 'Página do Arquionie™',
+  revit: 'Página do plugin para Revit',
+  campanha: 'Campanha',
+  whatsapp: 'WhatsApp',
+  outro: 'Link direto',
+};
+
+export const nomeDoPlano = (p) => PRODUTOS[p.produto]?.nome ?? p.produto;
+export const valorDoPedido = (p) => (p.periodo === 'anual' ? `${total(p.valorCobranca)} por 1 ano` : `${porMes(p.valorMes)} todo mês`);
+const diasAte = (iso) => Math.max(0, Math.ceil((new Date(iso) - Date.now()) / 864e5));
+const dataCurta = (iso) => (iso ? new Date(iso).toLocaleDateString('pt-BR') : '—');
+
+// PRECISAM DE VOCÊ: o que espera pagamento e o que renova nesta semana (o mensal vencido também, como no resumo do banco).
+export const precisaDeVoce = (p) => p.situacao === 'aguardando' || p.situacao === 'renovar' || (p.situacao === 'vencido' && p.periodo === 'mensal');
+export const estaLiberado = (p) => ['esperando a conta', 'em uso', 'renovar'].includes(p.situacao);
+
+// O selo da linha: o texto e o tom do Selo das peças do /gestao.
+export function seloDoPedido(p) {
+  switch (p.situacao) {
+    case 'aguardando':
+      return { texto: 'Aguardando pagamento', tom: 'atencao' };
+    case 'renovar': {
+      const n = diasAte(p.licenca?.expiraEm);
+      return { texto: n === 0 ? 'Vence hoje' : `Renova em ${n} ${n === 1 ? 'dia' : 'dias'}`, tom: 'atencao' };
+    }
+    case 'vencido':
+      return { texto: `Venceu em ${dataCurta(p.licenca?.expiraEm)}`, tom: 'atencao' };
+    case 'esperando a conta':
+      return { texto: 'Liberado · esperando a conta', tom: 'informacao' };
+    case 'em uso':
+      return { texto: 'Em uso', tom: 'sucesso' };
+    case 'revogado':
+      return { texto: 'Licença revogada', tom: 'apagado' };
+    case 'encerrado':
+      return { texto: 'Encerrado', tom: 'apagado' };
+    default:
+      return { texto: 'Cancelado', tom: 'apagado' };
+  }
+}
+
+const primeiroNome = (nome) => String(nome ?? '').trim().split(/\s+/)[0] || '';
+const planoNaMensagem = (p) => `${nomeDoPlano(p).replace('™', '')} ${p.periodo}`;
+export const linkDoWhatsappDe = (numero, texto) => `https://wa.me/${numero}${texto ? `?text=${encodeURIComponent(texto)}` : ''}`;
+
+// ABRIR WHATSAPP do pedido aguardando: o gestor cola o link de pagamento (Pix ou cartão) no fim.
+export function textoDoPagamento(p) {
+  return (
+    `Olá, ${primeiroNome(p.nome)}! Recebemos o seu pedido ${p.pedido} do ${planoNaMensagem(p)} (${valorDoPedido(p)}). ` +
+    'Segue o link para o pagamento, por Pix ou cartão: '
+  );
+}
+
+// COPIAR MENSAGEM depois de liberar: sem chave, só o e-mail (a licença liga sozinha na conta). Até o Dia D vai a chave PFPRO- junto.
+export function textoDaLiberacao(p) {
+  const onde = p.produto === 'plugin'
+    ? '2) No Revit, abra o PAINEL do Arquionie™ e clique ENTRAR PELO NAVEGADOR.'
+    : '2) No programa, entre com a conta. No Revit, abra o PAINEL do Arquionie™ e clique ENTRAR PELO NAVEGADOR.';
+  return (
+    `Olá, ${primeiroNome(p.nome)}! Pagamento confirmado: o seu ${planoNaMensagem(p)} está liberado até ${dataCurta(p.licenca?.expiraEm)}.\n` +
+    `1) Crie a sua conta em arquionie.com.br com este e-mail: ${p.email} (se já tem conta, é só entrar).\n` +
+    `${onde}\n` +
+    (p.chavePlugin ? `Se o plugin pedir a chave, use esta: ${p.chavePlugin}\n` : '') +
+    'Qualquer dúvida, é só responder aqui.'
+  );
+}
+
+// MANDAR COBRANÇA da renovação (enquanto o mensal for manual): o gestor cola o link de pagamento no fim.
+export function textoDaCobranca(p) {
+  const venceu = new Date(p.licenca?.expiraEm) <= new Date();
+  return (
+    `Olá, ${primeiroNome(p.nome)}! O seu ${planoNaMensagem(p)} ${venceu ? 'venceu' : 'vence'} em ${dataCurta(p.licenca?.expiraEm)}. ` +
+    `Para renovar (${valorDoPedido(p)}), é só pagar por Pix ou cartão neste link: `
+  );
+}
+
+// Dados de exemplo para o /gestao?amostra: um pedido em cada situação.
+const agora = Date.now();
+const em = (dias) => new Date(agora + dias * 864e5).toISOString();
+const lic = (expira, ligada, programa = 0, plugin = 0) => ({
+  id: `l${expira}`, expiraEm: em(expira), ligada, computadoresPrograma: programa, computadoresPlugin: plugin,
+});
+const pedido = (n, campos) => ({
+  id: `p${n}`, pedido: `P-${String(n).padStart(4, '0')}`, cupom: null, desconto: 0, chavePlugin: null, renovacoes: 0, liberadoEm: null,
+  ultimoPagamentoEm: null, encerradoEm: null, licenca: null, ...campos,
+});
+
+export const AMOSTRA_PEDIDOS = {
+  pedidos: [
+    pedido(9, { produto: 'plugin', periodo: 'anual', nome: 'Pessoa de Exemplo Nove', email: 'exemplo.nove@exemplo.com', whatsapp: '5591988887777',
+      valorMes: 39, valorCobranca: 468, origem: 'revit', situacao: 'aguardando', criadoEm: em(-0.1) }),
+    pedido(8, { produto: 'arquionie', periodo: 'anual', nome: 'Pessoa de Exemplo Oito', email: 'exemplo.oito@exemplo.com', whatsapp: '5511977776666',
+      cupom: 'BLACK70', desconto: 70, valorMes: 23.7, valorCobranca: 284.4, origem: 'campanha', situacao: 'aguardando', criadoEm: em(-1) }),
+    pedido(5, { produto: 'plugin', periodo: 'mensal', nome: 'Pessoa de Exemplo Cinco', email: 'exemplo.cinco@exemplo.com', whatsapp: '5521966665555',
+      valorMes: 69, valorCobranca: 69, origem: 'revit', situacao: 'renovar', criadoEm: em(-29), liberadoEm: em(-28), ultimoPagamentoEm: em(-28),
+      chavePlugin: 'PFPRO-AB12-CD34', licenca: lic(2, true, 0, 1) }),
+    pedido(4, { produto: 'arquionie', periodo: 'mensal', nome: 'Pessoa de Exemplo Quatro', email: 'exemplo.quatro@exemplo.com', whatsapp: '5531955554444',
+      valorMes: 119, valorCobranca: 119, origem: 'arquionie', situacao: 'vencido', criadoEm: em(-63), liberadoEm: em(-62), ultimoPagamentoEm: em(-32),
+      renovacoes: 1, licenca: lic(-2, true, 1, 1) }),
+    pedido(7, { produto: 'plugin', periodo: 'anual', nome: 'Pessoa de Exemplo Sete', email: 'exemplo.sete@exemplo.com', whatsapp: '5541944443333',
+      valorMes: 39, valorCobranca: 468, origem: 'whatsapp', situacao: 'esperando a conta', criadoEm: em(-3), liberadoEm: em(-2),
+      ultimoPagamentoEm: em(-2), licenca: lic(363, false) }),
+    pedido(6, { produto: 'arquionie', periodo: 'anual', nome: 'Pessoa de Exemplo Seis', email: 'exemplo.seis@exemplo.com', whatsapp: '5551933332222',
+      valorMes: 79, valorCobranca: 948, origem: 'arquionie', situacao: 'em uso', criadoEm: em(-12), liberadoEm: em(-11), ultimoPagamentoEm: em(-11),
+      chavePlugin: 'PFPRO-EF56-GH78', licenca: lic(354, true, 2, 1) }),
+    pedido(3, { produto: 'plugin', periodo: 'anual', nome: 'Pessoa de Exemplo Três', email: 'exemplo.tres@exemplo.com', whatsapp: '5561922221111',
+      valorMes: 39, valorCobranca: 468, origem: 'outro', situacao: 'cancelado', criadoEm: em(-20) }),
+    pedido(2, { produto: 'plugin', periodo: 'mensal', nome: 'Pessoa de Exemplo Dois', email: 'exemplo.dois@exemplo.com', whatsapp: '5571911110000',
+      valorMes: 69, valorCobranca: 69, origem: 'revit', situacao: 'encerrado', criadoEm: em(-70), liberadoEm: em(-69), ultimoPagamentoEm: em(-39),
+      encerradoEm: em(-15), renovacoes: 1, licenca: lic(-9, true, 0, 1) }),
+  ],
+};

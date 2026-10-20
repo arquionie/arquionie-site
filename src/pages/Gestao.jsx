@@ -8,7 +8,8 @@ import { Botao, Mensagem } from '@/components/Formulario';
 import { Vazio } from '@/components/Listas';
 import { Busca, Cabecalho, NUM, Numero, Numeros, Painel, Selecao, Selo, TD, TH, Tabela } from '@/components/GestaoPecas';
 import GestaoLicencas from '@/components/GestaoLicencas';
-import GestaoPedidosDePlano, { usePedidosDePlano } from '@/components/GestaoPedidosDePlano';
+import { usePedidosDePlano } from '@/components/GestaoPedidosDePlano';
+import GestaoPedidos, { contarPrecisam, usePedidos } from '@/components/GestaoPedidos';
 import GestaoPrecosCupons from '@/components/GestaoPrecosCupons';
 import GestaoCampanhas from '@/components/GestaoCampanhas';
 import GestaoVersoesAulas from '@/components/GestaoVersoesAulas';
@@ -255,6 +256,8 @@ export default function Gestao() {
   // o LIBERAR LICENÇAS de um pedido de plano abre o LIBERAR com o e-mail da conta
   const [liberarPara, setLiberarPara] = useState(null);
   const [pedidos, setPedidos, lerPedidos] = usePedidosDePlano();
+  // os pedidos de compra do PRO (o /comprar, plano 19): a aba PEDIDOS mostra os dois, e a plaquinha conta o que precisa do gestor
+  const [compras, setCompras, lerCompras] = usePedidos();
   const [feedbacksNovos, setFeedbacksNovos] = useFeedbacksNovos();
   // o Comercial (doc 72): a plaquinha conta os formulários denunciados que ainda estão no ar
   const [denunciados, setDenunciados] = useDenunciadosNoAr();
@@ -276,19 +279,19 @@ export default function Gestao() {
 
   const r = dados?.resumo;
   // As abas em cápsulas (mockup gestao-amigavel, 16/10/2026), com a contagem numa plaquinha; /gestao#licencas abre direto nas licenças,
-  // /gestao#pedidos nos pedidos de plano.
+  // /gestao#pedidos nos pedidos (os de compra do PRO e os de equipe).
   const trocarAba = (a) => {
     setAba(a);
     window.history.replaceState(null, '', a === 'contas' ? window.location.pathname + window.location.search : `#${a}`);
   };
-  const abertos = (pedidos ?? []).filter((p) => !p.respondidoEm).length;
+  const abertos = (pedidos ?? []).filter((p) => !p.respondidoEm).length + contarPrecisam(compras);
   return (
     <div className="mx-auto flex max-w-[1200px] flex-col gap-5 px-4 py-6 sm:px-6 sm:py-8">
       <div role="tablist" aria-label="Painel do gestor" className="sem-barra -mx-4 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:gap-1 sm:px-0">
         {[
           ['contas', 'Contas e downloads'],
           ['licencas', 'Licenças'],
-          ['pedidos', 'Pedidos de plano', abertos],
+          ['pedidos', 'Pedidos', abertos],
           ['precos', 'Preços e cupons'],
           ['campanhas', 'Campanhas'],
           ['versoes', 'Versões e aulas'],
@@ -308,7 +311,7 @@ export default function Gestao() {
             {n ? (
               <span className="grid min-w-5 place-items-center rounded-toque bg-botao-1 px-1.5 text-amg-rotulo text-botao-1-texto">
                 {n}
-                <span className="sr-only">{id === 'pedidos' ? (n === 1 ? ' pedido aberto' : ' pedidos abertos')
+                <span className="sr-only">{id === 'pedidos' ? (n === 1 ? ' pedido precisa de você' : ' pedidos precisam de você')
                   : id === 'comercial' ? (n === 1 ? ' formulário denunciado no ar' : ' formulários denunciados no ar')
                     : n === 1 ? ' novo' : ' novos'}</span>
               </span>
@@ -327,8 +330,9 @@ export default function Gestao() {
       ) : aba === 'feedbacks' ? (
         <GestaoFeedbacks aoMudarNovos={setFeedbacksNovos} />
       ) : aba === 'pedidos' ? (
-        <GestaoPedidosDePlano pedidos={pedidos} setPedidos={setPedidos} carregar={lerPedidos}
-          aoLiberar={(email) => { setLiberarPara({ email, vez: Date.now() }); trocarAba('licencas'); }} />
+        <GestaoPedidos dados={compras} setDados={setCompras} carregar={lerCompras}
+          equipe={{ pedidos, setPedidos, carregar: lerPedidos }}
+          aoLiberarEquipe={(email) => { setLiberarPara({ email, vez: Date.now() }); trocarAba('licencas'); }} />
       ) : aba === 'licencas' ? (
         <GestaoLicencas liberarPara={liberarPara} />
       ) : (

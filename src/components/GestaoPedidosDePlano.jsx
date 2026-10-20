@@ -28,7 +28,8 @@ export function usePedidosDePlano() {
   return [pedidos, setPedidos, carregar];
 }
 
-export default function GestaoPedidosDePlano({ pedidos, setPedidos, carregar, aoLiberar }) {
+// dentro (a aba PEDIDOS, plano 19, 20/10/2026): sem o cabeçalho, como o filtro EQUIPE dos pedidos.
+export default function GestaoPedidosDePlano({ pedidos, setPedidos, carregar, aoLiberar, dentro = false }) {
   const [erro, setErro] = useState('');
 
   async function respondido(p) {
@@ -44,16 +45,16 @@ export default function GestaoPedidosDePlano({ pedidos, setPedidos, carregar, ao
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <Cabecalho titulo="Pedidos de plano" />
-        <p className="mt-1.5 max-w-[72ch] text-texto-apagado">
+        {!dentro && <Cabecalho titulo="Pedidos de plano" />}
+        <p className={`max-w-[72ch] text-texto-apagado ${dentro ? '' : 'mt-1.5'}`}>
           Os escritórios que pediram mais contas para usar o Arquionie ao mesmo tempo (a página Equipe e o aviso do quarto computador). Combine o
           plano pelo WhatsApp e libere as licenças no e-mail da conta: elas aparecem em Licenças, para o responsável passar a cada pessoa.
         </p>
       </div>
       {pedidos.length === 0 ? (
-        <Vazio>Nenhum pedido de plano ainda.</Vazio>
+        <Vazio>Nenhum pedido de plano de equipe ainda.</Vazio>
       ) : (
-        <Grupo rotulo={`${pedidos.length} ${pedidos.length === 1 ? 'pedido' : 'pedidos'} · ${abertos} ${abertos === 1 ? 'aberto' : 'abertos'}`}>
+        <Grupo rotulo={`${dentro ? 'Equipe · ' : ''}${pedidos.length} ${pedidos.length === 1 ? 'pedido' : 'pedidos'} · ${abertos} ${abertos === 1 ? 'aberto' : 'abertos'}`}>
           {pedidos.map((p) => (
             <Linha key={p.id}>
               <div className={ESQUERDA}>
