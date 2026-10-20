@@ -6,8 +6,9 @@
 // Criar a conta já volta para o primeiro acesso do Comercial, e não para o painel geral.
 export const CRIAR_CONTA = '/criar-conta?volta=/painel/comercial';
 
-// O vídeo da aula "Comercial · primeiros passos". Fica sem endereço até o protocolo do INPI; sem ele, a parte Aprender não aparece.
-export const AULA_DO_COMERCIAL = null;
+// O vídeo da aula "Comercial · primeiros passos", narrada pelo Nie (aprovada por ÊDI em 20/10/2026; o INPI foi protocolado em
+// 14/10/2026). Está no canal @arquionie como não listado: só abre por este link. Sem endereço, a parte Aprender não aparece.
+export const AULA_DO_COMERCIAL = 'https://www.youtube.com/watch?v=yvHOYWvfedc';
 
 export const PASSOS_COMERCIAL = [
   ['Monte o formulário', 'Com a sua logo e a sua cor, a partir de um modelo: Arquitetura, Interiores ou Engenharia. O link vai para a bio e para o WhatsApp.'],

@@ -178,7 +178,7 @@ export default function PaginaDoComercial() {
         </div>
       </section>
 
-      {/* aprender: só depois do protocolo do INPI, quando a aula tiver endereço */}
+      {/* aprender: a aula dos primeiros passos, quando tiver endereço */}
       {AULA_DO_COMERCIAL && (
         <section id="aprender" className={SECAO}>
           <Titulo rotulo="Aprender" titulo="Veja o Comercial funcionando">
