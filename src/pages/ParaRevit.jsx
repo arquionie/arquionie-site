@@ -3,8 +3,9 @@ import { supabase } from '@/lib/supabase';
 import { Botao, Icone } from '@/components/Formulario';
 import {
   AULAS, CANAL_DAS_AULAS, ETAPAS, GRATIS, MANIFESTO_PLUGIN_URL, NOME_ANTIGO_ATE, NUMEROS, PERGUNTAS_REVIT, PORTAL_ANTIGO, PRECOS_PADRAO,
-  PRO, REQUISITOS, WHATSAPP_VENDAS, instaladorDoPlugin,
+  PRO, REQUISITOS, instaladorDoPlugin,
 } from '@/conteudo/paraRevit';
+import { linkDeCompra } from '@/lib/compra';
 
 // O Arquionie™ para Revit, o antigo Palheta Flow (mockup aprovado por ÊDI em 17/10/2026; plano 17, item 8, do repositório do plugin).
 // As âncoras são as da landing antiga (#historia, #functions-guide, #gratis-vs-pro, #planos, #tutoriais, #download), porque e-mails já
@@ -14,7 +15,6 @@ const SECAO = 'mx-auto max-w-[1200px] px-4 py-10 sm:px-6 sm:py-14 scroll-mt-4';
 const CARTAO = 'flex flex-col gap-1.5 rounded-cartao bg-superficie p-4 shadow-cartao sm:p-5';
 
 const real = (v) => `R$ ${Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}`;
-const comprar = (texto) => `https://wa.me/${WHATSAPP_VENDAS}?text=${encodeURIComponent(texto)}`;
 
 function Titulo({ rotulo, titulo }) {
   return (
@@ -22,14 +22,6 @@ function Titulo({ rotulo, titulo }) {
       <p className="rotulo mb-1.5">{rotulo}</p>
       <h2 className="text-amg-titulo">{titulo}</h2>
     </div>
-  );
-}
-
-function Balao() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 20l1.4-4A8 8 0 1 1 8.3 19z" />
-    </svg>
   );
 }
 
@@ -58,7 +50,7 @@ function usePrecos() {
 }
 
 // O instalador da versão mais nova, lido do manifesto do plugin; sem ele, o botão leva aos requisitos.
-function useInstalador() {
+export function useInstalador() {
   const [instalador, setInstalador] = useState(null);
   useEffect(() => {
     fetch(MANIFESTO_PLUGIN_URL, { cache: 'no-cache' })
@@ -195,8 +187,8 @@ export default function ParaRevit() {
             <p className="text-texto-apagado">Renova todo mês.</p>
             <Lista itens={PRO} />
             <div className="mt-auto flex flex-col">
-              <Botao href={comprar(`Olá! Quero assinar o Plugin PRO mensal (${real(precos.mensal)}/mês). Vim pela página do Arquionie para Revit.`)} grande>
-                <Balao />
+              <Botao para={linkDeCompra('plugin', 'mensal', 'revit')} grande>
+                <Icone nome="balao" tamanho={18} />
                 Assinar o mensal
               </Botao>
             </div>
@@ -213,8 +205,8 @@ export default function ParaRevit() {
             <p className="text-texto-apagado">Cobrado anualmente.</p>
             <Lista itens={PRO} />
             <div className="mt-auto flex flex-col">
-              <Botao href={comprar(`Olá! Quero assinar o Plugin PRO anual (${real(precos.anual)}/mês). Vim pela página do Arquionie para Revit.`)} principal grande>
-                <Balao />
+              <Botao para={linkDeCompra('plugin', 'anual', 'revit')} principal grande>
+                <Icone nome="balao" tamanho={18} />
                 Assinar o anual
               </Botao>
             </div>

@@ -8,6 +8,7 @@ Disallow: /conta
 Disallow: /painel
 Disallow: /gestao
 Disallow: /conectar
+Disallow: /comprar
 Disallow: /programa/
 Disallow: /completar
 Disallow: /confirmar

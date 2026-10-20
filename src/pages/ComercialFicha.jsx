@@ -10,6 +10,7 @@ import {
   linkWhatsApp, mesAno, reais, rpc,
 } from '@/lib/comercial';
 import { BotaoWhatsApp, Janela, PontoDaEtapa, abrirWhatsApp } from '@/components/ComercialPecas';
+import { AULA, anotarNaAula, moverNaAula, pedidoDaAula, propostaNaAula, salvarNaAula } from '@/lib/aula';
 
 // O ORÇAMENTO (a ficha do pedido), no padrão do sistema Palheta e no jeito das listas do iPhone (mockup crm-gratis, seção 3, aprovado
 // por ÊDI em 16/10/2026): abre ao lado do quadro no computador e sobe de baixo como uma folha no celular. As partes em ordem: dados
@@ -58,7 +59,7 @@ export default function Ficha({ area, id, estado, aoFechar, aoMudar }) {
   async function carregar() {
     setErro('');
     try {
-      const r = AMOSTRA ? { ok: true, pedido: amostraDoPedido(estado.pedidos.find((x) => x.id === id) ?? estado.pedidos[0]) } : await rpc('comercial_pedido', { p_area: area, p_id: id });
+      const r = AULA ? { ok: true, pedido: pedidoDaAula(id) } : AMOSTRA ? { ok: true, pedido: amostraDoPedido(estado.pedidos.find((x) => x.id === id) ?? estado.pedidos[0]) } : await rpc('comercial_pedido', { p_area: area, p_id: id });
       if (!r.ok) return setErro(r.motivo);
       const x = r.pedido;
       setP(x);
@@ -92,6 +93,10 @@ export default function Ficha({ area, id, estado, aoFechar, aoMudar }) {
     try {
       const corpo = { ...d, nota: d.nota === '' ? null : Number(d.nota), retorno: d.retorno || null, reuniao: d.reuniao ? new Date(d.reuniao).toISOString() : null,
         area: o.area === '' ? null : Number(o.area), orcamento: o, valor: conta.escolhido.valor > 0 ? String(conta.escolhido.valor) : p.valor === null ? null : String(p.valor) };
+      if (AULA) {
+        salvarNaAula(id, corpo);
+        aoMudar();
+      }
       if (AMOSTRA) return setAviso('Salvo.');
       const r = await rpc('comercial_pedido_salvar', { p_area: area, p_id: id, p: corpo });
       if (!r.ok) return setErro(r.motivo);
@@ -109,6 +114,10 @@ export default function Ficha({ area, id, estado, aoFechar, aoMudar }) {
     const e = etapas.find((x) => x.id === eid);
     if (e?.tipo === 'perdido' && !m) return setMotivo(eid);
     setMotivo(null);
+    if (AULA) {
+      setP(moverNaAula(id, eid, m));
+      return aoMudar();
+    }
     if (AMOSTRA) return setP({ ...p, etapa: eid, motivo: m ?? '' });
     try {
       const r = await rpc('comercial_pedido_mover', { p_area: area, p_id: id, p_etapa: eid, p_motivo: m ?? null });
@@ -123,6 +132,7 @@ export default function Ficha({ area, id, estado, aoFechar, aoMudar }) {
   async function anotar() {
     if (!nota.trim()) return;
     try {
+      if (AULA) setP(anotarNaAula(id, nota));
       if (!AMOSTRA) {
         const r = await rpc('comercial_anotar', { p_area: area, p_id: id, p_texto: nota });
         if (!r.ok) return setErro(r.motivo);
@@ -399,7 +409,10 @@ function EnviarProposta({ area, pedido, orcamento, estado, aoFechar, aoEnviar })
     const janela = como === 'whatsapp' ? window.open('', '_blank') : null;
     setOcupado(como);
     try {
-      const r = AMOSTRA
+      const r = AULA
+        ? { ok: true, codigo: propostaNaAula(pedido.id, { conteudo, valor: escolhido.valor, orcamento, retorno }).codigo, whatsapp: pedido.whatsapp,
+          texto: previa.replace('········', 'QX7M2KAB') }
+        : AMOSTRA
         ? { ok: true, codigo: 'QX7M2KAB', whatsapp: pedido.whatsapp, texto: previa.replace('········', 'QX7M2KAB') }
         : await rpc('comercial_proposta_criar', { p_area: area, p_pedido: pedido.id, p: {
           jeito, link: jeito === 'link' ? link.trim() : null, conteudo: jeito === 'modelo' ? conteudo : null,

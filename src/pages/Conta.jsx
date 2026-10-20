@@ -7,7 +7,7 @@ import { mensagemDeErro } from '@/lib/erros';
 import { useSessao } from '@/lib/Sessao';
 import { dadosDaConta } from '@/lib/conta';
 import { dataLegivel } from '@/lib/manifesto';
-import { TEMAS, guardarTema, useTema } from '@/lib/aparencia';
+import { TEMAS, escolherTema, useTema } from '@/lib/aparencia';
 import { ATUACOES, EMAIL_CONTATO } from '@/config';
 import MeusTours from '@/components/MeusTours';
 import Apresentacoes from '@/components/Apresentacoes';
@@ -332,10 +332,7 @@ function Aparencia() {
   const [erro, setErro] = useState('');
   async function escolher(novo) {
     setErro('');
-    guardarTema(novo);
-    if (AMOSTRA) return;
-    const { error } = await supabase.auth.updateUser({ data: { aparencia: novo } });
-    if (error) setErro('A aparência ficou neste navegador, mas não deu para guardar na conta agora. Tente de novo daqui a pouco.');
+    if (await escolherTema(novo, { naConta: !AMOSTRA })) setErro('A aparência ficou neste navegador, mas não deu para guardar na conta agora. Tente de novo daqui a pouco.');
   }
   const previa = (id) =>
     id === 'auto' ? (
@@ -475,7 +472,7 @@ const ATALHOS = {
 const nomeNoEndereco = (e) =>
   e.escritorio.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || e.responsavel;
 
-// a cápsula de uma página no menu (e de uma área no alto)
+// a cápsula de uma área no alto
 const capsula = (aqui) =>
   `inline-flex min-h-amg-toque-minimo shrink-0 items-center whitespace-nowrap rounded-toque px-3.5 no-underline md:min-h-0 md:py-[9px] ${
     aqui ? 'bg-superficie-2 font-semibold text-texto' : 'font-medium text-texto-apagado hover:text-texto'}`;
@@ -538,11 +535,6 @@ export default function Conta() {
     else window.scrollTo(0, 0);
   }, [titulo, local.hash]);
 
-  async function sair() {
-    await supabase.auth.signOut();
-    navegar('/', { replace: true });
-  }
-
   // /conta sozinho, um link de antes (/conta#licencas) ou uma página que não existe: a página certa
   if (!noEscritorio && !titulo) {
     const parte = local.hash.slice(1);
@@ -567,21 +559,6 @@ export default function Conta() {
           </Link>
         );
       })}
-    </nav>
-  );
-
-  // o menu das páginas: à esquerda no computador; no celular, uma faixa de cápsulas no alto, que rola de lado
-  const menu = (
-    <nav aria-label={doEscritorio ? `Páginas de ${doEscritorio.escritorio}` : 'Minha conta'}
-      className="sem-barra -mx-4 flex gap-1.5 overflow-x-auto px-4 md:mx-0 md:flex-col md:items-stretch md:gap-0.5 md:overflow-visible md:px-0">
-      {lista.map(([p, nome]) => (
-        <Link key={p} to={caminho(p, doEscritorio)} aria-current={p === pagina ? 'page' : undefined} className={capsula(p === pagina)}>
-          {nome}
-        </Link>
-      ))}
-      <Botao type="button" onClick={sair} className="md:mt-3.5 md:self-start">
-        Sair
-      </Botao>
     </nav>
   );
 
@@ -662,8 +639,8 @@ export default function Conta() {
   return (
     <>
       {abasDasAreas}
-      <div className="mx-auto grid max-w-[1100px] gap-5 px-4 py-6 sm:px-6 md:grid-cols-[200px_minmax(0,1fr)] md:gap-8 md:py-10">
-        {menu}
+      {/* as páginas ficam no menu lateral do sistema (Apresentações, Equipe e licenças) e na foto da conta (Meus dados, Aparência e Sair) */}
+      <div className="mx-auto max-w-[1100px] px-4 py-6 sm:px-6 md:py-10">
         <div className="min-w-0">
           {!doEscritorio && convites.map((c) => <ConviteDaEquipe key={c.responsavel} convite={c} aoResponder={aoResponder} />)}
           <h1 className="mb-4 text-amg-titulo-grande">{doEscritorio ? `${titulo} · ${doEscritorio.escritorio}` : titulo}</h1>

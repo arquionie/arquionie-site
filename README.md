@@ -235,6 +235,11 @@ Configurações feitas no painel, em ordem:
    3. **Telas, depois do banco:** o quadro de preço nas duas páginas, o `/comprar` com COMPRAR PELO WHATSAPP (grava e leva ao
       WhatsApp de vendas 5511991961580 com a mensagem pronta; se gravar falhar, leva assim mesmo) e a aba PEDIDOS em lista. As telas
       que mostram o plano da licença (LICENÇAS, MINHA CONTA, /conectar) passam a escrever PLUGIN PRO para o `plugin`.
+   4. **O `/comprar` (feito em 17/10/2026, não publicado):** `src/pages/Comprar.jsx` e `src/lib/compra.js`. Os botões de compra da
+      `/para-revit` abrem `/comprar?produto=plugin&periodo=mensal|anual&origem=revit`. Link sem o período mostra o quadro do produto (sem
+      produto: o plugin quando `origem=revit`, senão o Arquionie). Para conferir sem gravar, no `npm run dev`:
+      `/comprar?produto=plugin&periodo=anual&cupom=BLACK70&amostra` (o pedido P-0008; a mensagem do WhatsApp aparece na tela em vez de
+      abrir) e `&amostra=falha` (a gravação que falha, sem o número do pedido).
 
 12. **O COMERCIAL, o CRM grátis** (doc 68 e o contrato no doc 72 do repositório do programa; mockup `docs/mockups/crm-gratis`, aprovado
    por ÊDI em 16/10/2026). **Publicado em 16/10/2026**, com o ÊDI (o resumo no fim deste item). Só com o ÊDI, uma vez, nesta ordem:

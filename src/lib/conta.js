@@ -31,7 +31,8 @@ export function iniciais(usuario) {
   return ((partes[0]?.[0] ?? '') + (partes.length > 1 ? partes[partes.length - 1][0] : '')).toUpperCase();
 }
 
-// Volta para onde a pessoa estava (só caminhos do próprio site, nunca outro endereço).
-export function destinoSeguro(volta, padrao = '/conta') {
+// Volta para onde a pessoa estava (só caminhos do próprio site, nunca outro endereço); sem volta, o INÍCIO do painel, a casa do
+// sistema (ÊDI, 19/10/2026).
+export function destinoSeguro(volta, padrao = '/painel') {
   return typeof volta === 'string' && volta.startsWith('/') && !volta.startsWith('//') ? volta : padrao;
 }

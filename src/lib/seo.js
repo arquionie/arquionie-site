@@ -48,6 +48,7 @@ export const PAGINAS = {
   '/completar': { titulo: 'Completar o cadastro · Arquionie™' },
   '/conectar': { titulo: 'Conectar o computador · Arquionie™' },
   '/gestao': { titulo: 'Gestão · Arquionie™' },
+  '/comprar': { titulo: 'Comprar o PRO · Arquionie™' },
 };
 
 const NAO_ENCONTRADA = { titulo: 'Página não encontrada · Arquionie™' };

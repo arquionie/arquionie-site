@@ -87,18 +87,22 @@ function Rodape() {
   );
 }
 
-export default function Moldura() {
+// O tema do navegador e, com a conta aberta, o da conta: vale em todo aparelho em que a pessoa entrar. As duas molduras usam.
+export function useAparenciaDaConta() {
   const { usuario } = useSessao();
 
   useEffect(() => {
     aplicarAparencia();
   }, []);
 
-  // A aparência guardada na conta vale em todo aparelho em que a pessoa entrar.
   const daConta = usuario?.user_metadata?.aparencia;
   useEffect(() => {
     if (daConta && daConta !== temaGuardado()) guardarTema(daConta);
   }, [daConta]);
+}
+
+export default function Moldura() {
+  useAparenciaDaConta();
 
   return (
     <div className="flex min-h-screen flex-col">

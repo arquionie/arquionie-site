@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { Botao, Campo, Etiqueta, Icone, Mensagem } from '@/components/Formulario';
 import { Escolha, Grupo, Vazio } from '@/components/Listas';
 import { Numero } from '@/components/GestaoPecas';
@@ -11,9 +11,11 @@ import { whatsappLegivel } from '@/lib/equipe';
 import {
   AMOSTRA, AMOSTRA_ESTADO, etiquetaDoPedido, hojeISO, quandoChegou, reais, reaisCurtos, rpc,
 } from '@/lib/comercial';
+import { AULA, estadoDaAula, moverNaAula } from '@/lib/aula';
 import Ficha from '@/pages/ComercialFicha';
 import { BotaoWhatsApp, Janela, PontoDaEtapa, abrirWhatsApp } from '@/components/ComercialPecas';
 import { Ajustes, Formularios, PrimeiroAcesso } from '@/pages/ComercialAjustes';
+import { SuaProposta } from '@/pages/ComercialProposta';
 
 // O COMERCIAL, o CRM grátis do painel do escritório (mockup docs/mockups/crm-gratis, aprovado por ÊDI em 16/10/2026; doc 68; contrato
 // no doc 72 do repositório do programa): o título grande, os cinco números, HOJE, o quadro com as etapas livres (a lista, para o leitor
@@ -64,6 +66,7 @@ export default function Comercial() {
 
   async function carregar() {
     setErro('');
+    if (AULA) return setEstado(estadoDaAula());
     if (AMOSTRA) return setEstado(estado ?? { ...AMOSTRA_ESTADO, novo: new URLSearchParams(window.location.search).get('amostra') === 'novo' });
     try {
       const [de, ate] = datasDoPeriodo(periodo);
@@ -98,6 +101,10 @@ export default function Comercial() {
     if (!e || p.etapa === etapaId) return;
     if (e.tipo === 'perdido' && !motivo) return setMover({ pedido: p, etapa: e });
     setMover(null);
+    if (AULA) {
+      moverNaAula(p.id, etapaId, motivo);
+      return setEstado(estadoDaAula());
+    }
     if (AMOSTRA) return setEstado({ ...estado, pedidos: estado.pedidos.map((x) => (x.id === p.id ? { ...x, etapa: etapaId, motivo: motivo ?? '' } : x)) });
     try {
       const r = await rpc('comercial_pedido_mover', { p_area: area, p_id: p.id, p_etapa: etapaId, p_motivo: motivo ?? null });
@@ -111,27 +118,20 @@ export default function Comercial() {
   const areas = [{ responsavel: null, escritorio: 'Minha área' }, ...equipes];
   return (
     <section className="mx-auto max-w-[1180px] px-4 py-6 sm:px-6 sm:py-8">
-      <nav aria-label="Produtos" className="sem-barra -mx-4 mb-5 flex gap-1 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        {[['Comercial', null], ['Apresentações', '/conta/apresentacoes'], ['Programa', '/baixar'], ['Equipe', '/conta/equipe']].map(([nome, para]) =>
-          para ? (
-            <Link key={nome} to={para} className="inline-flex min-h-amg-toque-minimo shrink-0 items-center rounded-toque px-[15px] font-medium text-texto-apagado no-underline hover:text-texto sm:min-h-0 sm:py-[7px]">{nome}</Link>
-          ) : (
-            <span key={nome} aria-current="page" className="inline-flex min-h-amg-toque-minimo shrink-0 items-center rounded-toque bg-superficie-2 px-[15px] font-semibold sm:min-h-0 sm:py-[7px]">{nome}</span>
+      {/* os produtos (Comercial, Apresentações, Equipe) ficam no menu lateral do sistema; aqui, só as áreas */}
+      {areas.length > 1 && (
+        <nav aria-label="Áreas" className="sem-barra -mx-4 mb-5 flex gap-1 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+          {areas.map((a) => (
+            <button key={a.responsavel ?? 'eu'} type="button" aria-pressed={area === a.responsavel}
+              onClick={() => setBusca(a.responsavel ? { area: a.responsavel } : {})}
+              className={`min-h-amg-toque-minimo shrink-0 rounded-toque px-3 sm:min-h-0 sm:py-[7px] ${area === a.responsavel ? 'bg-amg-destaque-suave font-semibold text-destaque-texto' : 'text-texto-apagado'}`}>
+              {a.escritorio}
+            </button>
           ))}
-        {areas.length > 1 && (
-          <span className="ml-auto flex shrink-0 items-center gap-1">
-            {areas.map((a) => (
-              <button key={a.responsavel ?? 'eu'} type="button" aria-pressed={area === a.responsavel}
-                onClick={() => setBusca(a.responsavel ? { area: a.responsavel } : {})}
-                className={`min-h-amg-toque-minimo rounded-toque px-3 sm:min-h-0 sm:py-[7px] ${area === a.responsavel ? 'bg-amg-destaque-suave font-semibold text-destaque-texto' : 'text-texto-apagado'}`}>
-                {a.escritorio}
-              </button>
-            ))}
-          </span>
-        )}
-      </nav>
+        </nav>
+      )}
 
-      {!['formularios', 'ajustes'].includes(vista) && (
+      {!['formularios', 'ajustes', 'proposta'].includes(vista) && (
         <header className="mb-5 flex flex-wrap items-center gap-3">
           <div className="mr-2">
             <h1 className="text-amg-titulo-grande">Comercial</h1>
@@ -140,6 +140,7 @@ export default function Comercial() {
           <Escolha rotulo="Vista" valor={vista} aoMudar={setVista}
             opcoes={[['quadro', 'Quadro'], ['lista', 'Lista'], ['indicadores', 'Indicadores']]} />
           <div className="flex w-full flex-wrap gap-2 sm:ml-auto sm:w-auto">
+            <Botao type="button" onClick={() => setVista('proposta')}>Sua proposta</Botao>
             <Botao type="button" onClick={() => setVista('formularios')}>Formulários</Botao>
             {estado.responsavel && <Botao type="button" onClick={() => setVista('ajustes')}>Ajustes</Botao>}
             {formulario && (
@@ -156,6 +157,7 @@ export default function Comercial() {
       {aviso && <div className="mb-4"><Mensagem erro>{aviso}</Mensagem></div>}
 
       {vista === 'formularios' && <Formularios estado={estado} area={area} aoMudar={carregar} aoVoltar={() => setVista('quadro')} />}
+      {vista === 'proposta' && <SuaProposta estado={estado} area={area} aoSalvar={(e) => { setEstado(e); setVista('quadro'); }} aoVoltar={() => setVista('quadro')} />}
       {vista === 'ajustes' && <Ajustes estado={estado} area={area} aoSalvar={(e) => { setEstado(e); setVista('quadro'); }} aoVoltar={() => setVista('quadro')} />}
 
       {['quadro', 'lista', 'indicadores'].includes(vista) && (
@@ -172,9 +174,9 @@ export default function Comercial() {
           {vista === 'lista' && <ListaDePedidos estado={estado} etapaDe={etapaDe} aoAbrir={(p) => setAberto(p.id)} aoWhatsApp={aoWhats} />}
           {vista === 'indicadores' && <Indicadores estado={estado} periodo={periodo} aoPeriodo={setPeriodo} />}
           {estado.pedidos.length === 0 && (
-            <Vazio>
+            <div className="mt-4"><Vazio>
               Seu primeiro pedido aparece aqui. Copie o link do formulário e coloque na bio do Instagram ou mande no WhatsApp.
-            </Vazio>
+            </Vazio></div>
           )}
         </>
       )}
@@ -257,7 +259,7 @@ function Quadro({ estado, etapaDe, aoAbrir, aoWhatsApp, aoMover }) {
       </div>
 
       {/* no computador: as colunas, que rolam para o lado; arrastar o cartão muda a etapa */}
-      <div className="hidden gap-4 overflow-x-auto pb-2 sm:flex" role="list" aria-label="Quadro de pedidos">
+      <div className="barra-fina hidden gap-4 overflow-x-auto pb-3 sm:flex" role="list" aria-label="Quadro de pedidos">
         {etapas.map((e) => (
           <div key={e.id} role="listitem" aria-label={`${e.nome}, ${porEtapa[e.id]?.length ?? 0} pedidos`}
             onDragOver={(ev) => { ev.preventDefault(); setSobre(e.id); }} onDragLeave={() => setSobre(null)}
