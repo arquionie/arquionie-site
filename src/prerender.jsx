@@ -5,6 +5,7 @@ import { ProvedorSessao } from '@/lib/Sessao';
 import { IMAGEM_PADRAO, PAGINAS, ROBOTS_PUBLICA, enderecoDe } from '@/lib/seo';
 import { DESTAQUES, PASSOS, PERGUNTAS, PUBLICO, RECURSOS } from '@/conteudo/inicio';
 import { ETAPAS, PERGUNTAS_REVIT, PRECOS_PADRAO, REQUISITOS } from '@/conteudo/paraRevit';
+import { PASSOS_COMERCIAL, PERGUNTAS_COMERCIAL, PLANOS_COMERCIAL, RECURSOS_COMERCIAL } from '@/conteudo/comercial';
 import { EMAIL_CONTATO, MANIFESTO_URL, SITE_URL } from '@/config';
 
 // As páginas públicas prontas no build, para quem não roda JavaScript: os robôs das IAs (GPTBot, ClaudeBot, PerplexityBot) leem só o
@@ -120,6 +121,38 @@ function dadosEstruturados(rota, manifesto) {
       })),
     });
   }
+  if (rota === '/comercial') {
+    // O Comercial, o CRM grátis, como aplicativo da web. Só a oferta que existe hoje, a grátis: os planos pagos estão EM BREVE.
+    grafo.push({
+      '@type': 'WebApplication',
+      '@id': `${SITE_URL}/comercial#comercial`,
+      name: 'Arquionie™ Comercial',
+      alternateName: ['Arquionie Comercial', 'CRM do Arquionie'],
+      description: PAGINAS[rota].descricao,
+      url: enderecoDe(rota),
+      applicationCategory: 'BusinessApplication',
+      applicationSubCategory: 'CRM para escritórios de arquitetura, interiores e engenharia',
+      operatingSystem: 'Qualquer um, pelo navegador',
+      browserRequirements: 'Um navegador atual, no computador ou no celular',
+      inLanguage: 'pt-BR',
+      image: `${SITE_URL}${PAGINAS[rota].imagem.caminho}`,
+      featureList: [...PASSOS_COMERCIAL, ...RECURSOS_COMERCIAL].map(([titulo, texto]) => `${titulo}: ${texto}`),
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'BRL', description: PLANOS_COMERCIAL[0].itens.join('; ') },
+      isRelatedTo: { '@id': programa['@id'] },
+      publisher: { '@id': organizacao['@id'] },
+      author: { '@id': organizacao['@id'] },
+    });
+    grafo.push({
+      '@type': 'FAQPage',
+      '@id': `${SITE_URL}/comercial#perguntas`,
+      inLanguage: 'pt-BR',
+      mainEntity: PERGUNTAS_COMERCIAL.map(([pergunta, resposta]) => ({
+        '@type': 'Question',
+        name: pergunta,
+        acceptedAnswer: { '@type': 'Answer', text: resposta },
+      })),
+    });
+  }
   if (rota === '/') {
     grafo.push({
       '@type': 'FAQPage',
@@ -153,7 +186,8 @@ export function cabecalho(rota, { manifesto } = {}) {
   }
   const pagina = PAGINAS[rota];
   const endereco = enderecoDe(rota);
-  const imagem = `${SITE_URL}${IMAGEM_PADRAO.caminho}`;
+  const foto = pagina.imagem ?? IMAGEM_PADRAO;
+  const imagem = `${SITE_URL}${foto.caminho}`;
   const linhas = [
     `<title>${escapar(pagina.titulo)}</title>`,
     `<meta name="description" content="${escapar(pagina.descricao)}" />`,
@@ -166,9 +200,9 @@ export function cabecalho(rota, { manifesto } = {}) {
     `<meta property="og:description" content="${escapar(pagina.descricao)}" />`,
     `<meta property="og:url" content="${endereco}" />`,
     `<meta property="og:image" content="${imagem}" />`,
-    `<meta property="og:image:width" content="${IMAGEM_PADRAO.largura}" />`,
-    `<meta property="og:image:height" content="${IMAGEM_PADRAO.altura}" />`,
-    `<meta property="og:image:alt" content="${escapar(IMAGEM_PADRAO.descricao)}" />`,
+    `<meta property="og:image:width" content="${foto.largura}" />`,
+    `<meta property="og:image:height" content="${foto.altura}" />`,
+    `<meta property="og:image:alt" content="${escapar(foto.descricao)}" />`,
     '<meta name="twitter:card" content="summary_large_image" />',
     '<link rel="alternate" type="text/plain" title="Resumo para IAs" href="/llms.txt" />',
     `<script type="application/ld+json">${jsonNoScript(dadosEstruturados(rota, manifesto))}</script>`,
@@ -219,6 +253,7 @@ export function textoParaIAs({ manifesto }) {
 ## Páginas
 
 - [Início](${enderecoDe('/')}): o que o programa faz, para quem é e as perguntas frequentes
+- [Arquionie™ Comercial](${enderecoDe('/comercial')}): o CRM grátis para arquitetos, interiores e engenharia, no navegador
 - [Baixar](${enderecoDe('/baixar')}): o instalador para Windows, com a conta grátis, e como instalar
 - [Versões](${enderecoDe('/versoes')}): o que mudou em cada versão
 - [Arquionie™ para Revit](${enderecoDe('/para-revit')}): o plugin para o Revit 2025 a 2028, antigo Palheta Flow
@@ -236,6 +271,15 @@ ${lista(RECURSOS)}
 
 ${lista(PUBLICO)}
 
+## Arquionie™ Comercial (o CRM grátis)
+
+O CRM do Arquionie, no navegador e no celular, sem instalar. Nasceu do CRM que a Palheta Arquitetura usa todo dia.
+
+${lista(PASSOS_COMERCIAL)}
+${lista(RECURSOS_COMERCIAL)}
+
+Planos: ${PLANOS_COMERCIAL.map((p) => `${p.nome} (${p.preco}${p.porMes ? ' por mês' : ''}${p.emBreve ? ', em breve' : ''}): ${p.itens.join('; ')}`).join('. ')}.
+
 ## Arquionie™ para Revit (o antigo Palheta Flow)
 
 O plugin para o Autodesk Revit que automatiza o trabalho repetido, nas mesmas etapas do painel. Grátis, com versão PRO.
@@ -246,6 +290,6 @@ ${ETAPAS.map(([etapa, grupos]) => `- **${etapa}**: ${grupos.map(([grupo, ferrame
 
 ## Perguntas frequentes
 
-${[...PERGUNTAS, ...PERGUNTAS_REVIT].map(([pergunta, resposta]) => `### ${pergunta}\n\n${resposta}`).join('\n\n')}
+${[...PERGUNTAS, ...PERGUNTAS_COMERCIAL, ...PERGUNTAS_REVIT].map(([pergunta, resposta]) => `### ${pergunta}\n\n${resposta}`).join('\n\n')}
 `;
 }

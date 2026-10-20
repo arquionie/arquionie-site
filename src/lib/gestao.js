@@ -61,6 +61,22 @@ export async function lerPainel() {
   return { resumo: resumo.data, contas: contas.data ?? [], downloads: downloads.data ?? [], erro };
 }
 
+// As contas por origem (migração 20261019010000_origem_da_conta.sql), num período em dias (null = todas).
+const ORIGENS_DE_AMOSTRA = [
+  { fonte: 'instagram', meio: 'paid', campanha: 'cadastros-frio', contas: 18, confirmadas: 15, ativadas: 5 },
+  { fonte: 'bio', meio: '', campanha: '', contas: 6, confirmadas: 6, ativadas: 3 },
+  { fonte: 'selo', meio: '', campanha: '', contas: 3, confirmadas: 3, ativadas: 2 },
+  { fonte: 'google.com', meio: '', campanha: '', contas: 2, confirmadas: 2, ativadas: 0 },
+  { fonte: 'direto', meio: '', campanha: '', contas: 2, confirmadas: 1, ativadas: 0 },
+  { fonte: 'sem registro', meio: '', campanha: '', contas: 4, confirmadas: 3, ativadas: 1 },
+];
+
+export async function lerContasPorOrigem(dias) {
+  if (AMOSTRA) return { linhas: ORIGENS_DE_AMOSTRA, erro: null };
+  const { data, error } = await supabase.rpc('gestao_contas_por_origem', { p_dias: dias });
+  return { linhas: data ?? [], erro: error };
+}
+
 // Planilha das contas, para abrir no Excel (separador ponto e vírgula, como o Excel em português espera).
 export function planilhaDasContas(contas) {
   const cab = ['Nome', 'E-mail', 'Atuação', 'Criada em', 'Confirmada', 'Entra por', 'Novidades', 'Downloads', 'Último download', 'Computadores'];

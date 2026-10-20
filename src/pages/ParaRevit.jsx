@@ -111,7 +111,7 @@ export default function ParaRevit() {
       <section id="historia" className={SECAO}>
         <div className="mb-4 max-w-[760px]">
           <p className="rotulo mb-1.5">De onde vem</p>
-          <h2 className="text-amg-titulo">Nascido da prática, em mais de 220 projetos reais</h2>
+          <h2 className="text-amg-titulo">Nascido da prática, em mais de 230 projetos reais</h2>
           <p className="mt-2 text-amg-frase text-texto-apagado">
             O plugin nasceu dentro da Palheta Arquitetura para encurtar o próprio trabalho. Um projeto que levava de 6 meses a 1 ano passou a
             sair em cerca de 30 dias, em qualquer tipologia.

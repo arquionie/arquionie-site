@@ -5,6 +5,7 @@ import { BotaoGoogle, Botao, Campo, Lista, Marcar, Mensagem, Ou } from '@/compon
 import { supabase } from '@/lib/supabase';
 import { mensagemDeErro } from '@/lib/erros';
 import { destinoSeguro } from '@/lib/conta';
+import { origemGuardada } from '@/lib/origem';
 import { ATUACOES, VERSAO_TERMOS } from '@/config';
 import { entrarComGoogle } from '@/pages/Entrar';
 
@@ -32,6 +33,7 @@ export default function CriarConta() {
     if (!atuacao) return setErro('Escolha a sua atuação: clique na lista Atuação.');
     if (!termos) return setErro('Marque a caixa "Li e aceito" para criar a conta.');
     setOcupado(true);
+    const origem = origemGuardada(); // de onde a pessoa veio (lib/origem.js)
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password: senha,
@@ -43,6 +45,7 @@ export default function CriarConta() {
           novidades,
           aceite_termos_em: new Date().toISOString(),
           versao_termos: VERSAO_TERMOS,
+          ...(origem && { origem }),
         },
       },
     });

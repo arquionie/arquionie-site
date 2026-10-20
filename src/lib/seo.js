@@ -21,6 +21,19 @@ export const PAGINAS = {
       'Programa BIM brasileiro com renderizador próprio, apresentação ao cliente por link e CRM: do primeiro contato ao projeto aprovado. Grátis, com versão PRO.',
     publica: true,
   },
+  // A página do anúncio e da bio do @arquionie. A imagem do link compartilhado é o quadro do Comercial, não a do programa.
+  '/comercial': {
+    titulo: 'Arquionie™ Comercial · CRM grátis para arquitetura',
+    descricao:
+      'CRM grátis para arquitetos, interiores e engenharia: formulário com a sua logo, quadro de pedidos, orçamento por m² e proposta aceita pelo WhatsApp.',
+    publica: true,
+    imagem: {
+      caminho: '/imagens/comercial-quadro-claro.jpg',
+      largura: 2160,
+      altura: 1350,
+      descricao: 'O Comercial do Arquionie com os números, a lista Hoje e o quadro de pedidos, num escritório de exemplo',
+    },
+  },
   '/baixar': {
     titulo: 'Baixar o Arquionie™ para Windows 10 e 11',
     descricao:

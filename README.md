@@ -284,6 +284,20 @@ Configurações feitas no painel, em ordem:
      `enviar-campanhas` e da `limpar-apresentacoes-vencidas`.
    - **Site:** a `comercial` juntada na `main` e o `git push`, com as páginas prontas do SEO (seção "SEO e GEO").
 
+13. **A página /comercial, a origem de cada conta e o designer de interiores** (branch `pagina-comercial`; mockup
+   `docs/mockups/pagina-comercial` do repositório do programa, aprovado por ÊDI em 19/10/2026; passos 3 e 4 da configuração do anúncio).
+   **Ainda não publicado.** Só com o ÊDI, nesta ordem:
+   1. **SQL Editor:** rodar `supabase/migrations/20261019010000_origem_da_conta.sql` (pode rodar duas vezes) **antes** do site: o cadastro
+      passa a mandar `designer` na atuação, que a regra antiga recusa, e a conta não nasceria.
+   2. **Teste local:** `node supabase/testes/origem.test.mjs` (21 conferências: a primeira origem fica, a limpeza do que vem do navegador,
+      o Google no primeiro acesso, o designer e o quadro CONTAS POR ORIGEM do /gestao).
+   3. **Site:** juntar a `pagina-comercial` e o `git push`. Conferir `https://www.arquionie.com.br/comercial` e, no /gestao, o quadro
+      CONTAS POR ORIGEM.
+   O que muda: a página `/comercial` (pronta para o Google), a aba Comercial para todos, o selo "Feito com Arquionie" levando a
+   `/comercial?de=selo`, a origem da primeira visita guardada no navegador por 30 dias (`src/lib/origem.js`) e mandada no cadastro, e a
+   proposta e o formulário do cliente sempre claros, mesmo com o site no Escuro. Para ver sem conta, no `npm run dev`:
+   `/gestao?amostra=1` e `/p/QX7M2KAB?amostra`.
+
 ## Pendente
 
 - Textos da página inicial para ÊDI revisar. As imagens são capturas de amostras do programa (`public/imagens`); faltam
