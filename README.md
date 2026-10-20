@@ -249,7 +249,9 @@ Configurações feitas no painel, em ordem:
         o /gestao e a tarefa diária; o banco em UTC como o Supabase; roda a migração duas vezes);
       - `node supabase/testes/comercial-funcao.test.mjs` (11 conferências da função: o Turnstile, o PDF e a tarefa).
    2. **As telas sem conta** (`npm run dev`): o painel em `/painel/comercial?amostra` (o primeiro acesso em `?amostra=novo`), o
-      formulário do cliente em `/f/LIMA-CASA?amostra` e a proposta em `/p/QX7M2KAB?amostra`.
+      formulário do cliente em `/f/LIMA-CASA?amostra`, a proposta em `/p/QX7M2KAB?amostra` e a aba COMERCIAL do /gestao em
+      `/gestao?amostra=1#comercial` (os números do CRM e os formulários denunciados, com os motivos, VER O FORMULÁRIO e PAUSAR ou
+      RETOMAR com confirmação; a plaquinha da aba conta os denunciados que ainda estão no ar).
    3. **SQL Editor (Arquionie):** rodar `supabase/migrations/20261017000000_comercial.sql` (depois da `20261016000000`; pode rodar duas
       vezes). Ela cria as tabelas e as funções do Comercial. Ninguém lê as tabelas direto. No lançamento, os limites do grátis ficam
       desligados (`ajustes_comercial.livres_no_lancamento`).

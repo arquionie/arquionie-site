@@ -13,6 +13,7 @@ import GestaoPrecosCupons from '@/components/GestaoPrecosCupons';
 import GestaoCampanhas from '@/components/GestaoCampanhas';
 import GestaoVersoesAulas from '@/components/GestaoVersoesAulas';
 import GestaoFeedbacks, { useFeedbacksNovos } from '@/components/GestaoFeedbacks';
+import GestaoComercial, { useDenunciadosNoAr } from '@/components/GestaoComercial';
 
 // Painel do gestor (ÊDI, 03/10/2026, como o /admin do Palheta Flow): quem se cadastrou, quem baixou e quantas vezes.
 // Todo e-mail aqui foi confirmado pelo código, então são contas de verdade. Os dados vêm de funções do banco que só
@@ -250,11 +251,13 @@ export default function Gestao() {
   const [dados, setDados] = useState(null);
   // As abas que vieram do Palheta Flow (plano 18, mockup aprovado em 15/10/2026): preços e cupons, campanhas, versões e aulas, feedbacks.
   const [aba, setAba] = useState(() => (
-    ['licencas', 'pedidos', 'precos', 'campanhas', 'versoes', 'feedbacks'].find((a) => window.location.hash === `#${a}`) ?? 'contas'));
+    ['licencas', 'pedidos', 'precos', 'campanhas', 'versoes', 'feedbacks', 'comercial'].find((a) => window.location.hash === `#${a}`) ?? 'contas'));
   // o LIBERAR LICENÇAS de um pedido de plano abre o LIBERAR com o e-mail da conta
   const [liberarPara, setLiberarPara] = useState(null);
   const [pedidos, setPedidos, lerPedidos] = usePedidosDePlano();
   const [feedbacksNovos, setFeedbacksNovos] = useFeedbacksNovos();
+  // o Comercial (doc 72): a plaquinha conta os formulários denunciados que ainda estão no ar
+  const [denunciados, setDenunciados] = useDenunciadosNoAr();
 
   const pode = AMOSTRA || admin === true;
   async function atualizar() {
@@ -290,6 +293,7 @@ export default function Gestao() {
           ['campanhas', 'Campanhas'],
           ['versoes', 'Versões e aulas'],
           ['feedbacks', 'Feedbacks', feedbacksNovos],
+          ['comercial', 'Comercial', denunciados],
         ].map(([id, rotulo, n]) => (
           <button
             key={id}
@@ -304,13 +308,17 @@ export default function Gestao() {
             {n ? (
               <span className="grid min-w-5 place-items-center rounded-toque bg-botao-1 px-1.5 text-amg-rotulo text-botao-1-texto">
                 {n}
-                <span className="sr-only">{id === 'pedidos' ? (n === 1 ? ' pedido aberto' : ' pedidos abertos') : n === 1 ? ' novo' : ' novos'}</span>
+                <span className="sr-only">{id === 'pedidos' ? (n === 1 ? ' pedido aberto' : ' pedidos abertos')
+                  : id === 'comercial' ? (n === 1 ? ' formulário denunciado no ar' : ' formulários denunciados no ar')
+                    : n === 1 ? ' novo' : ' novos'}</span>
               </span>
             ) : null}
           </button>
         ))}
       </div>
-      {aba === 'precos' ? (
+      {aba === 'comercial' ? (
+        <GestaoComercial aoMudarNoAr={setDenunciados} />
+      ) : aba === 'precos' ? (
         <GestaoPrecosCupons />
       ) : aba === 'campanhas' ? (
         <GestaoCampanhas />

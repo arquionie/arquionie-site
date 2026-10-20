@@ -312,3 +312,28 @@ export const AMOSTRA_PROPOSTA_PUBLICA = {
   conteudo: conteudoDaProposta(AMOSTRA_PEDIDOS[6], AMOSTRA_ORCAMENTO, AMOSTRA_PRECOS),
   escritorio: { nome: 'Lima Arquitetura', cor: '#2F7D6D', logo: null }, whatsappEscritorio: '551532228800', selo: true, aceite: null,
 };
+
+// ------------------------------------------------------------------------------------------------ o /gestao (a aba Comercial)
+// Os números do CRM em todos os escritórios e os formulários denunciados, com PAUSAR e RETOMAR. Só os administradores; o banco confere.
+export const AMOSTRA_GESTAO = {
+  escritorios: 214, pedidos: 3870, pedidosNoMes: 412, propostas: 1265, aceitas: 318,
+  denunciados: [
+    { id: 'd1', codigo: 'GANHE-PIX', nome: 'Cadastro premiado', escritorio: 'Studio Prêmio', denuncias: 4, pausado: false,
+      motivos: ['Pede o número do cartão e a senha do banco.', 'Não é um escritório: promete prêmio em dinheiro.', 'Golpe.', 'Golpe do Pix.'] },
+    { id: 'd2', codigo: 'LIMA-CASA', nome: 'Casa e reforma', escritorio: 'Lima Arquitetura', denuncias: 1, pausado: false,
+      motivos: ['Recebi mensagem deles sem ter pedido nada.'] },
+    { id: 'd3', codigo: 'OBRA-JA', nome: 'Orçamento de obra', escritorio: 'Obra Já Engenharia', denuncias: 2, pausado: true,
+      motivos: ['Usa a logo de outra empresa.', 'Copiou o formulário de um concorrente.'] },
+  ],
+};
+
+export async function lerGestaoComercial() {
+  if (AMOSTRA) return structuredClone(AMOSTRA_GESTAO);
+  return rpc('gestao_comercial');
+}
+
+/** PAUSAR (pausar = true) ou RETOMAR um formulário denunciado; pausado, o /f/CÓDIGO não abre nem recebe pedidos. */
+export async function pausarFormulario(id, pausar) {
+  if (AMOSTRA) return { ok: true };
+  return rpc('gestao_comercial_pausar', { p_formulario: id, p_pausar: pausar });
+}
