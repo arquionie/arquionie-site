@@ -298,6 +298,20 @@ Configurações feitas no painel, em ordem:
    proposta e o formulário do cliente sempre claros, mesmo com o site no Escuro. Para ver sem conta, no `npm run dev`:
    `/gestao?amostra=1` e `/p/QX7M2KAB?amostra`.
 
+14. **O painel com menu lateral, a proposta passo a passo e a aula do Nie** (branch `comercial`, de 19 e 20/10/2026, junto com o item 13
+   na branch `publicar-comercial`). **Ainda não publicado.** Só com o ÊDI, nesta ordem:
+   1. **SQL Editor:** rodar `supabase/migrations/20261019000000_comercial_proposta_passo_a_passo.sql` (pode rodar duas vezes; junto com a
+      do item 13, as duas num texto só). Ela troca os preços de fábrica: honorários de 3% da obra, o texto sobre o escritório e as
+      condições da proposta. Quem já ajustou os preços fica como está. Conferir: `select public.comercial_precos_de_fabrica()->>'honorarios'`
+      responde `3`.
+   2. **Teste local:** `node supabase/testes/comercial.test.mjs` (98 conferências) com todas as migrações.
+   3. **Site:** juntar a `publicar-comercial` na `main` e o `git push`. Conferir `https://www.arquionie.com.br/painel` (o menu lateral, o
+      Início e o Programa) e, com uma conta nova, o primeiro acesso do Comercial com VEJA COMO FUNCIONA, a aula do Nie.
+   O que muda: o painel no jeito de sistema (menu lateral em pílulas que se abre com os nomes, o Início, o Programa, a aparência num botão
+   próprio); a SUA PROPOSTA passo a passo (a marca com a cor e a logo, os preços, os pacotes, o pagamento, as palavras e a prévia), também
+   no primeiro acesso; a proposta completa para o cliente; o /comprar pelo WhatsApp; e a aula "Comercial · primeiros passos", narrada pelo
+   Nie, pública no canal @arquionie. O modo de aula (`?amostra=aula`) só existe no `npm run dev`.
+
 ## Pendente
 
 - Textos da página inicial para ÊDI revisar. As imagens são capturas de amostras do programa (`public/imagens`); faltam
