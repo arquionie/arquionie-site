@@ -7,7 +7,8 @@
 export const CRIAR_CONTA = '/criar-conta?volta=/painel/comercial';
 
 // O vídeo da aula "Comercial · primeiros passos", narrada pelo Nie (aprovada por ÊDI em 20/10/2026; o INPI foi protocolado em
-// 14/10/2026). Está no canal @arquionie como não listado: só abre por este link. Sem endereço, a parte Aprender não aparece.
+// 14/10/2026). É pública no canal @arquionie, na playlist "Comercial · CRM para arquitetos". Sem endereço, a parte Aprender não
+// aparece.
 export const AULA_DO_COMERCIAL = 'https://www.youtube.com/watch?v=yvHOYWvfedc';
 
 export const PASSOS_COMERCIAL = [
