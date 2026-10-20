@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Botao } from '@/components/Formulario';
 import { mensagemDeErro } from '@/lib/erros';
-import { AMOSTRA, linkWhatsApp, rpc } from '@/lib/comercial';
+import { AMOSTRA, AULA_PRIMEIROS_PASSOS, linkWhatsApp, rpc } from '@/lib/comercial';
 import { AULA, whatsappNaAula } from '@/lib/aula';
 
 // As peças do COMERCIAL que o painel, o orçamento e os ajustes usam (mockup crm-gratis, aprovado por ÊDI em 16/10/2026): a janela por
@@ -32,6 +32,39 @@ export function Janela({ titulo, sub, aoFechar, children, largura = 'max-w-[560p
         {children}
       </div>
     </div>
+  );
+}
+
+/** A aula dos primeiros passos, com o Nie: a miniatura abre o vídeo numa janela, sem sair do site (o YouTube sem cookies). */
+export function AulaDoComercial() {
+  const [aberta, setAberta] = useState(false);
+  const { id, minutos } = AULA_PRIMEIROS_PASSOS;
+  return (
+    <>
+      <button type="button" onClick={() => setAberta(true)}
+        className="mx-auto flex w-full max-w-[560px] items-center gap-4 rounded-cartao bg-superficie p-3 text-left shadow-cartao focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destaque">
+        <span className="relative shrink-0 overflow-hidden rounded-dentro">
+          <img src="/imagens/aula-comercial-primeiros-passos.jpg" alt="" width="128" height="72" className="block h-[72px] w-[128px] object-cover" />
+          <span aria-hidden="true" className="absolute inset-0 grid place-items-center">
+            <span className="grid h-9 w-9 place-items-center rounded-toque bg-botao-1 text-botao-1-texto shadow-cartao">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z" /></svg>
+            </span>
+          </span>
+        </span>
+        <span className="min-w-0 flex-1">
+          <b className="block font-semibold">Veja como funciona</b>
+          <small className="text-amg-legenda text-texto-apagado">O Nie mostra os primeiros passos em {minutos} minutos</small>
+        </span>
+      </button>
+      {aberta && (
+        <Janela titulo="Comercial · primeiros passos" aoFechar={() => setAberta(false)} largura="max-w-[880px]">
+          <div className="aspect-video w-full overflow-hidden rounded-dentro bg-black">
+            <iframe src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`} title="Comercial do Arquionie: primeiros passos"
+              allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen className="h-full w-full border-0" />
+          </div>
+        </Janela>
+      )}
+    </>
   );
 }
 

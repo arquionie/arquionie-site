@@ -5,7 +5,7 @@ import { SITE_URL } from '@/config';
 import { mensagemDeErro } from '@/lib/erros';
 import { AMOSTRA, AMOSTRA_ESTADO, CHAVES, COM_OPCOES, TIPOS_DE_PERGUNTA, nomeDoTipo, rpc } from '@/lib/comercial';
 import { AULA, iniciarAula } from '@/lib/aula';
-import { Janela, PontoDaEtapa } from '@/components/ComercialPecas';
+import { AulaDoComercial, Janela, PontoDaEtapa } from '@/components/ComercialPecas';
 import { PerguntaDoCliente } from '@/pages/ComercialPublico';
 import {
   PassoMarca, PassoPacotes, PassoPagamento, PassoPrecos, PassoPrevia, PassoTexto, Pontos, gravarMarca, gravarPrecos, useMarca, validarMarca,
@@ -475,7 +475,9 @@ export function PrimeiroAcesso({ estado, aoTerminar }) {
   const codigo = pronto?.formularios?.[0]?.codigo;
   if (!marca) return <p className="px-4 py-10 text-center text-texto-apagado">Carregando…</p>;
   return (
-    <section className="px-4 py-8 sm:py-12">
+    <section className="flex flex-col gap-4 px-4 py-8 sm:py-12">
+      {/* a aula dos primeiros passos, antes de começar (no modo de aula, que grava a própria aula, ela não aparece) */}
+      {passo === 0 && !AULA && <AulaDoComercial />}
       <div className={`mx-auto flex w-full flex-col gap-5 rounded-cartao bg-superficie p-5 shadow-cartao sm:p-7 ${passo === 0 || passo === 1 || passo === 7 ? 'max-w-[560px]' : 'max-w-[760px]'}`}>
         <Pontos passo={passo} total={TOTAL} />
         {passo === 0 && <PassoMarca marca={marca} aoMudar={setMarca} />}
