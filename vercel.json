@@ -1,4 +1,11 @@
 {
+  "redirects": [
+    {
+      "source": "/bio",
+      "destination": "/criar-conta?volta=/painel/comercial&de=bio",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/t/:codigo",

@@ -9,7 +9,7 @@ import path from 'node:path';
 const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dist = path.join(raiz, 'dist');
 const porta = Number(process.argv[2]) || 5173;
-const { rewrites = [] } = JSON.parse(await readFile(path.join(raiz, 'vercel.json'), 'utf8'));
+const { redirects = [], rewrites = [] } = JSON.parse(await readFile(path.join(raiz, 'vercel.json'), 'utf8'));
 
 const TIPOS = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
@@ -33,7 +33,13 @@ async function arquivo(caminho) {
 
 createServer(async (pedido, resposta) => {
   const { pathname } = new URL(pedido.url, 'http://local');
-  // Como na Vercel: primeiro o arquivo que existe, depois os rewrites na ordem.
+  // Como na Vercel: primeiro os redirects (o /bio do Instagram), com 307 quando não são permanentes e 308 quando são.
+  const desvio = redirects.find((r) => padrao(r.source).test(pathname));
+  if (desvio) {
+    resposta.writeHead(desvio.permanent ? 308 : 307, { Location: desvio.destination }).end();
+    return;
+  }
+  // Depois o arquivo que existe, e então os rewrites na ordem.
   let achado = pathname !== '/' && (await arquivo(pathname));
   if (!achado && pathname === '/') achado = await arquivo('/index.html');
   if (!achado) {

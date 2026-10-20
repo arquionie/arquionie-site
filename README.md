@@ -51,6 +51,9 @@ cliente. Os títulos e as descrições ficam em `src/lib/seo.js`.
 
 - **Página pública nova:** `publica: true` em `PAGINAS` (`src/lib/seo.js`) e o rewrite dela no `vercel.json`, antes do `/(.*)`. O build
   para com um aviso se faltar o rewrite.
+- **O /bio do Instagram** (ÊDI, 19/10/2026): `arquionie.com.br/bio` é o link da bio do @arquionie. Um redirect temporário (307) no
+  `vercel.json` leva ao cadastro com a volta para o Comercial e a marca da bio. Quando a página /comercial for ao ar, só o destino muda
+  para `/comercial?de=bio`; o link do Instagram fica o mesmo.
 - **Os textos do início** estão em `src/conteudo/inicio.js`: a tela, o `llms.txt` e as perguntas dos dados estruturados leem dali.
 - **Versão nova no R2:** a página de versões pronta e a versão nos dados estruturados são as do último build. O navegador confere de
   novo ao abrir; para os robôs verem a nova, basta publicar o site de novo (Vercel › Deployments › Redeploy).
