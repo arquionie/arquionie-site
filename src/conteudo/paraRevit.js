@@ -16,7 +16,8 @@ export const instaladorDoPlugin = (versao) =>
 
 // O portal de quem já assina com a chave antiga: continua no site do Flow até o fim da convivência (plano 17, item 8).
 export const PORTAL_ANTIGO = 'https://www.palhetaflow.com.br/pro/portal';
-export const CANAL_DAS_AULAS = 'https://www.youtube.com/@palhetaflowoficial/videos';
+// As 24 aulas do plugin: a playlist "Arquionie para Revit" do canal @arquionie (o antigo canal do Flow, renomeado em 19/10/2026).
+export const CANAL_DAS_AULAS = 'https://www.youtube.com/playlist?list=PLQHOforeWwpnR0BN9xXn4onzDwekQP2Xi';
 
 // Os preços de quando o build rodou; a página confere de novo em precos_vigentes() ao abrir.
 export const PRECOS_PADRAO = { mensal: 69, anual: 39, desconto: 43 };
