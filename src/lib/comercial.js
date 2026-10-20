@@ -6,8 +6,8 @@ import { ARQUIVOS_URL, SUPABASE_URL, SUPABASE_CHAVE_PUBLICAVEL } from '@/config'
 
 export const AMOSTRA = import.meta.env.DEV && new URLSearchParams(window.location.search).has('amostra');
 
-// A aula dos primeiros passos, narrada pelo Nie (aprovada por ÊDI em 20/10/2026), no canal @arquionie como não listada: só abre por
-// este link, no primeiro acesso e na página /comercial.
+// A aula dos primeiros passos, narrada pelo Nie (aprovada por ÊDI em 20/10/2026): pública no canal @arquionie, na playlist
+// "Comercial · CRM para arquitetos"; aparece no primeiro acesso e na página /comercial.
 export const AULA_PRIMEIROS_PASSOS = { id: 'yvHOYWvfedc', minutos: 4 };
 
 /** Chama uma função do banco; o erro vira exceção com a mensagem do banco. */
