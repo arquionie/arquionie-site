@@ -1,48 +1,52 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-tema="auto">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
 <title>Apresentação do projeto</title>
 <meta name="robots" content="noindex">
+<link rel="stylesheet" href="/apresentacao/tokens.css">
 <link rel="stylesheet" href="/apresentacao/apresentacao.css">
 </head>
 <body>
-<!-- A página do cliente (mockup docs/mockups/enviar-para-o-cliente.html do repositório do programa, aprovado por ÊDI em 11/10/2026). -->
-<div id="carregando" class="aviso"><div><b>Abrindo a apresentação…</b></div></div>
-<div id="fechado" class="aviso" hidden><div><img id="fechadoLogo" alt=""><b id="fechadoTitulo"></b><p id="fechadoTexto"></p></div></div>
+<!-- A página do cliente (mockup docs/mockups/enviar-para-o-cliente.html do repositório do programa, aprovado por ÊDI em 11/10/2026), no modo
+     amigável desde 20/10/2026 (mockup docs/mockups/pagina-do-cliente-amigavel de lá, aprovado com as 6 recomendações). -->
+<div id="carregando" class="aviso"><p>Abrindo a apresentação…</p></div>
+<div id="fechado" class="aviso" hidden><div class="cartaoAviso"><img id="fechadoLogo" alt=""><span id="fechadoIniciais" class="iniciais" hidden></span><b id="fechadoTitulo"></b><p id="fechadoTexto"></p></div></div>
 
 <header id="topo" hidden>
-  <a id="marca" target="_blank" rel="noopener"><span id="logo"></span><small id="nomeEscritorio"></small></a>
-  <div id="projeto"><b id="nomeProjeto"></b><span id="fase" class="fase"></span></div>
-  <nav id="menu"><a href="#video" data-ir="video">VÍDEO</a><a href="#explorar" data-ir="explorar">EXPLORAR</a><a href="#imagens" data-ir="imagens">IMAGENS</a></nav>
+  <a id="marca" target="_blank" rel="noopener"><span id="logo"></span></a>
+  <div id="projeto"><b id="nomeProjeto"></b><small id="nomeEscritorio"></small></div>
+  <span id="fase" class="fase"></span>
+  <nav id="menu"><a href="#video" data-ir="video">Vídeo</a><a href="#explorar" data-ir="explorar">Explorar</a><a href="#imagens" data-ir="imagens">Imagens</a></nav>
   <div id="acoes">
-    <button id="botaoAjustes" type="button">✎ SOLICITAR AJUSTE</button>
-    <button id="botaoAprovar" type="button" class="principal">APROVAR O PROJETO</button>
+    <button id="botaoAjustes" class="b2" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg>Solicitar ajuste</button>
+    <button id="botaoAprovar" class="b1" type="button">Aprovar o projeto</button>
   </div>
   <div id="selo" class="selo" hidden></div>
-  <button id="compartilharTopo" class="so-celular" type="button" title="Compartilhar esta página">⤴</button>
+  <button id="compartilharTopo" class="redondo so-celular" type="button" title="Compartilhar esta página" aria-label="Compartilhar esta página"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 16a3 3 0 00-2.4 1.2l-6.9-3.5a3 3 0 000-1.4l6.9-3.5A3 3 0 1015 7l-6.9 3.5a3 3 0 100 3L15 17a3 3 0 103-1z"/></svg></button>
 </header>
 
 <main id="pagina" hidden>
-  <div id="pedido" class="selo ajustes" hidden></div>
+  <div id="pedido" class="faixa" hidden></div>
   <section id="video" class="bloco" hidden>
-    <h3>O VÍDEO</h3>
+    <h3>O vídeo</h3>
     <div class="video"><video id="player" controls playsinline preload="none"></video><div class="q" id="qualidade" hidden></div></div>
-    <button class="explorar" type="button" data-ir="explorar"><span><b>EXPLORAR O PROJETO</b><small>ande pela maquete, veja a planta com as medidas e as fotos 360°</small></span><span class="ir">ENTRAR NO TOUR →</span></button>
+    <button class="explorar" type="button" data-ir="explorar"><span class="txt"><b>Explorar o projeto</b><small>Ande pela maquete, veja a planta com as medidas e as fotos 360°</small></span><span class="ir">Entrar no tour<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span></button>
   </section>
   <section id="explorar" class="bloco" hidden>
-    <h3>EXPLORAR O PROJETO</h3>
+    <h3>Explorar o projeto</h3>
     <div class="tour" id="tour">
-      <div class="capaTour" id="capaTour"><button id="entrarTour" type="button">ENTRAR NO TOUR <small id="tamanhoTour"></small></button></div>
+      <div class="capaTour" id="capaTour"><button id="entrarTour" class="b1 grande" type="button">Entrar no tour <small id="tamanhoTour"></small></button></div>
       <iframe id="quadroTour" title="O tour do projeto" allow="fullscreen; gyroscope; accelerometer; xr-spatial-tracking" allowfullscreen hidden></iframe>
-      <button id="comentar" class="com" type="button" aria-label="Solicitar ajuste" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg><span class="rotulo">SOLICITAR AJUSTE</span></button>
+      <button id="comentar" class="com" type="button" aria-label="Solicitar ajuste" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg><span class="rotulo">Solicitar ajuste</span></button>
       <div id="avisoComentar" class="avisoComentar" hidden>Toque no tour onde quer o ajuste</div>
-      <button id="sairTour" class="sair so-celular" type="button" aria-label="Sair do tour" title="Sair do tour" hidden>✕</button>
+      <button id="sairTour" class="sair so-celular" type="button" aria-label="Sair do tour" title="Sair do tour" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
   </section>
   <section id="imagens" class="bloco" hidden>
-    <h3>AS IMAGENS</h3>
+    <h3>As imagens</h3>
     <div class="carrossel" id="carrossel"><button class="seta e" type="button" aria-label="anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><button class="seta d" type="button" aria-label="seguinte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
     <div class="legendaFoto" id="legenda"></div>
     <div class="pontos" id="pontos"></div>
@@ -51,45 +55,43 @@
 
 <footer id="rodape" class="rodapeEsc" hidden>
   <div class="icones" id="icones"></div>
-  <hr><small id="frase"></small><h4 id="titulo"></h4><p id="texto"></p>
-  <div class="feito"><span id="ate"></span><a href="https://www.arquionie.com.br" target="_blank" rel="noopener">feito com ARQUIONIE™</a></div>
+  <p class="frase" id="frase"></p><h4 id="titulo"></h4><p class="texto" id="texto"></p>
+  <div class="feito"><span id="ate"></span><a href="https://www.arquionie.com.br" target="_blank" rel="noopener">feito com Arquionie™</a></div>
 </footer>
 
 <!-- SOLICITAR AJUSTE: o nome e os ajustes, cada um com o alfinete no tour, enviados juntos. -->
 <aside id="painel" class="painelCom" hidden>
-  <div class="cab"><span id="painelTitulo">SOLICITAR AJUSTE</span><button id="fecharPainel" type="button" aria-label="fechar">✕</button></div>
+  <div class="cab"><b id="painelTitulo">Solicitar ajuste</b><button id="fecharPainel" class="redondo" type="button" aria-label="fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <div class="corpo">
     <label class="campo"><span>Seu nome</span><input id="nomeAjustes" maxlength="120" autocomplete="name"></label>
     <div id="enviados"></div>
     <div id="lista"></div>
-    <button id="novoComentario" class="mais" type="button">+ NOVO AJUSTE · toque no tour onde quer o ajuste</button>
-    <button id="semLugar" class="mais leve" type="button">+ UM AJUSTE NO PROJETO EM GERAL</button>
+    <button id="novoComentario" class="b2 cheio" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Novo ajuste no tour</button>
+    <button id="semLugar" class="b3 cheio" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Ajuste no projeto em geral</button>
   </div>
   <div class="pe">
-    <button id="enviarComentarios" class="principal" type="button" disabled>ENVIAR OS AJUSTES</button>
-    <button id="descartar" type="button">DESCARTAR</button>
+    <button id="descartar" class="b3" type="button">Descartar</button>
+    <button id="enviarComentarios" class="b1" type="button" disabled>Enviar os ajustes</button>
     <p id="erroAjustes" class="erro" hidden></p>
   </div>
 </aside>
 
 <!-- APROVAR O PROJETO: o termo do escritório. -->
 <div id="fundoTermo" class="fundo" hidden>
-  <div id="termo" class="modal" role="dialog" aria-modal="true">
-    <div class="cab" id="termoTitulo"></div>
-    <div class="corpo">
-      <p id="termoAbertura"></p>
-      <div id="termoItens"></div>
-      <p class="perg" id="termoPergunta"></p>
-      <label class="campo"><span>Seu nome</span><input id="nomeAprovar" maxlength="120" autocomplete="name"></label>
-      <div class="bts"><button id="voltarTermo" type="button">VOLTAR</button><button id="confirmarAprovar" class="principal" type="button" disabled>APROVAR</button></div>
-      <p class="dica" id="termoDica"></p>
-      <p id="erroAprovar" class="erro" hidden></p>
-    </div>
+  <div id="termo" class="modal" role="dialog" aria-modal="true" aria-labelledby="termoTitulo">
+    <b class="cab" id="termoTitulo"></b>
+    <p id="termoAbertura"></p>
+    <div id="termoItens"></div>
+    <p class="perg" id="termoPergunta"></p>
+    <label class="campo"><span>Seu nome</span><input id="nomeAprovar" maxlength="120" autocomplete="name"></label>
+    <p class="dica" id="termoDica"></p>
+    <div class="bts"><button id="voltarTermo" class="b3" type="button">Voltar</button><button id="confirmarAprovar" class="b1" type="button" disabled>Aprovar</button></div>
+    <p id="erroAprovar" class="erro" hidden></p>
   </div>
 </div>
 
 <!-- A imagem em tela cheia. -->
-<div id="telaCheia" class="telaCheia" hidden><img id="imagemCheia" alt=""><button class="seta e" type="button" aria-label="anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><button class="seta d" type="button" aria-label="seguinte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button><button class="fechar" type="button" aria-label="fechar">✕</button><div class="legenda" id="legendaCheia"></div></div>
+<div id="telaCheia" class="telaCheia" hidden><img id="imagemCheia" alt=""><button class="seta e" type="button" aria-label="anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><button class="seta d" type="button" aria-label="seguinte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button><button class="fechar redondo" type="button" aria-label="fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="legenda" id="legendaCheia"></div></div>
 <div id="nota" class="nota" hidden></div>
 
 <script src="/apresentacao/video.js"></script>

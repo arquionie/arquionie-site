@@ -75,10 +75,10 @@ window.TourDaMaquete = async function (base, tour) {
     body.maquete #controles, body.maquete #lado, body.maquete #retomar, body.maquete .comando, body.maquete #dica { display: none !important; }
     #mq-rotulos, #mq-marcas, #mq-cotas, #mq-alfinetes { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
     .mq-alfinete { position: absolute; left: 0; top: 0; width: 26px; height: 26px; margin: -34px 0 0 -13px; border-radius: 50% 50% 50% 0;
-      transform: rotate(-45deg); background: #E76353; box-shadow: 0 3px 8px rgba(0,0,0,.35); pointer-events: auto; cursor: pointer; }
-    .mq-alfinete b { display: block; transform: rotate(45deg); color: #fff; font: 700 12px/26px "Segoe UI", sans-serif; text-align: center; }
-    .mq-alfinete.rascunho { background: #fff; border: 2.5px solid #E76353; margin: -36px 0 0 -15px; }
-    .mq-alfinete.rascunho b { color: #E76353; line-height: 21px; }
+      transform: rotate(-45deg); background: var(--alfinete, #E76353); box-shadow: 0 3px 8px rgba(0,0,0,.35); pointer-events: auto; cursor: pointer; }
+    .mq-alfinete b { display: block; transform: rotate(45deg); color: var(--alfinete-texto, #fff); font: 700 12px/26px "Segoe UI", sans-serif; text-align: center; }
+    .mq-alfinete.rascunho { background: #fff; border: 2.5px solid var(--alfinete, #E76353); margin: -36px 0 0 -15px; }
+    .mq-alfinete.rascunho b { color: var(--alfinete-letra, #E76353); line-height: 21px; }
     body.comentando #tela { cursor: crosshair; }
     #mq-cotas { width: 100%; height: 100%; }
     #mq-cotas text { font: 600 11.5px Inter, "Segoe UI", sans-serif; fill: #2b3036; stroke: rgba(244,243,240,.85); stroke-width: 2.5px; paint-order: stroke; }
@@ -1293,6 +1293,10 @@ window.TourDaMaquete = async function (base, tour) {
     if (!m || !m.arquionie || ev.source !== parent) return;
     if (m.tipo === "comentar") { comentarios.ligado = !!m.ligado; document.body.classList.toggle("comentando", comentarios.ligado); }
     if (m.tipo === "alfinetes") {
+      // Os alfinetes na cor do escritório, a dos botões da página (ÊDI, 20/10/2026); sem ela, o coral de sempre.
+      const cor = m.cor || {}, valida = c => /^#[0-9A-Fa-f]{6}$/.test(c || "") ? c : "";
+      for (const [nome, valor] of [["--alfinete", cor.fundo], ["--alfinete-texto", cor.texto], ["--alfinete-letra", cor.letra]])
+        $("mq-alfinetes").style.setProperty(nome, valida(valor));
       comentarios.alfinetes = (m.lista || []).filter(a => a.lugar && Array.isArray(a.lugar.ponto));
       const vivos = new Set(comentarios.alfinetes.map(a => a.n));
       for (const [n, el] of comentarios.els) if (!vivos.has(n)) { el.remove(); comentarios.els.delete(n); }

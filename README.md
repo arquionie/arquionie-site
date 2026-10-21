@@ -33,6 +33,10 @@ cartões. O /gestao também (mockup `docs/mockups/gestao-amigavel`, aprovado no 
   ele entra no `tokens.json`.
 - As peças: `components/Formulario.jsx` (botões nos três níveis, campos, etiquetas), `components/Listas.jsx` (listas agrupadas) e
   `components/Cartao.jsx` (as telas de conta); as do /gestao, em `components/GestaoPecas.jsx`.
+- **A página do cliente** (`public/apresentacao`, o `/t/CÓDIGO`) também está no amigável (ÊDI, 20/10/2026; mockup
+  `docs/mockups/pagina-do-cliente-amigavel` no repositório do programa). Ela fica fora do Vite e leva a sua cópia do `tokens.css`
+  (`public/apresentacao/tokens.css`, posta pelo mesmo `copiar-para-o-site.mjs`). O tema segue o aparelho do cliente; a cor do escritório
+  vai nos botões, escurecida só o necessário para o texto branco (numa cor clara, a exata com o texto escuro), e nos alfinetes do tour.
 
 ## SEO e GEO (Google, Bing e as IAs que buscam na web)
 

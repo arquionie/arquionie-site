@@ -33,6 +33,8 @@
     $("carregando").hidden = true;
     $("fechadoTitulo").textContent = titulo; $("fechadoTexto").textContent = texto;
     if (escritorio?.logo) $("fechadoLogo").src = ARQUIVOS_URL + escritorio.logo; else $("fechadoLogo").remove();
+    if (escritorio) cores(escritorio.cor);
+    if (escritorio?.nome && !escritorio.logo) { $("fechadoIniciais").textContent = iniciais(escritorio.nome); $("fechadoIniciais").hidden = false; }
     if (escritorio?.nome) document.title = escritorio.nome;
     $("fechado").hidden = false;
   }
@@ -73,13 +75,36 @@
   }
 
   // ---------------------------------------------------------------- a cor do escritório
-  function cores(hex) {
-    const ok = /^#[0-9A-Fa-f]{6}$/.test(hex || "") ? hex : "#E76353";
-    const c = [1, 3, 5].map(i => parseInt(ok.slice(i, i + 2), 16));
-    const mistura = (alvo, f) => "#" + c.map(v => Math.round(v + (alvo - v) * f).toString(16).padStart(2, "0")).join("");
-    const raiz = document.documentElement.style;
-    raiz.setProperty("--cor", ok); raiz.setProperty("--cor-escura", mistura(0, .45)); raiz.setProperty("--cor-clara", mistura(255, .86));
+  // No modo amigável (ÊDI, 20/10/2026, mockup pagina-do-cliente-amigavel): o botão cheio na cor escurecida só o necessário para o texto
+  // branco ler bem (4,5 : 1; o coral da Palheta, #E76353, vira #C25346); numa cor clara, a exata com o texto escuro. O tom claro do botão 2
+  // e o texto na cor saem dela, um para o tema claro e outro para o escuro (o apresentacao.css escolhe pelo tema).
+  const BRANCO = [255, 255, 255], PRETO = [0, 0, 0], TEXTO_ESCURO = [30, 27, 25], SUPERFICIE_ESCURA = [29, 30, 32];
+  const linear = v => (v /= 255) <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4;
+  const luz = c => .2126 * linear(c[0]) + .7152 * linear(c[1]) + .0722 * linear(c[2]);
+  const contraste = (a, b) => { const [x, y] = [luz(a), luz(b)].sort((p, q) => q - p); return (x + .05) / (y + .05); };
+  const mistura = (c, alvo, f) => c.map((v, i) => Math.round(v + (alvo[i] - v) * f));
+  /** Leva a cor para o alvo (o preto ou o branco) até ler bem sobre o fundo. */
+  const ate = (c, alvo, fundo) => { let f = 0, r = c; while (contraste(r, fundo) < 4.5 && f < 1) r = mistura(c, alvo, f = Math.min(1, f + .01)); return r; };
+  const hex = c => "#" + c.map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase();
+  let corDoAlfinete = null;
+  function cores(cor) {
+    const c = [1, 3, 5].map(i => parseInt((/^#[0-9A-Fa-f]{6}$/.test(cor || "") ? cor : "#E76353").slice(i, i + 2), 16));
+    // Quase branca, a cor sumiria no alto branco da página: escurece como as outras.
+    const clara = luz(c) > .35 && contraste(c, BRANCO) >= 1.6;
+    const cheia = clara ? c : ate(c, PRETO, BRANCO), texto = clara ? TEXTO_ESCURO : BRANCO;
+    const suave = mistura(c, BRANCO, .86), suaveTexto = ate(mistura(c, PRETO, .45), PRETO, suave);
+    const suaveE = mistura(c, SUPERFICIE_ESCURA, .78), suaveTextoE = ate(mistura(c, BRANCO, .35), BRANCO, suaveE);
+    const v = { "--esc": cheia, "--esc-texto": texto, "--esc-suave-c": suave, "--esc-suave-texto-c": suaveTexto, "--esc-letra-c": clara ? suaveTexto : cheia,
+      "--esc-suave-e": suaveE, "--esc-suave-texto-e": suaveTextoE, "--esc-letra-e": ate(mistura(c, BRANCO, .35), BRANCO, SUPERFICIE_ESCURA) };
+    for (const [nome, valor] of Object.entries(v)) document.documentElement.style.setProperty(nome, hex(valor));
+    // O tour desenha os alfinetes na mesma cor: cheios com o número, e os por enviar brancos com o contorno.
+    corDoAlfinete = { fundo: hex(cheia), texto: hex(texto), letra: hex(clara ? suaveTexto : cheia) };
   }
+  const iniciais = nome => (nome || "?").split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]).join("").toUpperCase();
+  const ICONE_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>';
+  const ICONE_LAPIS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg>';
+  /** Um ícone e um texto (que pode trazer o nome que o cliente escreveu: entra como texto, nunca como HTML). */
+  function comIcone(el, icone, texto) { el.innerHTML = icone; const s = document.createElement("span"); s.textContent = texto; el.append(s); }
 
   // ---------------------------------------------------------------- os ícones do rodapé
   const ICONES = {
@@ -124,13 +149,13 @@
     document.title = `${d.nome} · ${e.nome || "apresentação"}`;
     // O alto: o logo e o nome do escritório no canto, o projeto e a fase.
     if (e.logo) { $("logo").style.backgroundImage = `url("${ARQUIVOS_URL + e.logo}")`; $("logo").classList.add("imagem"); }
-    else $("logo").textContent = (e.nome || "?").split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]).join("");
+    else $("logo").textContent = iniciais(e.nome);
     $("nomeEscritorio").textContent = e.nome || "";
     if (e.site) $("marca").href = endereco(e.site); else $("marca").removeAttribute("href");
     $("nomeProjeto").textContent = d.nome;
     const final = envio.fase === "final";
     // os nomes da fase desde 12/10/2026 (mockup enviar-no-painel do programa): ESTUDO e ENTREGA FINAL; no banco, 'aprovacao' e 'final'
-    $("fase").textContent = final ? "ENTREGA FINAL" : `ESTUDO · ENVIO ${envio.numero} · ${data(envio.em)}`;
+    $("fase").textContent = final ? "Entrega final" : `Estudo · envio ${envio.numero} · ${data(envio.em)}`;
     $("fase").classList.toggle("final", final);
     atualizarSituacao();
     // O vídeo, o tour e as imagens, na ordem do mockup; o que o envio não tem não aparece.
@@ -145,7 +170,7 @@
       $("explorar").hidden = false;
       if (manifesto.tour.capa) $("capaTour").style.backgroundImage = `url("${base + manifesto.tour.capa}")`;
       const tamanho = Object.values(manifesto.tour.tamanhos || {}).reduce((s, t) => s + t, 0);
-      $("tamanhoTour").textContent = tamanho ? `carrega uns ${mb(tamanho)}` : "";
+      $("tamanhoTour").textContent = tamanho ? `· ${mb(tamanho)}` : "";
       $("entrarTour").onclick = entrarNoTour;
     } else for (const b of document.querySelectorAll(".explorar")) b.hidden = true;
     if ((manifesto.imagens || []).length) { $("imagens").hidden = false; montarCarrossel(manifesto.imagens); }
@@ -167,7 +192,7 @@
     icones.append(share);
     $("compartilharTopo").onclick = () => compartilhar(document.title);
     $("frase").textContent = e.frase || ""; $("titulo").textContent = e.titulo || ""; $("texto").textContent = e.texto || "";
-    if (!e.frase && !e.titulo && !e.texto) document.querySelector(".rodapeEsc hr").hidden = true;
+    for (const id of ["frase", "titulo", "texto"]) $(id).hidden = !$(id).textContent;
     $("ate").textContent = envio.expiraEm ? `Disponível até ${data(envio.expiraEm)}` : "";
     // O menu acompanha a parte que está na tela.
     for (const a of document.querySelectorAll("[data-ir]")) a.addEventListener("click", ev => {
@@ -191,13 +216,13 @@
     const responde = !final && !aprovada;
     $("acoes").hidden = !responde;
     $("comentar").hidden = !responde || !$("quadroTour").src;
-    if (final) { $("selo").textContent = "✓ PROJETO APROVADO · APRESENTAÇÃO FINAL"; $("selo").hidden = false; }
-    else if (aprovada) { $("selo").textContent = `✓ PROJETO APROVADO · por ${aprovada.nome} · ${data(aprovada.em, true)}`; $("selo").hidden = false; }
+    if (final) { comIcone($("selo"), ICONE_OK, "Projeto aprovado · apresentação final"); $("selo").hidden = false; }
+    else if (aprovada) { comIcone($("selo"), ICONE_OK, `Projeto aprovado por ${aprovada.nome} · ${data(aprovada.em)}`); $("selo").hidden = false; }
     else $("selo").hidden = true;
     const ped = (envio.pedidos || []).at(-1);
     if (ped && !final) {
       const n = ped.comentarios.length;
-      $("pedido").textContent = `✎ AJUSTES SOLICITADOS · ${n} ${n === 1 ? "ajuste" : "ajustes"} de ${ped.nome} · ${data(ped.em)}`;
+      comIcone($("pedido"), ICONE_LAPIS, `${n} ${n === 1 ? "ajuste solicitado" : "ajustes solicitados"} por ${ped.nome} · ${data(ped.em)}`);
       $("pedido").hidden = false;
     }
   }
@@ -231,8 +256,8 @@
     $("comentar").classList.toggle("on", ligado);
     $("tour").classList.toggle("comentando", ligado);
     // Um termo só, SOLICITAR AJUSTE (ÊDI, 13/10/2026: o COMENTAR dava duplo entendimento); ligado, o mesmo nome com o ✕.
-    $("comentar").innerHTML = ligado ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg><span class="rotulo">SOLICITAR AJUSTE</span>'
-      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg><span class="rotulo">SOLICITAR AJUSTE</span>';
+    $("comentar").innerHTML = ligado ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg><span class="rotulo">Solicitar ajuste</span>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg><span class="rotulo">Solicitar ajuste</span>';
     $("comentar").setAttribute("aria-label", ligado ? "Parar de marcar os ajustes no tour" : "Solicitar ajuste");
     $("comentar").title = ligado ? "Parar de marcar os ajustes no tour" : "";
     $("avisoComentar").hidden = !ligado;
@@ -265,7 +290,7 @@
     const lista = [...enviados.map((c, i) => ({ n: i + 1, lugar: c.lugar, texto: c.texto, nome: c.nome, rascunho: false })),
       ...rascunho.map((c, i) => ({ n: enviados.length + i + 1, lugar: c.lugar, texto: c.texto, nome: $("nomeAjustes").value, rascunho: true }))]
       .filter(a => a.lugar?.ponto);
-    paraOTour({ tipo: "alfinetes", lista });
+    paraOTour({ tipo: "alfinetes", lista, cor: corDoAlfinete });
   }
   function montarRespostas() {
     try {
@@ -293,7 +318,9 @@
   function abrirPainel() { $("painel").hidden = false; document.body.classList.add("comPainel"); desenharLista(); }
   function desenharLista(focarUltimo = false) {
     const enviados = enviadosLista();
-    $("enviados").innerHTML = enviados.length ? `<div class="campo"><span>ENVIADOS AO ESCRITÓRIO (${enviados.length})</span></div>` : "";
+    // Os rótulos com o número antes da palavra (ÊDI, 20/10/2026): "1 enviado ao escritório", "2 por enviar".
+    const n = enviados.length;
+    $("enviados").innerHTML = n ? `<p class="rotulo">${n} ${n === 1 ? "enviado" : "enviados"} ao escritório</p>` : "";
     enviados.forEach((c, i) => {
       const el = document.createElement("div"); el.className = "it enviado"; el.dataset.n = i + 1;
       el.innerHTML = `<div class="n${c.lugar?.ponto ? "" : " geral"}">${i + 1}</div><div class="meio"><small></small><div></div></div>`;
@@ -301,12 +328,14 @@
       el.querySelector(".meio div").textContent = c.texto;
       $("enviados").append(el);
     });
-    const lista = $("lista"); lista.innerHTML = "";
+    const lista = $("lista"); lista.innerHTML = rascunho.length ? `<p class="rotulo">${rascunho.length} por enviar</p>` : "";
     rascunho.forEach((c, i) => {
       const n = enviados.length + i + 1;
       const el = document.createElement("div"); el.className = "it"; el.dataset.n = n;
-      el.innerHTML = `<div class="n${c.lugar?.ponto ? "" : " geral"}">${n}</div><div class="meio"><small></small><textarea maxlength="2000" placeholder="Escreva o ajuste…"></textarea><button class="tirar" type="button">tirar</button></div>`;
-      el.querySelector("small").textContent = ondeFica(c.lugar);
+      // Por enviar, o número vazado, como o alfinete no tour; sem lugar, cinza.
+      el.innerHTML = `<div class="n${c.lugar?.ponto ? " vaz" : " geral"}">${n}</div><div class="meio"><small></small><textarea maxlength="2000" placeholder="Escreva o ajuste…"></textarea><button class="tirar b3 pq" type="button">Tirar</button></div>`;
+      const onde = ondeFica(c.lugar);
+      el.querySelector("small").textContent = onde[0].toUpperCase() + onde.slice(1);
       const caixa = el.querySelector("textarea");
       caixa.value = c.texto;
       caixa.oninput = () => { c.texto = caixa.value; guardarRascunho(); conferirBotoes(); enviarAlfinetes(); };
@@ -318,9 +347,9 @@
   }
   function conferirBotoes() {
     const prontos = rascunho.filter(c => c.texto.trim()).length;
-    $("enviarComentarios").textContent = `ENVIAR OS AJUSTES${prontos ? ` (${prontos})` : ""}`;
+    $("enviarComentarios").textContent = prontos ? `Enviar ${prontos} ${prontos === 1 ? "ajuste" : "ajustes"}` : "Enviar os ajustes";
     $("enviarComentarios").disabled = !prontos || !$("nomeAjustes").value.trim();
-    $("painelTitulo").textContent = `SOLICITAR AJUSTE · ENVIO ${d.envio.numero}`;
+    $("painelTitulo").textContent = `Solicitar ajuste · envio ${d.envio.numero}`;
     // Enquanto há comentário por enviar, o APROVAR fica apagado (ÊDI: comentar é pedir ajuste).
     const pendente = rascunho.some(c => c.texto.trim());
     $("botaoAprovar").disabled = pendente;
@@ -341,17 +370,18 @@
   // ---------------------------------------------------------------- APROVAR O PROJETO: o termo do escritório
   function abrirTermo() {
     const termo = d.escritorio.termo;
-    $("termoTitulo").textContent = `${termo.titulo} · ENVIO ${d.envio.numero}`;
+    $("termoTitulo").textContent = `${termo.titulo} · envio ${d.envio.numero}`;
     $("termoAbertura").textContent = termo.abertura || ""; $("termoAbertura").hidden = !termo.abertura;
     $("termoPergunta").textContent = termo.pergunta;
     const itens = $("termoItens"); itens.innerHTML = "";
     for (const texto of termo.itens) {
       const l = document.createElement("label"); l.className = "item";
-      l.innerHTML = `<input type="checkbox"><span></span>`; l.querySelector("span").textContent = texto;
+      // A marca redonda do modo amigável: a caixa de marcar escondida, o círculo (i) desenhado ao lado.
+      l.innerHTML = `<input type="checkbox"><i>${ICONE_OK}</i><span></span>`; l.querySelector("span").textContent = texto;
       l.querySelector("input").onchange = conferirTermo;
       itens.append(l);
     }
-    $("termoDica").textContent = `O APROVAR acende com ${termo.itens.length === 1 ? "o item marcado" : `os ${termo.itens.length} itens marcados`} e o nome.`;
+    $("termoDica").textContent = `Marque ${termo.itens.length === 1 ? "o item" : `os ${termo.itens.length} itens`} e escreva o seu nome para aprovar.`;
     $("erroAprovar").hidden = true;
     $("nomeAprovar").value ||= $("nomeAjustes").value;
     $("nomeAprovar").oninput = conferirTermo;
