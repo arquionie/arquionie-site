@@ -314,6 +314,20 @@ Configurações feitas no painel, em ordem:
    no primeiro acesso; a proposta completa para o cliente; o /comprar pelo WhatsApp; e a aula "Comercial · primeiros passos", narrada pelo
    Nie, pública no canal @arquionie. O modo de aula (`?amostra=aula`) só existe no `npm run dev`.
 
+15. **Os PROJETOS PROTEGIDOS do escritório** (doc 73 do repositório do programa, etapa 1; mockup `docs/mockups/projetos-do-escritorio`,
+   aprovado por ÊDI em 20/10/2026; branch `projetos-do-escritorio`). **Ainda não publicado.** O servidor guarda o dono e a chave de cada
+   projeto, nunca o arquivo; o programa grava o `.aqi` cifrado e pede a chave aqui ao abrir. Só com o ÊDI, nesta ordem, **antes** de
+   publicar a versão do programa que traz os projetos protegidos (sem as funções, o programa salva aberto, como antes):
+   1. **SQL Editor:** rodar `supabase/migrations/20261020120000_projetos_do_escritorio.sql` (pode rodar duas vezes). Conferir:
+      `select public.copia_de_seguranca_situacao()` responde `sem conta` (a função existe e pede a conta).
+   2. **Teste local:** `node supabase/testes/projetos.test.mjs` (39 conferências) e `node supabase/testes/copia-das-chaves.test.mjs` (7).
+   3. **Site:** juntar a `projetos-do-escritorio` na `main` e o `git push`. Conferir em MINHA CONTA › EQUIPE os PROJETOS PROTEGIDOS: os
+      PEDIDOS DE ACESSO e a CÓPIA DE SEGURANÇA DAS CHAVES (baixar com uma senha e guardar o arquivo). Sem conta, no `npm run dev`:
+      `/conta/equipe?amostra=1`.
+   O que muda: cada projeto salvo com a conta ganha dono (a conta do responsável, no projeto do escritório; a da pessoa, na MINHA ÁREA) e
+   uma chave que o servidor entrega só ao dono, à equipe ativa e aos convidados; o PEDIR ACESSO de quem abre uma cópia sem acesso chega
+   aqui; a CÓPIA DE SEGURANÇA DAS CHAVES deixa os projetos abrirem mesmo com o Arquionie fora do ar (a senha não sai do navegador).
+
 ## Pendente
 
 - Textos da página inicial para ÊDI revisar. As imagens são capturas de amostras do programa (`public/imagens`); faltam
