@@ -223,7 +223,7 @@ export default function ParaRevit() {
 
       {/* aulas */}
       <section id="tutoriais" className={SECAO}>
-        <Titulo rotulo="Aprender" titulo="24 aulas em vídeo, da instalação às pranchas" />
+        <Titulo rotulo="Aprender" titulo="53 aulas em vídeo, do primeiro piso às pranchas" />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {AULAS.map(([id, titulo]) => (
             <a key={id} href={`https://www.youtube.com/watch?v=${id}`} className={`${CARTAO} gap-2.5 text-texto no-underline`}>
@@ -239,7 +239,7 @@ export default function ParaRevit() {
           ))}
         </div>
         <div className="mt-3.5">
-          <Botao href={CANAL_DAS_AULAS}>Ver as 24 aulas no YouTube</Botao>
+          <Botao href={CANAL_DAS_AULAS}>Ver as 53 aulas no YouTube</Botao>
         </div>
       </section>
 

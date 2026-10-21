@@ -13,7 +13,7 @@ export const instaladorDoPlugin = (versao) =>
 
 // O portal de quem já assina com a chave antiga: continua no site do Flow até o fim da convivência (plano 17, item 8).
 export const PORTAL_ANTIGO = 'https://www.palhetaflow.com.br/pro/portal';
-// As 24 aulas do plugin: a playlist "Arquionie para Revit" do canal @arquionie (o antigo canal do Flow, renomeado em 19/10/2026).
+// As 53 aulas do plugin: a playlist "Arquionie para Revit" do canal @arquionie (o antigo canal do Flow, renomeado em 19/10/2026).
 export const CANAL_DAS_AULAS = 'https://www.youtube.com/playlist?list=PLQHOforeWwpnR0BN9xXn4onzDwekQP2Xi';
 
 // Os preços de quando o build rodou; a página confere de novo em precos_vigentes() ao abrir.
@@ -64,11 +64,12 @@ export const PRO = [
   'Grupo dos assinantes no WhatsApp, com a equipe',
 ];
 
+// As aulas novas do canal @arquionie, na voz do Nie (21/10/2026); a série completa está na playlist CANAL_DAS_AULAS.
 export const AULAS = [
-  ['ly_Oac0tpXY', 'Apresentação'],
-  ['Gjl4VVmctpA', 'Como instalar o plugin'],
-  ['Z6QymVgRq6A', 'Criar pisos automaticamente'],
-  ['yVLCyOrgjVA', 'Colocar portas alinhadas'],
+  ['FjvqJfyGaAw', 'A interface do plugin'],
+  ['c99LRg3KR-I', 'Criar piso em todos os ambientes'],
+  ['JG6orT6mDvc', 'Criar soleira'],
+  ['RtvPdGH_uNo', 'Criar telhado, embutido ou com beiral'],
 ];
 
 export const REQUISITOS = [
