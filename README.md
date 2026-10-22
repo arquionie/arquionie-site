@@ -37,6 +37,7 @@ cartões. O /gestao também (mockup `docs/mockups/gestao-amigavel`, aprovado no 
   `docs/mockups/pagina-do-cliente-amigavel` no repositório do programa). Ela fica fora do Vite e leva a sua cópia do `tokens.css`
   (`public/apresentacao/tokens.css`, posta pelo mesmo `copiar-para-o-site.mjs`). O tema segue o aparelho do cliente; a cor do escritório
   vai nos botões, escurecida só o necessário para o texto branco (numa cor clara, a exata com o texto escuro), e nos alfinetes do tour.
+  O tour, dentro dela, lê da página as cores, a letra e a cor do escritório (22/10/2026): no computador, as peças soltas, sem a barra.
 
 ## SEO e GEO (Google, Bing e as IAs que buscam na web)
 

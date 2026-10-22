@@ -171,6 +171,103 @@ window.TourDaMaquete = async function (base, tour) {
     #mq-cartao .acoes button.forte { background: #e76353; color: #fff; }
     #mq-cartao .fechar { position: absolute; right: 6px; top: 6px; min-width: 28px; height: 28px; background: none; font-size: 15px; }
     #mq-voltar { position: absolute; left: 50%; transform: translateX(-50%); top: calc(44px + env(safe-area-inset-top)); display: none; background: #794b49; color: #fff; }
+    /* Dentro da página do cliente, o modo amigável dela (ÊDI, 22/10/2026): o mesmo desenho da barra, em cápsulas, com as cores (--pg-*)
+       lidas da página; o escolhido de VER como a escolha do site, e a cor do escritório no PASSEAR ligado, nos deslizes e na SOMBRA. */
+    body.amigavel #mq-barra, body.amigavel #mq-topo, body.amigavel .mq-vert, body.amigavel #mq-dica, body.amigavel #mq-cartao, body.amigavel #mq-voltar,
+      body.amigavel #parada { font-family: var(--pg-letra); }
+    body.amigavel #mq-barra { background: var(--pg-superficie); color: var(--pg-texto); border-radius: 18px; padding: 8px 6px; bottom: calc(14px + env(safe-area-inset-bottom));
+      box-shadow: var(--pg-sombra), 0 0 0 1px var(--pg-linha); }
+    body.amigavel .mq-grupo { padding: 0 6px; }
+    body.amigavel .mq-grupo + .mq-grupo { border-left-color: var(--pg-linha); }
+    body.amigavel .mq-tit { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; color: var(--pg-apagado); margin: 0 0 5px 4px; }
+    body.amigavel .mq-linha, body.amigavel .mq-pav, body.amigavel .mq-desl { height: 36px; gap: 4px; }
+    body.amigavel #mq-barra button { height: 36px; padding: 0 13px; border-radius: 999px; background: var(--pg-superficie-2); color: var(--pg-texto);
+      font: 600 13.5px var(--pg-letra); letter-spacing: 0; }
+    body.amigavel #mq-barra .mq-seg { background: var(--pg-superficie-2); border-radius: 999px; padding: 3px; gap: 0; }
+    body.amigavel #mq-barra .mq-seg button { height: 30px; padding: 0 12px; background: transparent; color: var(--pg-apagado); font-weight: 500; }
+    body.amigavel #mq-barra .mq-seg button.ativo { background: var(--pg-escolhida); color: var(--pg-texto); font-weight: 600; box-shadow: var(--pg-sombra-cartao); }
+    body.amigavel #mq-barra button.mq-passear { background: var(--pg-superficie-2); color: var(--pg-texto); }
+    body.amigavel #mq-barra button.mq-passear.ativo { background: var(--pg-esc); color: var(--pg-esc-texto); }
+    body.amigavel #mq-barra .mq-pav button.mq-ir, body.amigavel #mq-barra #mq-giro, body.amigavel #mq-barra #mq-cheia { width: 36px; padding: 0; border-radius: 50%;
+      background: var(--pg-superficie-2); color: var(--pg-texto); }
+    body.amigavel #mq-pav { min-width: 96px; background: none; box-shadow: none; color: var(--pg-texto); font-size: 14px; font-weight: 600; letter-spacing: 0; }
+    body.amigavel .mq-desl { color: var(--pg-apagado); padding: 0 6px; }
+    body.amigavel .mq-desl input[type=range] { width: 80px; accent-color: var(--pg-esc); }
+    body.amigavel .mq-desl .valor { color: var(--pg-texto); font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    body.amigavel .mq-compacto { position: relative; display: flex; align-items: center; }
+    body.amigavel #mq-barra button.mq-abre { gap: 7px; padding: 0 14px 0 11px; }
+    body.amigavel #mq-barra button.mq-abre .valor { min-width: 0; color: inherit; font-size: 13.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    body.amigavel #mq-barra .mq-compacto.aberto button.mq-abre { background: var(--pg-esc-suave); color: var(--pg-esc-suave-texto); }
+    body.amigavel .mq-pop { position: absolute; left: 50%; bottom: calc(100% + 16px); transform: translateX(-50%); display: none; padding: 16px 10px;
+      background: var(--pg-superficie); border-radius: 18px; box-shadow: var(--pg-sombra), 0 0 0 1px var(--pg-linha); }
+    body.amigavel .mq-compacto.aberto .mq-pop { display: flex; }
+    body.amigavel .mq-pop input[type=range] { writing-mode: vertical-lr; direction: rtl; width: 24px; height: 150px; margin: 0; accent-color: var(--pg-esc); cursor: ns-resize; }
+    /* No computador, sem o fundo da barra e sem os títulos (ÊDI, 22/10/2026): cada peça solta sobre o tour, com o seu fundo, o contorno e a
+       sombra; a caixa do pavimento com o nome do projeto sai (o pavimento já está embaixo, e o projeto, na página). */
+    body.amigavel { --pg-solta: 0 0 0 1px var(--pg-linha), 0 4px 14px rgba(0,0,0,.22); }
+    body.amigavel #parada { display: none !important; }
+    body.amigavel:not(.toque) #mq-barra { background: none; box-shadow: none; padding: 0; border-radius: 0; gap: 14px; align-items: center; }
+    body.amigavel:not(.toque) .mq-tit { display: none; }
+    body.amigavel:not(.toque) .mq-grupo { flex-direction: row; align-items: center; gap: 8px; padding: 0; }
+    body.amigavel:not(.toque) .mq-grupo + .mq-grupo { border-left: 0; }
+    body.amigavel:not(.toque) #mq-barra .mq-pav, body.amigavel:not(.toque) #mq-barra .mq-seg { height: 42px; padding: 3px; border-radius: 999px;
+      background: var(--pg-superficie); box-shadow: var(--pg-solta); }
+    body.amigavel:not(.toque) #mq-barra .mq-pav button.mq-ir { background: transparent; }
+    body.amigavel:not(.toque) #mq-barra .mq-seg button { height: 36px; }
+    body.amigavel:not(.toque) #mq-barra .mq-seg button.ativo { background: var(--pg-superficie-2); box-shadow: none; }
+    body.amigavel:not(.toque) #mq-barra button.mq-abre, body.amigavel:not(.toque) #mq-barra button.mq-chave, body.amigavel:not(.toque) #mq-barra #mq-cheia {
+      height: 42px; background: var(--pg-superficie); box-shadow: var(--pg-solta); }
+    /* a SOMBRA na sua cápsula, com o interruptor dentro (ÊDI, 22/10/2026) */
+    body.amigavel:not(.toque) #mq-barra button.mq-chave { padding: 0 15px 0 12px; }
+    body.amigavel:not(.toque) #mq-barra #mq-cheia { width: 42px; }
+    body.amigavel #mq-barra button.mq-chave { background: transparent; padding: 0 8px; gap: 8px; color: var(--pg-texto); font-weight: 500; }
+    body.amigavel .mq-chave i { width: 34px; height: 20px; border-radius: 10px; background: var(--pg-superficie-2); box-shadow: inset 0 0 0 1px var(--pg-linha); }
+    body.amigavel .mq-chave i::after { top: 2px; left: 2px; width: 16px; height: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+    body.amigavel .mq-chave.ativo i { background: var(--pg-esc); box-shadow: none; } body.amigavel .mq-chave.ativo i::after { left: 16px; }
+    /* a dica discreta (ÊDI, 22/10/2026: chamava atenção), meio transparente e sem contorno, na altura do SOLICITAR AJUSTE da página */
+    body.amigavel #mq-dica { background: color-mix(in srgb, var(--pg-superficie) 62%, transparent); color: var(--pg-apagado); border-radius: 999px;
+      height: 28px; line-height: 28px; padding: 0 12px; font-size: 12px; box-shadow: none; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+    body.amigavel:not(.toque) #mq-dica { top: 18px; }
+    body.amigavel #parada { background: var(--pg-superficie); color: var(--pg-texto); border-radius: 12px; padding: 7px 12px; box-shadow: 0 0 0 1px var(--pg-linha); }
+    body.amigavel #parada span { color: var(--pg-apagado); }
+    body.amigavel #mq-voltar { height: 36px; padding: 0 16px; border-radius: 999px; background: var(--pg-superficie); color: var(--pg-texto); font-size: 13.5px;
+      font-weight: 600; letter-spacing: 0; box-shadow: var(--pg-sombra), 0 0 0 1px var(--pg-linha); }
+    body.amigavel #mq-cartao { background: var(--pg-superficie); color: var(--pg-texto); border-radius: 18px; padding: 16px 18px 14px;
+      box-shadow: var(--pg-sombra), 0 0 0 1px var(--pg-linha); }
+    body.amigavel #mq-cartao .tipo, body.amigavel #mq-cartao dt { color: var(--pg-apagado); font-weight: 600; letter-spacing: .06em; }
+    body.amigavel #mq-cartao h2 { color: var(--pg-texto); font-weight: 700; letter-spacing: -.01em; }
+    body.amigavel #mq-cartao dd { color: var(--pg-texto); }
+    body.amigavel #mq-cartao .acoes button { height: 34px; padding: 0 14px; border-radius: 999px; background: var(--pg-superficie-2); color: var(--pg-texto);
+      font: 600 13px var(--pg-letra); letter-spacing: 0; }
+    body.amigavel #mq-cartao .acoes button.forte { background: var(--pg-esc); color: var(--pg-esc-texto); }
+    body.amigavel #mq-cartao .fechar { right: 10px; top: 10px; width: 30px; min-width: 30px; height: 30px; padding: 0; border-radius: 50%; background: var(--pg-superficie-2);
+      color: var(--pg-texto); font-size: 13px; }
+    /* no celular: cada peça flutua sozinha sobre o tour, na superfície da página, com o contorno e a sombra */
+    body.toque.amigavel #mq-barra { background: none; box-shadow: none; padding: 0; border-radius: 0; gap: 6px; }
+    body.toque.amigavel #mq-barra .mq-seg { height: 44px; padding: 3px; background: var(--pg-superficie); box-shadow: var(--pg-sombra), 0 0 0 1px var(--pg-linha); }
+    body.toque.amigavel #mq-barra .mq-seg button { height: 38px; font-size: 14px; }
+    body.toque.amigavel #mq-barra .mq-seg button.ativo { background: var(--pg-superficie-2); box-shadow: none; }
+    body.toque.amigavel #mq-barra button.mq-passear { width: 44px; height: 44px; padding: 0; border-radius: 50%; background: var(--pg-superficie);
+      box-shadow: var(--pg-sombra), 0 0 0 1px var(--pg-linha); }
+    body.toque.amigavel #mq-barra button.mq-passear.ativo { background: var(--pg-esc); color: var(--pg-esc-texto); }
+    body.amigavel #mq-topo { height: 36px; }
+    body.amigavel #mq-topo .mq-esq { left: calc(62px + env(safe-area-inset-left)); gap: 8px; }
+    body.amigavel #mq-topo button { width: 36px; height: 36px; border-radius: 50%; background: var(--pg-superficie); color: var(--pg-texto);
+      box-shadow: 0 0 0 1px var(--pg-linha), 0 4px 14px rgba(0,0,0,.28); }
+    body.amigavel #mq-topo button.ativo { background: var(--pg-esc); color: var(--pg-esc-texto); }
+    body.amigavel #mq-topo .mq-pav { height: 36px; gap: 0; padding: 0 2px; border-radius: 999px; background: var(--pg-superficie);
+      box-shadow: 0 0 0 1px var(--pg-linha), 0 4px 14px rgba(0,0,0,.28); }
+    body.amigavel #mq-topo .mq-pav button.mq-ir { width: 32px; height: 32px; background: transparent; color: var(--pg-texto); box-shadow: none; }
+    body.amigavel #mq-topo .mq-pav button.mq-ir:disabled { color: var(--pg-apagado); opacity: .45; }
+    body.amigavel #mq-topo #mq-pav { min-width: 70px; height: 36px; padding: 0 6px; background: none; font-size: 13px; }
+    body.amigavel .mq-vert { width: 34px; }
+    body.amigavel .mq-vert .mq-ico, body.amigavel #mq-v-sol #mq-sombra { width: 32px; height: 32px; background: var(--pg-superficie); color: var(--pg-texto);
+      box-shadow: 0 0 0 1px var(--pg-linha), 0 4px 12px rgba(0,0,0,.18); }
+    body.amigavel #mq-v-sol #mq-sombra.ativo { background: var(--pg-esc); color: var(--pg-esc-texto); }
+    body.amigavel .mq-vbarra .t { background: var(--pg-superficie); box-shadow: 0 0 0 1px var(--pg-linha), 0 2px 8px rgba(0,0,0,.2); }
+    body.amigavel .mq-vbarra .t i { background: var(--pg-esc); }
+    body.amigavel .mq-vbarra .bolha { background: var(--pg-superficie); color: var(--pg-texto); border-radius: 999px; padding: 4px 10px; font-size: 13px; font-weight: 600;
+      box-shadow: 0 0 0 1px var(--pg-linha), 0 4px 12px rgba(0,0,0,.18); }
   `;
   document.head.appendChild(estilo);
   // Os símbolos da barra (o traço do programa, nas cores do tour).
@@ -185,11 +282,38 @@ window.TourDaMaquete = async function (base, tour) {
     giro: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M3 8a9 9 0 0 0 0 8M21 8a9 9 0 0 1 0 8"/></svg>',
     sombra: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg>',
   };
+  // Dentro da página do cliente (?embutido=1), os controles no modo amigável da página (ÊDI, 22/10/2026): as cores, a letra e a cor do
+  // escritório vêm da própria página (os tokens dela, no tema do aparelho), lidas daqui como --pg-*; fora dela, o tour como sempre.
+  const naPagina = !!new URLSearchParams(location.search).get("embutido") && parent !== window;
+  function coresDaPagina() {
+    try {
+      const css = parent.getComputedStyle(parent.document.documentElement);
+      const lidas = Object.entries({ superficie: "--superficie", "superficie-2": "--superficie-2", escolhida: "--amg-superficie-escolhida",
+        linha: "--linha", texto: "--texto", apagado: "--texto-apagado", esc: "--esc", "esc-texto": "--esc-texto", "esc-suave": "--esc-suave",
+        "esc-suave-texto": "--esc-suave-texto", sombra: "--amg-sombra-janela",
+        "sombra-cartao": "--amg-sombra-cartao", letra: "--letra" }).map(([nome, da]) => [nome, css.getPropertyValue(da).trim()]);
+      if (lidas.some(([, valor]) => !valor)) return false;
+      for (const [nome, valor] of lidas) document.documentElement.style.setProperty("--pg-" + nome, valor);
+      return true;
+    } catch { return false; }
+  }
+  const amigavel = naPagina && coresDaPagina();
+  if (amigavel) {
+    document.body.classList.add("amigavel");
+    // O aparelho troca de tema com a página aberta: a página troca os tokens, e o tour os lê de novo.
+    parent.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => requestAnimationFrame(coresDaPagina));
+  }
+  // Os nomes dos botões: no amigável, em caixa normal.
+  const T = amigavel
+    ? { maquete: "Maquete", planta: "Planta", andar: "Andar", passear: "Passear", passeando: "Passeando", sombra: "Sombra", tudo: "Tudo",
+      voltar: "✕ Voltar à maquete", andarAqui: "Andar aqui", ver360: "Ver em 360°", plantaInteira: "Planta inteira" }
+    : { maquete: "MAQUETE", planta: "PLANTA", andar: "ANDAR", passear: "PASSEAR", passeando: "PASSEANDO", sombra: "SOMBRA", tudo: "TUDO",
+      voltar: "✕ VOLTAR À MAQUETE", andarAqui: "ANDAR AQUI", ver360: "VER EM 360°", plantaInteira: "PLANTA INTEIRA" };
   const pavimento = `<div class="mq-pav"><button id="mq-abaixo" class="mq-ir" title="Pavimento de baixo" aria-label="Pavimento de baixo">${ICONES.antes}</button>`
     + `<span id="mq-pav"></span><button id="mq-acima" class="mq-ir" title="Pavimento de cima" aria-label="Pavimento de cima">${ICONES.depois}</button></div>`;
-  const modos = '<div class="mq-linha mq-seg"><button id="mq-maquete">MAQUETE</button><button id="mq-planta">PLANTA</button><button id="mq-andar">ANDAR</button></div>';
+  const modos = `<div class="mq-linha mq-seg"><button id="mq-maquete">${T.maquete}</button><button id="mq-planta">${T.planta}</button><button id="mq-andar">${T.andar}</button></div>`;
   const passear = `<button id="mq-play" class="mq-passear" title="Passear pelos ambientes" aria-label="Passear pelos ambientes"><b id="mq-play-icone">${ICONES.play}</b>`
-    + '<span id="mq-play-nome">PASSEAR</span></button>';
+    + `<span id="mq-play-nome">${T.passear}</span></button>`;
   const barra = toque ? `
     <div class="sobre esconder" id="mq-topo"><div class="mq-esq"><button id="mq-cheia" title="Tela cheia" aria-label="Tela cheia">${ICONES.cheia}</button>`
       + `<button id="mq-giro" title="Movimento do celular" aria-label="Movimento do celular">${ICONES.giro}</button></div>${pavimento}</div>
@@ -207,7 +331,7 @@ window.TourDaMaquete = async function (base, tour) {
       <div class="mq-grupo"><span class="mq-tit">PASSEAR</span><div class="mq-linha">${passear}</div></div>
       <div class="mq-grupo"><span class="mq-tit">LUZ</span><div class="mq-linha"><label class="mq-desl" title="A hora do sol">${ICONES.sol}`
         + `<input type="range" id="mq-sol" min="360" max="1080" step="5"><span class="valor" id="mq-hora"></span></label>`
-        + `<button id="mq-sombra" class="mq-chave" title="Ligar e desligar a sombra do sol"><i></i>SOMBRA</button></div></div>
+        + `<button id="mq-sombra" class="mq-chave" title="Ligar e desligar a sombra do sol"><i></i>${T.sombra}</button></div></div>
       <div class="mq-grupo"><span class="mq-tit">CORTE</span><div class="mq-linha"><label class="mq-desl" title="A altura das paredes">${ICONES.corte}`
         + `<input type="range" id="mq-paredes" min="0.8" max="3.6" step="0.1"><span class="valor" id="mq-altura"></span></label></div></div>
       <div class="mq-grupo"><span class="mq-tit">&nbsp;</span><div class="mq-linha"><button id="mq-giro" title="Movimento do celular" aria-label="Movimento do celular">${ICONES.giro}</button>`
@@ -219,10 +343,30 @@ window.TourDaMaquete = async function (base, tour) {
   camada.innerHTML = `
     <svg id="mq-cotas" xmlns="http://www.w3.org/2000/svg"></svg><div id="mq-rotulos"></div><div id="mq-marcas"></div><div id="mq-alfinetes"></div>
     <div class="sobre esconder" id="mq-dica"></div>
-    <button class="sobre" id="mq-voltar">✕ VOLTAR À MAQUETE</button>
+    <button class="sobre" id="mq-voltar">${T.voltar}</button>
     ${barra}
     <div class="sobre" id="mq-cartao"></div>`;
   document.body.insertBefore(camada, $("preto"));
+  // No computador, dentro da página do cliente, a hora do sol e o corte ficam só no ícone com o valor; o clique abre o deslize em pé,
+  // como no celular (ÊDI, 22/10/2026: economiza a barra).
+  if (amigavel && !toque) {
+    for (const desl of $("mq-barra").querySelectorAll(".mq-desl")) {
+      const caixa = document.createElement("div"), botao = document.createElement("button"), janela = document.createElement("div");
+      caixa.className = "mq-compacto"; janela.className = "mq-pop";
+      botao.type = "button"; botao.className = "mq-abre"; botao.title = desl.title; botao.setAttribute("aria-label", desl.title);
+      botao.append(desl.querySelector("svg"), desl.querySelector(".valor")); janela.append(desl.querySelector("input"));
+      caixa.append(botao, janela); desl.replaceWith(caixa);
+      botao.onclick = () => { const abrir = !caixa.classList.contains("aberto"); fecharDeslizes(); caixa.classList.toggle("aberto", abrir); };
+    }
+    addEventListener("pointerdown", ev => { if (!ev.target.closest?.(".mq-compacto")) fecharDeslizes(); }, true);
+    addEventListener("keydown", ev => { if (ev.key === "Escape") fecharDeslizes(); });
+    // Sem os títulos e sem o fundo da barra, cada peça solta com o seu fundo; o corte junto do pavimento; sem o PASSEAR (ÊDI, 22/10/2026).
+    const corte = $("mq-paredes").closest(".mq-grupo");
+    $("mq-pav").closest(".mq-grupo").append(corte.querySelector(".mq-linha"));
+    corte.remove();
+    $("mq-play").closest(".mq-grupo").style.display = "none";
+  }
+  function fecharDeslizes() { for (const c of document.querySelectorAll(".mq-compacto.aberto")) c.classList.remove("aberto"); }
 
   // ---------------------------------------------------------------- o desenho (WebGL 2)
   function programa(vs, fs) {
@@ -1173,7 +1317,7 @@ window.TourDaMaquete = async function (base, tour) {
     $("mq-cartao").innerHTML = `<button class="fechar" title="Fechar">✕</button>
       <div class="tipo">AMBIENTE${a.numero ? " " + a.numero : ""} · ${(pavs[a.pavimento].nome || "").toUpperCase()}</div><h2>${a.nome}</h2>
       <dl>${linhas.map(l => `<dt>${l[0]}</dt><dd>${l[1]}</dd>`).join("")}</dl>
-      <div class="acoes"><button class="forte" data-a="andar">ANDAR AQUI</button>${foto360 >= 0 ? `<button class="forte" data-a="foto">VER EM 360°</button>` : ""}<button data-a="planta">PLANTA INTEIRA</button></div>`;
+      <div class="acoes"><button class="forte" data-a="andar">${T.andarAqui}</button>${foto360 >= 0 ? `<button class="forte" data-a="foto">${T.ver360}</button>` : ""}<button data-a="planta">${T.plantaInteira}</button></div>`;
     $("mq-cartao").style.display = "block";
     $("mq-cartao").querySelector(".fechar").onclick = () => escolherAmbiente(null);
     $("mq-cartao").querySelector("[data-a=andar]").onclick = () => andarEm(a.centro[0], a.centro[1], a.z);
@@ -1457,12 +1601,12 @@ window.TourDaMaquete = async function (base, tour) {
     $("mq-abaixo").disabled = est.pav <= 0; $("mq-acima").disabled = est.pav >= pavs.length - 1;
     const h = Math.floor(sol.minutos / 60), mi = sol.minutos % 60;
     $("mq-hora").textContent = `${String(h).padStart(2, "0")}:${String(mi).padStart(2, "0")}`;
-    $("mq-altura").textContent = est.paredes >= 3.55 ? "TUDO" : `${m2(est.paredes)} m`;
+    $("mq-altura").textContent = est.paredes >= 3.55 ? T.tudo : `${m2(est.paredes)} m`;
     $("mq-play").classList.toggle("ativo", est.reproduzindo);
     if ($("mq-play").dataset.passeando !== String(est.reproduzindo)) {
       $("mq-play").dataset.passeando = String(est.reproduzindo);
       $("mq-play-icone").innerHTML = est.reproduzindo ? ICONES.pausa : ICONES.play;
-      $("mq-play-nome").textContent = est.reproduzindo ? "PASSEANDO" : "PASSEAR";
+      $("mq-play-nome").textContent = est.reproduzindo ? T.passeando : T.passear;
     }
     if (toque) {
       // as barras das laterais: a altura do cheio e o valor na bolha

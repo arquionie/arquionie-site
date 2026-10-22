@@ -88,11 +88,11 @@ main { max-width: 1180px; margin: 0 auto; padding: 4px 24px 36px; }
 .tour .com[hidden] { display: none; }
 .tour .com.on { background: var(--superficie); color: var(--esc-letra); box-shadow: inset 0 0 0 2px var(--esc), 0 6px 16px rgba(0, 0, 0, .25); }
 .tour.comentando::after { content: ""; position: absolute; inset: 0; z-index: 2; border: 4px solid var(--esc); border-radius: inherit; pointer-events: none; }
-.tour .avisoComentar { position: absolute; left: 50%; bottom: 82px; transform: translateX(-50%); z-index: 3; height: 34px; display: flex; align-items: center;
+.tour .avisoComentar { position: absolute; left: 50%; bottom: 106px; transform: translateX(-50%); z-index: 3; height: 34px; display: flex; align-items: center;
   padding: 0 16px; border-radius: var(--raio-toque); background: var(--esc); color: var(--esc-texto); font-size: 13px; font-weight: 600; white-space: nowrap;
   box-shadow: 0 6px 16px rgba(0, 0, 0, .3); pointer-events: none; }
-.tour .sair { position: absolute; left: 14px; top: 14px; z-index: 3; width: 40px; height: 40px; border: 0; border-radius: 50%; padding: 0;
-  background: rgba(17, 21, 26, .72); color: #fff; place-items: center; }
+.tour .sair { position: absolute; left: 12px; top: 10px; z-index: 3; width: 40px; height: 40px; border: 0; border-radius: 50%; padding: 0;
+  background: var(--superficie); color: var(--texto); place-items: center; box-shadow: 0 0 0 1px var(--linha), 0 4px 14px rgba(0, 0, 0, .28); }
 .tour .sair svg { width: 17px; height: 17px; }
 .tour.cheio { position: fixed; inset: 0; z-index: 50; aspect-ratio: auto; border-radius: 0; }
 /* Em tela cheia, a coluna do SOLICITAR AJUSTE ao lado do tour, da altura toda (ÊDI, 13/10/2026). */
@@ -135,7 +135,8 @@ body.tourCheio.comPainel .tour.cheio { right: 372px; }
 .campo:focus-within { box-shadow: inset 0 0 0 2px var(--esc); }
 .campo span { color: var(--texto-apagado); font-size: 13px; white-space: nowrap; flex: 0 0 74px; }
 .campo input { flex: 1; min-width: 0; height: 100%; border: 0; background: transparent; color: var(--texto); font: 15px var(--letra); outline: none; }
-.rotulo { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--texto-apagado); margin: 8px 0 -2px 4px; }
+/* só os da coluna dos ajustes: o .rotulo do SOLICITAR AJUSTE no tour é o nome do botão */
+.painelCom .rotulo { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--texto-apagado); margin: 8px 0 -2px 4px; }
 .erro { color: var(--erro); font-size: 13px; }
 
 /* a coluna dos ajustes, num cartão que flutua ao lado do tour */
