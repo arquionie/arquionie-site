@@ -11,6 +11,7 @@ export const PASSOS = [
   ['Aprovar', 'Um link leva ao cliente o vídeo, as imagens e um tour 3D para ele andar pelo projeto no celular. Ele pede ajustes apontando o lugar no tour, ou aprova, e a resposta volta no programa.'],
 ];
 
+// As telas do programa (um projeto novo, no tema claro e no escuro) e, onde fala do renderizador, o render do 225 (ÊDI, 22/10/2026).
 export const DESTAQUES = [
   {
     imagem: '/imagens/225-auditorio.jpg',
@@ -19,19 +20,22 @@ export const DESTAQUES = [
       'O estilo Realista mostra o projeto com sol, céu, sombras, reflexos e materiais enquanto você trabalha. Imagens, panoramas e vídeos saem da mesma vista, sem exportar para outro programa.',
   },
   {
-    imagem: '/imagens/225-jardim.jpg',
+    imagem: '/imagens/programa-vegetacao-claro.jpg',
+    imagemEscura: '/imagens/programa-vegetacao-escuro.jpg',
     titulo: 'Vegetação desenhada pelo programa',
     texto:
       'Vinte e uma espécies, das palmeiras às forrações, com a folha desenhada pelo próprio Arquionie™. Cada planta aparece leve nas vistas 2D e completa no 3D, e os materiais vêm com texturas.',
   },
   {
-    imagem: '/imagens/225-rua.jpg',
+    imagem: '/imagens/programa-terreno-claro.jpg',
+    imagemEscura: '/imagens/programa-terreno-escuro.jpg',
     titulo: 'Implantação e urbanismo',
     texto:
       'Terreno com relevo, lote e divisas, vias com calçada e guia, e vagas de estacionamento numeradas na ordem da planta, com as medidas de cada uma.',
   },
   {
-    imagem: '/imagens/225-hall.jpg',
+    imagem: '/imagens/programa-documentar-claro.jpg',
+    imagemEscura: '/imagens/programa-documentar-escuro.jpg',
     titulo: 'Planta, corte e 3D do mesmo modelo',
     texto:
       'Tudo sai de um modelo só. Mudou no 3D, muda na planta, no corte e na elevação, cada vista no nível de detalhe que ela pede.',

@@ -55,11 +55,17 @@ export default function Inicio() {
           <p className="mt-2.5 text-amg-legenda text-texto-apagado">Windows 10 ou 11, 64 bits · grátis, com versão PRO</p>
           <Contador />
         </div>
-        <img
-          src="/imagens/225-cena-01.jpg"
-          alt="A fachada da Igreja Presbiteriana Aliança à noite, renderizada no Arquionie (projeto 225)"
-          className="w-full rounded-cartao shadow-cartao"
-        />
+        {/* a tela do programa, não um render (ÊDI, 22/10/2026): um projeto novo na planta baixa, no tema da página */}
+        <div>
+          <img
+            src="/imagens/programa-planta-claro.jpg"
+            alt="O Arquionie aberto num projeto novo: a aba Modelar com as ferramentas de arquitetura, componentes, urbanismo e estrutura, as propriedades à esquerda, a planta do térreo no meio e o navegador das vistas à direita"
+            width="1920"
+            height="1080"
+            className="so-claro w-full rounded-cartao border border-linha shadow-cartao"
+          />
+          <img src="/imagens/programa-planta-escuro.jpg" alt="" width="1920" height="1080" className="so-escuro w-full rounded-cartao border border-linha shadow-cartao" />
+        </div>
       </section>
 
       {/* como funciona */}
@@ -84,7 +90,10 @@ export default function Inicio() {
         <div className="space-y-4">
           {DESTAQUES.map((d, i) => (
             <article key={d.titulo} className="grid items-center gap-5 rounded-cartao bg-superficie p-3 shadow-cartao md:grid-cols-2 md:gap-7">
-              <img src={d.imagem} alt="" loading="lazy" className={`w-full rounded-dentro ${i % 2 ? 'md:order-2' : ''}`} />
+              <div className={i % 2 ? 'md:order-2' : ''}>
+                <img src={d.imagem} alt="" loading="lazy" className={`w-full rounded-dentro ${d.imagemEscura ? 'so-claro' : ''}`} />
+                {d.imagemEscura && <img src={d.imagemEscura} alt="" loading="lazy" className="so-escuro w-full rounded-dentro" />}
+              </div>
               <div className="px-2 pb-3 md:px-4 md:pb-0">
                 <h3 className="mb-2 text-amg-secao">{d.titulo}</h3>
                 <p className="text-amg-frase text-texto-apagado">{d.texto}</p>
