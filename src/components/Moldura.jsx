@@ -6,7 +6,7 @@ import { useEhAdministrador } from '@/lib/gestao';
 import { aplicarAparencia, guardarTema, temaGuardado } from '@/lib/aparencia';
 import { MetaDaPagina } from '@/lib/seo';
 import { Botao } from '@/components/Formulario';
-import { EMAIL_CONTATO } from '@/config';
+import { EMAIL_CONTATO, INSTAGRAM_URL, YOUTUBE_URL } from '@/config';
 
 // O site no modo AMIGÁVEL (mockup site-amigavel, aprovado por ÊDI em 16/10/2026): a barra branca no alto com o leão, as abas em
 // cápsula e o Entrar (ou a pessoa), e o rodapé. No celular as abas descem para uma faixa própria, que rola de lado.
@@ -80,6 +80,13 @@ function Rodape() {
         </Link>
         <a href={`mailto:${EMAIL_CONTATO}`} className={link}>
           Contato
+        </a>
+        {/* rel="me": o perfil e o canal são do próprio Arquionie™, o que ajuda o Google a mostrá-los junto do site */}
+        <a href={INSTAGRAM_URL} target="_blank" rel="me noopener" className={link}>
+          Instagram
+        </a>
+        <a href={YOUTUBE_URL} target="_blank" rel="me noopener" className={link}>
+          YouTube
         </a>
       </div>
     </footer>

@@ -6,7 +6,7 @@ import { IMAGEM_PADRAO, PAGINAS, ROBOTS_PUBLICA, enderecoDe } from '@/lib/seo';
 import { DESTAQUES, PASSOS, PERGUNTAS, PUBLICO, RECURSOS } from '@/conteudo/inicio';
 import { ETAPAS, PERGUNTAS_REVIT, PRECOS_PADRAO, REQUISITOS } from '@/conteudo/paraRevit';
 import { PASSOS_COMERCIAL, PERGUNTAS_COMERCIAL, PLANOS_COMERCIAL, RECURSOS_COMERCIAL } from '@/conteudo/comercial';
-import { EMAIL_CONTATO, MANIFESTO_URL, SITE_URL } from '@/config';
+import { EMAIL_CONTATO, INSTAGRAM_URL, MANIFESTO_URL, SITE_URL, YOUTUBE_URL } from '@/config';
 
 // As páginas públicas prontas no build, para quem não roda JavaScript: os robôs das IAs (GPTBot, ClaudeBot, PerplexityBot) leem só o
 // HTML que chega, e o Google indexa mais rápido o que já vem escrito. O texto é o mesmo das telas, desenhado pelos mesmos componentes;
@@ -61,7 +61,7 @@ function dadosEstruturados(rota, manifesto) {
     '@id': `${SITE_URL}/#programa`,
     name: 'Arquionie™',
     alternateName: ['Palheta Arquionie', 'Arquionie'],
-    sameAs: ['https://www.instagram.com/arquionie/', 'https://www.youtube.com/@arquionie', 'https://github.com/arquionie'],
+    sameAs: [INSTAGRAM_URL, YOUTUBE_URL, 'https://github.com/arquionie'],
     description: PAGINAS['/'].descricao,
     url: `${SITE_URL}/`,
     applicationCategory: 'DesignApplication',

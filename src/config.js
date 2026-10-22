@@ -13,6 +13,10 @@ export const ARQUIVOS_URL = 'https://tours.arquionie.com.br';
 
 export const EMAIL_CONTATO = 'suporte@arquionie.com.br';
 
+// As redes do Arquionie™: no rodapé do site e nos dados para o Google (o "sameAs"), para ele ligar o site, o perfil e o canal.
+export const INSTAGRAM_URL = 'https://www.instagram.com/arquionie/';
+export const YOUTUBE_URL = 'https://www.youtube.com/@arquionie';
+
 // A chave pública (site key) do Cloudflare Turnstile do formulário do Comercial (/f/CODIGO): confere que quem manda é uma pessoa.
 // Vazia, o formulário não mostra o Turnstile (desenvolvimento); a função comercial confere com o segredo TURNSTILE_SEGREDO.
 export const TURNSTILE_CHAVE = '0x4AAAAAAFY--N7t-yCjDCQ7';
