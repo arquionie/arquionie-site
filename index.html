@@ -14,7 +14,10 @@
         if (tema === 'escuro' || tema === 'auto') document.documentElement.dataset.tema = tema;
       } catch (e) {}
     </script>
-    <link rel="icon" type="image/png" href="/favicon-32.png" />
+    <!-- O leão enchendo o quadrado, sem transparência: o Google desenha o ícone cheio no círculo dele, sem o anel branco
+         (ÊDI, 22/10/2026). Em múltiplos de 48 px, como o Google pede. -->
+    <link rel="icon" type="image/png" sizes="48x48" href="/icone-48.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icone-192.png" />
     <link rel="apple-touch-icon" href="/marca-256.png" />
   </head>
   <body>
