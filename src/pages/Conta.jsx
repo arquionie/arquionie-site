@@ -12,6 +12,7 @@ import { ATUACOES, EMAIL_CONTATO } from '@/config';
 import MeusTours from '@/components/MeusTours';
 import Apresentacoes from '@/components/Apresentacoes';
 import Equipe, { CartaoAberto, ConvitePronto, PlanoDaConta } from '@/components/Equipe';
+import { CopiaDeSeguranca, PedidosDeAcesso } from '@/components/ProjetosProtegidos';
 import { AMOSTRA_CONVITE, AMOSTRA_MINHAS_EQUIPES } from '@/lib/equipe';
 import {
   AMOSTRA, AMOSTRA_COMPUTADORES, AMOSTRA_MINHAS_LICENCAS, PLANOS, dataCurta, estadoDaAmostra, nomeProduto, rotuloSituacao, textoConvite,
@@ -587,6 +588,12 @@ export default function Conta() {
       <>
         <Bloco id="equipe" titulo="Equipe">
           <Equipe />
+        </Bloco>
+        <Bloco id="projetos" titulo="Projetos protegidos">
+          <div className="flex flex-col gap-4">
+            <PedidosDeAcesso />
+            <CopiaDeSeguranca />
+          </div>
         </Bloco>
         <Bloco id="licencas" titulo="Licenças">
           <Licencas nome={d.nome || d.email} />
