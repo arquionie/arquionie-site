@@ -61,7 +61,7 @@ function dadosEstruturados(rota, manifesto) {
     '@id': `${SITE_URL}/#programa`,
     name: 'Arquionie™',
     alternateName: ['Palheta Arquionie', 'Arquionie'],
-    sameAs: ['https://www.instagram.com/arquionie/', 'https://github.com/arquionie'],
+    sameAs: ['https://www.instagram.com/arquionie/', 'https://www.youtube.com/@arquionie', 'https://github.com/arquionie'],
     description: PAGINAS['/'].descricao,
     url: `${SITE_URL}/`,
     applicationCategory: 'DesignApplication',
