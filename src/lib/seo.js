@@ -8,10 +8,10 @@ import { SITE_URL } from '@/config';
 // O título fica em até uns 60 caracteres e a descrição em até uns 155, o que o Google mostra sem cortar.
 
 export const IMAGEM_PADRAO = {
-  caminho: '/imagens/programa.jpg',
+  caminho: '/imagens/225-cena-01.jpg',
   largura: 1600,
-  altura: 972,
-  descricao: 'A janela do Arquionie com um estacionamento em 3D, carros e vagas numeradas, num projeto de amostra',
+  altura: 900,
+  descricao: 'A fachada da Igreja Presbiteriana Aliança à noite, renderizada no Arquionie (projeto 225)',
 };
 
 export const PAGINAS = {

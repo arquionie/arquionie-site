@@ -103,7 +103,7 @@ export const AMOSTRA_APRESENTACOES = {
   limite: 500, escritorio: 'PALHETA ARQUITETURA', responsavel: true,
   apresentacoes: [
     { id: 'a1', codigo: 'AB12CD', chave: '225', nome: '225 — IGREJA PRESBITERIANA ALIANÇA', pausada: false, envio: 2, visitas: 312,
-      ultimaVisita: daqui(-0.3), capa: '/imagens/programa.jpg',
+      ultimaVisita: daqui(-0.3), capa: '/imagens/225-cena-01.jpg',
       envios: [
         { id: 'e2', numero: 2, fase: 'aprovacao', paraQuem: 'O PASTOR', em: daqui(-30), expiraEm: daqui(24 * 335), situacao: 'ajustes', visitas: 128,
           tamanho: 236 * 1048576, enviadoPor: 'Maria Souza', comentarios: 3,

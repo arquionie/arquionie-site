@@ -29,10 +29,10 @@ export const AMOSTRA_MEUS_TOURS = {
   limite: 20,
   tours: [
     { id: 't1', codigo: 'K7PX2M', nome: '225 - IGREJA PRESBITERIANA ALIANÇA', passeio: 'PASSEIO 01', situacao: 'publicado', paradas: 8,
-      tamanho: 28 * 1048576, visitas: 37, ultimaVisita: daqui(-1), publicadoEm: daqui(-30), atualizadoEm: daqui(-2), capa: '/imagens/programa.jpg' },
+      tamanho: 28 * 1048576, visitas: 37, ultimaVisita: daqui(-1), publicadoEm: daqui(-30), atualizadoEm: daqui(-2), capa: '/imagens/225-fachada.jpg' },
     { id: 't2', codigo: 'Q4HN8T', nome: '225 - IGREJA PRESBITERIANA ALIANÇA', passeio: 'PASSEIO 02 · ESPAÇO GOURMET', situacao: 'publicado', paradas: 4,
-      tamanho: 19 * 1048576, visitas: 5, ultimaVisita: daqui(-26), publicadoEm: daqui(-40), atualizadoEm: daqui(-40), capa: '/imagens/vegetacao-realista.jpg' },
+      tamanho: 19 * 1048576, visitas: 5, ultimaVisita: daqui(-26), publicadoEm: daqui(-40), atualizadoEm: daqui(-40), capa: '/imagens/225-gourmet.jpg' },
     { id: 't3', codigo: 'B2WC7R', nome: '225 - IGREJA PRESBITERIANA ALIANÇA', passeio: 'PASSEIO 03 · CIRCULAÇÃO', situacao: 'pausado', paradas: 6,
-      tamanho: 27 * 1048576, visitas: 112, ultimaVisita: daqui(-70), publicadoEm: daqui(-120), atualizadoEm: daqui(-120), capa: '/imagens/carros-realista.jpg' },
+      tamanho: 27 * 1048576, visitas: 112, ultimaVisita: daqui(-70), publicadoEm: daqui(-120), atualizadoEm: daqui(-120), capa: '/imagens/225-hall.jpg' },
   ],
 };

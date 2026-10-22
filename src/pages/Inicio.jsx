@@ -56,8 +56,8 @@ export default function Inicio() {
           <Contador />
         </div>
         <img
-          src="/imagens/programa.jpg"
-          alt="A janela do Arquionie com um estacionamento em 3D, carros e vagas numeradas, num projeto de amostra"
+          src="/imagens/225-cena-01.jpg"
+          alt="A fachada da Igreja Presbiteriana Aliança à noite, renderizada no Arquionie (projeto 225)"
           className="w-full rounded-cartao shadow-cartao"
         />
       </section>

@@ -1,5 +1,6 @@
-// Os textos da página inicial, para ÊDI revisar. Dizem só o que o programa já faz (CLAUDE.md e doc 07, 03/10/2026); as imagens são de
-// projetos de amostra do próprio Arquionie, nunca de cliente. Ficam fora da página porque o build também os usa no llms.txt e
+// Os textos da página inicial, para ÊDI revisar. Dizem só o que o programa já faz (CLAUDE.md e doc 07, 03/10/2026). As imagens são as
+// renderizações do projeto 225, exportadas pelo Arquionie (ÊDI, 22/10/2026: "atualizar as imagens do site com as imagens do projeto
+// 225"); antes eram só de projetos de amostra. Ficam fora da página porque o build também os usa no llms.txt e
 // nas perguntas dos dados estruturados (src/prerender.jsx), para o que os robôs leem ser o mesmo que está na tela.
 
 // O caminho do escritório (ÊDI, 16/10/2026: o Arquionie é um ecossistema, do primeiro contato com o cliente ao projeto aprovado).
@@ -12,25 +13,25 @@ export const PASSOS = [
 
 export const DESTAQUES = [
   {
-    imagem: '/imagens/carros-realista.jpg',
+    imagem: '/imagens/225-auditorio.jpg',
     titulo: 'Um renderizador que é do programa',
     texto:
       'O estilo Realista mostra o projeto com sol, céu, sombras, reflexos e materiais enquanto você trabalha. Imagens, panoramas e vídeos saem da mesma vista, sem exportar para outro programa.',
   },
   {
-    imagem: '/imagens/vegetacao-prancha.jpg',
+    imagem: '/imagens/225-jardim.jpg',
     titulo: 'Vegetação desenhada pelo programa',
     texto:
       'Vinte e uma espécies, das palmeiras às forrações, com a folha desenhada pelo próprio Arquionie™. Cada planta aparece leve nas vistas 2D e completa no 3D, e os materiais vêm com texturas.',
   },
   {
-    imagem: '/imagens/vagas-planta.jpg',
+    imagem: '/imagens/225-rua.jpg',
     titulo: 'Implantação e urbanismo',
     texto:
       'Terreno com relevo, lote e divisas, vias com calçada e guia, e vagas de estacionamento numeradas na ordem da planta, com as medidas de cada uma.',
   },
   {
-    imagem: '/imagens/vagas-3d.jpg',
+    imagem: '/imagens/225-hall.jpg',
     titulo: 'Planta, corte e 3D do mesmo modelo',
     texto:
       'Tudo sai de um modelo só. Mudou no 3D, muda na planta, no corte e na elevação, cada vista no nível de detalhe que ela pede.',
