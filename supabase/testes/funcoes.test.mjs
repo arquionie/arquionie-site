@@ -33,11 +33,15 @@ export function createClient() {
   } };
 }`);
 globalThis.__chamar = chamar;
+// Cada função na pasta dela, ao lado da _compartilhado (o limite por endereço), como no Supabase.
+mkdirSync(join(COPIA, "_compartilhado"), { recursive: true });
+writeFileSync(join(COPIA, "_compartilhado", "limite.ts"), readFileSync(join(AQUI, "..", "functions", "_compartilhado", "limite.ts"), "utf8"));
 async function carregar(nome) {
   const fonte = readFileSync(join(AQUI, "..", "functions", nome, "index.ts"), "utf8")
-    .replace('"npm:@supabase/supabase-js@2"', '"./supabase-falso.mjs"');
-  writeFileSync(join(COPIA, `${nome}.mts`), fonte);
-  return (await import(pathToFileURL(join(COPIA, `${nome}.mts`)).href)).tratar;
+    .replace('"npm:@supabase/supabase-js@2"', '"../supabase-falso.mjs"');
+  mkdirSync(join(COPIA, nome), { recursive: true });
+  writeFileSync(join(COPIA, nome, "index.mts"), fonte);
+  return (await import(pathToFileURL(join(COPIA, nome, "index.mts")).href)).tratar;
 }
 const conectar = await carregar("conectar");
 const licenca = await carregar("licenca");
@@ -86,6 +90,19 @@ r = await post(licenca, { acao: "renovar", credencial, maquina: "MAQ-GIL", versa
 confere(r.situacao === "desconectado", "depois de SAIR: desconectado");
 r = await post(licenca, { acao: "renovar", credencial: "curta" });
 confere(r.status === 400, "credencial curta: 400");
+
+console.log("\n9. O limite por endereço do iniciar (migração 20261022000000)");
+const iniciarDe = async (ip, i) => {
+  const resposta = await conectar(new Request("http://local", { method: "POST", headers: { "x-forwarded-for": `${ip}, 10.0.0.9` },
+    body: JSON.stringify({ acao: "iniciar", produto: "arquionie-revit", maquina: "MAQ-LIMITE-" + i, nome: "PC", versao: "5.0.0" }) }));
+  return { status: resposta.status, ...(await resposta.json()) };
+};
+for (let i = 0; i < 20; i++) r = await iniciarDe("200.8.8.8", i);
+confere(r.status === 200 && r.situacao === "ok", "20 pedidos de conexão do mesmo endereço na hora passam");
+r = await iniciarDe("200.8.8.8", 21);
+confere(r.status === 429 && /muitos pedidos de conexão/.test(r.erro), "o 21º volta 429 com o erro, que o plugin mostra: " + JSON.stringify(r));
+r = await iniciarDe("200.8.8.9", 22);
+confere(r.status === 200, "de outro endereço, passa");
 console.log(`
 ${certos} de ${certos + ruins.length} conferências das funções passaram.`);
 process.exitCode = ruins.length || process.exitCode ? 1 : 0;

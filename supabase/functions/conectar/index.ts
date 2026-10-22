@@ -12,8 +12,10 @@
 // Publicar com --no-verify-jwt: quem chama é o programa, ainda sem conta. Segredos: LICENCA_CHAVE_PRIVADA (PKCS#8 em
 // base64, gerada por supabase/ferramentas/gerar-chave-da-licenca.mjs) e, opcional, LICENCA_CHAVE_ID e SITE_URL.
 // Erro do servidor volta em TEXTO com 500: o programa trata como falha de rede e tenta de novo (nunca como "recusado").
+// O "iniciar" vai até 20 vezes por hora de cada endereço (ajustes_limites.conectar); passou, { erro } com 429, que o plugin mostra.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { cabe } from "../_compartilhado/limite.ts";
 
 const SITE = Deno.env.get("SITE_URL") ?? "https://www.arquionie.com.br";
 const PRODUTOS = new Set(["arquionie", "arquionie-revit"]);
@@ -91,6 +93,9 @@ export async function tratar(req: Request): Promise<Response> {
       const maquina = String(corpo.maquina ?? "").trim();
       if (!PRODUTOS.has(produto) || maquina === "" || maquina.length > 200) {
         return responder({ erro: "produto ou máquina inválidos" }, 400);
+      }
+      if (!(await cabe(db, "conectar", req))) {
+        return responder({ erro: "muitos pedidos de conexão daqui agora; tente de novo daqui a uma hora" }, 429);
       }
       const segredo = base64url(aleatorio(32));
       const segredoHash = await resumo(segredo);

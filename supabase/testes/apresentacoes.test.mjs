@@ -53,7 +53,7 @@ export function createClient() {
 }`);
 globalThis.__chamar = chamar;
 const FUNCOES = join(AQUI, "..", "functions");
-writeFileSync(join(COPIA, "_compartilhado", "r2.ts"), readFileSync(join(FUNCOES, "_compartilhado", "r2.ts"), "utf8"));
+for (const f of ["r2.ts", "limite.ts"]) writeFileSync(join(COPIA, "_compartilhado", f), readFileSync(join(FUNCOES, "_compartilhado", f), "utf8"));
 for (const f of ["apresentacoes", "cliente"])
   writeFileSync(join(COPIA, f, "index.mts"), readFileSync(join(FUNCOES, f, "index.ts"), "utf8").replace('"npm:@supabase/supabase-js@2"', '"../supabase-falso.mjs"'));
 const apresentacoes = await import(pathToFileURL(join(COPIA, "apresentacoes", "index.mts")).href);
@@ -337,6 +337,13 @@ r = await chamar("authenticated", gestor, "gestao_pedido_respondido", { p_id: pe
 await chamar("authenticated", bia, "pedir_plano", { p_pessoas: 8, p_whatsapp: "91988887777", p_mensagem: "" });
 pedidos = await chamar("authenticated", gestor, "gestao_pedidos_de_plano", {});
 confere(r.ok && pedidos.length === 2 && !pedidos[0].respondidoEm && pedidos[1].respondidoEm, "respondido, o pedido seguinte é outro (os abertos primeiro)");
+
+console.log("\n17. O limite por endereço da página do cliente (migração 20261022000000)");
+const robo = { acao: "comentar", codigo: "ZZZZZZ", envio: 1, nome: "ROBÔ", comentarios: [{ texto: "x" }] };
+for (let i = 0; i < 30; i++) r = await post(cliente, null, robo, { "cf-connecting-ip": "200.7.7.7" });
+confere(r.ok === false && !/Muitas respostas/.test(r.motivo), "30 respostas na hora chegam ao banco (aqui, com o código errado): " + JSON.stringify(r));
+r = await post(cliente, null, robo, { "cf-connecting-ip": "200.7.7.7" });
+confere(r.ok === false && /Muitas respostas/.test(r.motivo), "a 31ª para antes do banco, com o motivo que a página mostra: " + JSON.stringify(r));
 
 console.log(`\n${certos} de ${certos + ruins.length} conferências do ENVIAR PARA O CLIENTE passaram.`);
 process.exitCode = ruins.length || process.exitCode ? 1 : 0;

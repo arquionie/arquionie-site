@@ -15,6 +15,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { CORS, apagar, responder, resumo, urlDeEnvio } from "../_compartilhado/r2.ts";
+import { endereco } from "../_compartilhado/limite.ts";
 
 const LIMITE_PDF = 10 * 1024 * 1024;
 
@@ -33,11 +34,6 @@ async function rpc(nome: string, args: Record<string, unknown>) {
   const { data, error } = await db.rpc(nome, args);
   if (error) throw Object.assign(new Error(error.message), { code: error.code });
   return data;
-}
-
-/** O endereço de quem mandou, como a Cloudflare e o Supabase passam. */
-function endereco(req: Request): string {
-  return (req.headers.get("cf-connecting-ip") ?? req.headers.get("x-forwarded-for")?.split(",")[0] ?? "").trim();
 }
 
 /** O Turnstile confere que quem mandou é uma pessoa. Sem o segredo, não confere (só no teste e no desenvolvimento). */

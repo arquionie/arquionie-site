@@ -9,9 +9,12 @@
 //
 // Publicar com a verificação de JWT DESLIGADA (--no-verify-jwt). Segredos: os do R2 (para a limpeza), LIMPEZA_SEGREDO e, para o
 // e-mail, RESEND_API_KEY (sem ela, o aviso fica só no programa) e, opcional, AVISO_DE e SITE_URL.
+// O comentar e o aprovar vão até 30 vezes por hora de cada endereço (ajustes_limites.cliente): é também o que segura quem tenta adivinhar
+// códigos por aqui.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { CORS, apagar, listar, responder } from "../_compartilhado/r2.ts";
+import { cabe } from "../_compartilhado/limite.ts";
 
 const SITE = Deno.env.get("SITE_URL") ?? "https://www.arquionie.com.br";
 const DE = Deno.env.get("AVISO_DE") ?? "Arquionie <suporte@arquionie.com.br>";
@@ -75,6 +78,9 @@ export async function tratar(req: Request): Promise<Response> {
   try {
     const corpo = await req.json().catch(() => ({}));
     const codigo = String(corpo.codigo ?? "").slice(0, 12), envio = Number(corpo.envio) || 0, nome = String(corpo.nome ?? "").slice(0, 200);
+    if ((corpo.acao === "comentar" || corpo.acao === "aprovar") && !(await cabe(db, "cliente", req))) {
+      return responder({ ok: false, motivo: "Muitas respostas daqui agora. Tente de novo daqui a uma hora." });
+    }
 
     if (corpo.acao === "comentar") {
       const comentarios = Array.isArray(corpo.comentarios) ? corpo.comentarios.slice(0, 60) : [];

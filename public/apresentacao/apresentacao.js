@@ -134,6 +134,8 @@
   let d, manifesto, base;
   async function carregar() {
     d = await abrir();
+    // O limite por endereço do banco: links errados demais daqui na mesma hora (migração 20261022000000_limite_por_endereco.sql).
+    if (d.situacao === "limite") return fechado("Muitas tentativas daqui", "Este endereço abriu links errados demais. Tente de novo daqui a uma hora.");
     if (d.situacao === "inexistente") {
       // Um tour no link de antes (o GERAR E PUBLICAR do passeio): a página dele.
       if (codigo && !pastaDaProva) {

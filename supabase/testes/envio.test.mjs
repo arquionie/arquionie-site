@@ -156,5 +156,13 @@ confere(r.ok && fb.email === "alguem@exemplo.com.br" && fb.usuario_id === null, 
 r = await pedir(feedback, { mensagem: "   " });
 confere(r.status === 400, "feedback vazio é recusado");
 
+console.log("\n7. O limite por endereço do feedback (migração 20261022000000)");
+for (let i = 0; i < 10; i++) r = await pedir(feedback, { mensagem: "Robô " + i }, { "cf-connecting-ip": "200.9.9.9" });
+confere(r.ok, "10 feedbacks do mesmo endereço na hora passam");
+r = await pedir(feedback, { mensagem: "Robô 11" }, { "cf-connecting-ip": "200.9.9.9" });
+confere(r.status === 429 && r.ok === false && /Muitas mensagens/.test(r.motivo), "o 11º volta 429 com o motivo, que o plugin mostra: " + JSON.stringify(r));
+r = await pedir(feedback, { mensagem: "De outro lugar" }, { "cf-connecting-ip": "200.9.9.10" });
+confere(r.ok, "de outro endereço, passa");
+
 console.log(`\n${certos} de ${certos + ruins.length} conferências do envio passaram.`);
 process.exitCode = ruins.length || process.exitCode ? 1 : 0;

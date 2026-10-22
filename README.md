@@ -337,6 +337,19 @@ Configurações feitas no painel, em ordem:
    uma chave que o servidor entrega só ao dono, à equipe ativa e aos convidados; o PEDIR ACESSO de quem abre uma cópia sem acesso chega
    aqui; a CÓPIA DE SEGURANÇA DAS CHAVES deixa os projetos abrirem mesmo com o Arquionie fora do ar (a senha não sai do navegador).
 
+16. **O LIMITE POR ENDEREÇO** (a checagem de segurança de 22/10/2026; migração `20261022000000_limite_por_endereco.sql`). As portas sem
+   conta contam os pedidos de cada endereço por hora: nos códigos (o /t/, o tour, a situação da apresentação, o formulário e a proposta
+   do Comercial, o aceite) e no cupom, só os erros (30 por hora; passou, nem o código certo abre daquele endereço); o pedido do PRO
+   (6), a denúncia de formulário (5) e, nas funções, o feedback do plugin (10), o iniciar do conectar (20) e a resposta do cliente na
+   página /t/ (30). A trava geral do `pedido_criar` subiu de 60 para 300 por hora (com 60, um robô parava as vendas). O banco guarda só
+   a impressão do endereço (SHA-256 com o sal dele; o IPv6 pela rede /64) e apaga as janelas de ontem. Para mudar um limite, sem
+   publicar nada: `update public.ajustes_limites set codigo = 50`. Só com o ÊDI, nesta ordem:
+   1. **Teste local:** `node supabase/testes/limites.test.mjs` (30 conferências) e os das funções (`funcoes`, `envio`, `apresentacoes`).
+   2. **SQL:** rodar a migração (pode rodar duas vezes). Ela troca as funções `apresentacao_abrir`, `apresentacao_situacao`,
+      `tour_abrir`, `comercial_formulario_abrir`, `comercial_proposta_abrir`, `comercial_proposta_aceitar`, `comercial_denunciar`,
+      `cupom_conferir` e `pedido_criar`: **rodar de novo uma migração antiga que as cria desfaz o limite**; depois dela, rodar esta outra vez.
+   3. **Funções** `feedback`, `conectar`, `cliente` e `comercial`, todas com `--no-verify-jwt`.
+
 ## Pendente
 
 - Textos da página inicial para ÊDI revisar. As imagens são capturas de amostras do programa (`public/imagens`); faltam

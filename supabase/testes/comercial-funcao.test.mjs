@@ -43,7 +43,7 @@ export function createClient() {
 }`);
 globalThis.__chamar = chamar;
 const FUNCOES = join(AQUI, "..", "functions");
-writeFileSync(join(COPIA, "_compartilhado", "r2.ts"), readFileSync(join(FUNCOES, "_compartilhado", "r2.ts"), "utf8"));
+for (const f of ["r2.ts", "limite.ts"]) writeFileSync(join(COPIA, "_compartilhado", f), readFileSync(join(FUNCOES, "_compartilhado", f), "utf8"));
 writeFileSync(join(COPIA, "comercial", "index.mts"), readFileSync(join(FUNCOES, "comercial", "index.ts"), "utf8").replace('"npm:@supabase/supabase-js@2"', '"../supabase-falso.mjs"'));
 const comercial = await import(pathToFileURL(join(COPIA, "comercial", "index.mts")).href);
 const post = async (conta, corpo, cabecalhos = {}) => {

@@ -5,9 +5,11 @@
 //
 // Com a credencial do computador (o login pelo navegador), o feedback sai com a conta de quem mandou; sem ela, com o e-mail que
 // vier (ou sem e-mail). Publicar com a verificação de JWT DESLIGADA (--no-verify-jwt): quem chama é o plugin, sem sessão do site.
+// Até 10 feedbacks por hora de cada endereço (ajustes_limites.feedback); passou, { ok: false, motivo } com 429.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { CORS, responder } from "../_compartilhado/r2.ts";
+import { cabe } from "../_compartilhado/limite.ts";
 
 const db = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "", {
   auth: { persistSession: false, autoRefreshToken: false },
@@ -25,6 +27,7 @@ export async function tratar(req: Request): Promise<Response> {
     const c = await req.json().catch(() => ({}));
     const mensagem = String(c.mensagem ?? "").trim();
     if (!mensagem) return responder({ ok: false, motivo: "Escreva a mensagem." }, 400);
+    if (!(await cabe(db, "feedback", req))) return responder({ ok: false, motivo: "Muitas mensagens daqui agora. Tente de novo daqui a uma hora." }, 429);
 
     let usuario: string | null = null, email: string | null = String(c.email ?? "").trim().toLowerCase() || null;
     const credencial = String(c.credencial ?? "");

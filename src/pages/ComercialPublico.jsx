@@ -221,8 +221,11 @@ export function FormularioDoCliente() {
   if (form.situacao !== 'aberto')
     return (
       <Pagina escritorio={form.escritorio}>
-        <Situacao titulo={form.situacao === 'pausado' ? 'Este formulário está pausado' : 'Formulário não encontrado'}>
-          <p className="text-texto-apagado">{form.situacao === 'pausado' ? 'Ele não está recebendo pedidos agora.' : 'Confira o link com quem mandou.'}</p>
+        <Situacao titulo={{ pausado: 'Este formulário está pausado', limite: 'Muitas tentativas daqui' }[form.situacao] ?? 'Formulário não encontrado'}>
+          <p className="text-texto-apagado">
+            {{ pausado: 'Ele não está recebendo pedidos agora.', limite: 'Este endereço abriu links errados demais. Tente de novo daqui a uma hora.' }[form.situacao]
+              ?? 'Confira o link com quem mandou.'}
+          </p>
         </Situacao>
       </Pagina>
     );
@@ -352,12 +355,14 @@ export function PropostaDoCliente() {
       WhatsApp
     </Botao>
   );
-  if (p.situacao === 'inexistente' || p.situacao === 'preparando' || p.situacao === 'vencida')
+  if (['inexistente', 'preparando', 'vencida', 'limite'].includes(p.situacao))
     return (
       <Pagina escritorio={p.escritorio} selo={p.selo}>
-        <Situacao titulo={{ inexistente: 'Proposta não encontrada', preparando: 'A proposta está sendo preparada', vencida: 'Esta proposta venceu' }[p.situacao]}>
+        <Situacao titulo={{ inexistente: 'Proposta não encontrada', preparando: 'A proposta está sendo preparada', vencida: 'Esta proposta venceu',
+          limite: 'Muitas tentativas daqui' }[p.situacao]}>
           <p className="text-texto-apagado">
-            {{ inexistente: 'Confira o link com quem mandou.', preparando: 'Volte em alguns minutos.', vencida: 'Fale com o escritório para receber uma nova.' }[p.situacao]}
+            {{ inexistente: 'Confira o link com quem mandou.', preparando: 'Volte em alguns minutos.', vencida: 'Fale com o escritório para receber uma nova.',
+              limite: 'Este endereço abriu links errados demais. Tente de novo daqui a uma hora.' }[p.situacao]}
           </p>
           {whats}
         </Situacao>

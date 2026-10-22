@@ -61,6 +61,7 @@
     });
     if (!r.ok) throw new Error("O tour não abriu agora. Tente de novo em instantes.");
     const d = await r.json();
+    if (d.situacao === "limite") { fechado("Muitas tentativas daqui", "Este endereço abriu links errados demais. Tente de novo daqui a uma hora."); return null; }
     if (d.situacao === "pausado") { fechado("Este tour está pausado", "Quem enviou o link tirou o tour do ar por enquanto. Fale com o escritório que mandou."); return null; }
     if (d.situacao !== "publicado") { fechado("Tour não encontrado", "O link está errado ou o tour foi excluído. Confira o link com o escritório que mandou."); return null; }
     return ARQUIVOS_URL + d.pasta;
