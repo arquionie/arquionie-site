@@ -1963,6 +1963,9 @@ window.TourDaMaquete = async function (base, tour) {
           est.modo = "foto"; foto.alfa = 0; chegarNaFoto(i);
           pe.guinada = pe.guinada; acabouDeEntrar = true;
         }
+        // O movimento do celular ligado no toque que entrou (ou antes): ele passa a valer a partir da vista em que o voo chegou (sem
+        // isto, a foto ficava no ângulo da maquete de antes do toque, olhando para baixo).
+        if (movimento.ligado) movimento.aparelho = null;
         atualizar();
       }
     }
@@ -1990,7 +1993,7 @@ window.TourDaMaquete = async function (base, tour) {
       const z = pavDe(pe.olho[2] - ALTURA);
       if (z !== est.pav) { est.pav = z; atualizar(); }
     }
-    if (movimento.ligado && movimento.aparelho && (est.modo === "andar" || est.modo === "foto")) {
+    if (movimento.ligado && movimento.aparelho && !voo && (est.modo === "andar" || est.modo === "foto")) {
       pe.guinada = movimento.aparelho.guinada + movimento.deslocamento;
       pe.inclinacao = Math.max(-1.45, Math.min(1.45, movimento.aparelho.inclinacao + movimento.inclinacao));
     }
