@@ -11,6 +11,8 @@
 */
 window.TourDosPanoramas = async function (base, tour) {
   const $ = id => document.getElementById(id);
+  // O que vem do pacote (o nome do projeto, dos lugares) entra na tela como texto, nunca como HTML (a checagem de segurança de 22/10/2026).
+  const escapar = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const tela = $("tela");
   const gl = tela.getContext("webgl2", { antialias: true, stencil: true });
   if (!gl) throw new Error("Este navegador não mostra o tour (falta o WebGL 2).");
@@ -256,7 +258,7 @@ window.TourDosPanoramas = async function (base, tour) {
   function atualizarEstado() {
     $("play").textContent = reproduzindo ? "❚❚" : "▶";
     $("estado").textContent = destino !== null ? `INDO A ${pans[destino].lugar}` : reproduzindo ? "REPRODUZINDO" : `${atual + 1} DE ${pans.length}`;
-    $("parada").innerHTML = `${chamada(atual)}<span>${tour.projeto}</span>`;
+    $("parada").innerHTML = `${escapar(chamada(atual))}<span>${escapar(tour.projeto)}</span>`;
   }
   let chegadaAte = 0;
   function mostrarChegada(i) {

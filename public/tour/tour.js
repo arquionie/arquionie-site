@@ -19,6 +19,15 @@
   const gl = tela.getContext("webgl2", { antialias: true, stencil: true });
   const toque = matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;
   if (toque) document.body.classList.add("toque");
+  // O que vem do pacote (o nome do projeto, dos ambientes) entra na tela como texto, nunca como HTML (a checagem de segurança de 22/10/2026).
+  const escapar = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  // Os arquivos só deste site ou dos do Arquionie: com um endereço de fora no link, qualquer um montaria o tour com o que quisesse.
+  function deConfianca(endereco) {
+    try {
+      const u = new URL(endereco, location.href);
+      return u.origin === location.origin || u.origin + "/" === ARQUIVOS_URL ? u.href : null;
+    } catch { return null; }
+  }
 
   // ---------------------------------------------------------------- abertura e carga
   function fechado(titulo, texto) {
@@ -32,14 +41,19 @@
    * inexistente. Com o envio.json, o lugar de cada arquivo é uma função (o nome do pacote → a impressão).
    */
   async function acharPacote() {
-    const envio = new URLSearchParams(location.search).get("envio");
-    if (envio) {
+    const pedidoEnvio = new URLSearchParams(location.search).get("envio");
+    const pedidoPacote = new URLSearchParams(location.search).get("pacote");
+    if ((pedidoEnvio || pedidoPacote) && !deConfianca(pedidoEnvio || pedidoPacote)) {
+      fechado("Tour não encontrado", "O link está errado. Confira o link com o escritório que mandou.");
+      return null;
+    }
+    if (pedidoEnvio) {
+      const envio = deConfianca(pedidoEnvio);
       const m = await (await fetch(envio)).json();
       const pasta = envio.slice(0, envio.lastIndexOf("/") + 1), mapa = (m.tour && m.tour.arquivos) || {};
       return nome => pasta + (mapa[nome] || nome);
     }
-    const dado = new URLSearchParams(location.search).get("pacote");
-    if (dado) return dado.endsWith("/") ? dado : dado + "/";
+    if (pedidoPacote) { const dado = deConfianca(pedidoPacote); return dado.endsWith("/") ? dado : dado + "/"; }
     const m = location.pathname.match(/^\/t\/([A-Za-z0-9]{6})\/?$/) || [null, new URLSearchParams(location.search).get("codigo")];
     if (!m[1]) return "";
     const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/tour_abrir`, {
@@ -351,7 +365,7 @@
       $("retomar").classList.toggle("esconder", estado !== "livre" || !trajeto);
       const i = estado === "livre" ? ultimaParada : paradaEm(tempo);
       const nome = estado === "livre" && ambienteDoMapa ? ambienteDoMapa : `${String(i + 1).padStart(2, "0")} · ${paradas[i].nome}`;
-      $("parada").innerHTML = `${nome}<span>${tour.projeto}</span>`;
+      $("parada").innerHTML = `${escapar(nome)}<span>${escapar(tour.projeto)}</span>`;
       if (estado !== "livre") ambienteDoMapa = null;
     }
     const naParada = () => trajeto && Math.abs(tempo - paradas[ultimaParada].t) < .1;

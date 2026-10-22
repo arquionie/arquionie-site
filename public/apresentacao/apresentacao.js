@@ -15,7 +15,13 @@
   const ARQUIVOS_URL = "https://tours.arquionie.com.br/";
   const pedidos = new URLSearchParams(location.search);
   const prova = pedidos.get("prova");
-  const pastaDaProva = prova ? new URL(prova.endsWith("/") ? prova : prova + "/", location.href).href : null;
+  // A prova só de uma pasta deste site ou dos arquivos do Arquionie: com um endereço de fora, qualquer um montaria a página com o
+  // que quisesse (a checagem de segurança de 22/10/2026).
+  const deConfianca = u => u.origin === location.origin || u.origin + "/" === ARQUIVOS_URL;
+  const pastaDaProva = (() => {
+    if (!prova) return null;
+    try { const u = new URL(prova.endsWith("/") ? prova : prova + "/", location.href); return deConfianca(u) ? u.href : null; } catch { return null; }
+  })();
   const toque = matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;
   const codigo = (location.pathname.match(/^\/t\/([A-Za-z0-9]{6})\/?$/) || [])[1]?.toUpperCase() || pedidos.get("codigo")?.toUpperCase() || "";
 
@@ -176,9 +182,13 @@
     if ((manifesto.imagens || []).length) { $("imagens").hidden = false; montarCarrossel(manifesto.imagens); }
     // O rodapé do escritório.
     const icones = $("icones");
-    if (e.site) icones.insertAdjacentHTML("beforeend", e.logo
-      ? `<a class="logoR" href="${endereco(e.site)}" target="_blank" rel="noopener" title="o site do escritório" style="background-image:url('${ARQUIVOS_URL + e.logo}')"></a>`
-      : `<a href="${endereco(e.site)}" target="_blank" rel="noopener" title="o site do escritório">${ICONES.site}</a>`);
+    // O site e o logo montados pelo DOM, nunca em HTML: o site é o escritório quem escreve (com aspas, viraria código na página).
+    if (e.site) {
+      const a = document.createElement("a");
+      a.href = endereco(String(e.site)); a.target = "_blank"; a.rel = "noopener"; a.title = "o site do escritório";
+      if (e.logo) { a.className = "logoR"; a.style.backgroundImage = `url("${ARQUIVOS_URL + e.logo}")`; } else a.innerHTML = ICONES.site;
+      icones.append(a);
+    }
     for (const r of e.redes || []) {
       const nome = String(r.rede || "").toLowerCase();
       const a = document.createElement("a");

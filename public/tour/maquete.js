@@ -12,6 +12,9 @@
 */
 window.TourDaMaquete = async function (base, tour) {
   const $ = id => document.getElementById(id);
+  // O que vem do pacote (o nome do projeto, dos ambientes, o piso) entra na tela como texto, nunca como HTML (a checagem de segurança
+  // de 22/10/2026).
+  const escapar = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const tela = $("tela");
   const gl = tela.getContext("webgl2", { antialias: false, stencil: true });
   if (!gl) throw new Error("Este navegador não mostra o tour (falta o WebGL 2).");
@@ -1218,7 +1221,7 @@ window.TourDaMaquete = async function (base, tour) {
   const rotulos = ambientes.map((a, i) => {
     const r = document.createElement("div");
     r.className = "mq-rotulo"; r.style.display = "none";
-    r.innerHTML = `${a.nome}<span>${m2(a.area)} m²</span>`;
+    r.innerHTML = `${escapar(a.nome)}<span>${m2(a.area)} m²</span>`;
     r.addEventListener("pointerdown", e => e.stopPropagation());
     r.addEventListener("click", e => { e.stopPropagation(); parar(); escolherAmbiente(i); });
     $("mq-rotulos").appendChild(r);
@@ -1320,8 +1323,8 @@ window.TourDaMaquete = async function (base, tour) {
     const linhas = [["ÁREA", `${m2(a.area)} m²`], ["MEDIDAS", `${m2(a.medidas[0])} × ${m2(a.medidas[1])} m`], ["PÉ-DIREITO", `${m2(a.peDireito)} m`],
       ["PISO", a.piso], ["FORRO", a.forro], ["PERÍMETRO", `${m2(a.perimetro)} m`]].filter(l => l[1]);
     $("mq-cartao").innerHTML = `<button class="fechar" title="Fechar">✕</button>
-      <div class="tipo">AMBIENTE${a.numero ? " " + a.numero : ""} · ${(pavs[a.pavimento].nome || "").toUpperCase()}</div><h2>${a.nome}</h2>
-      <dl>${linhas.map(l => `<dt>${l[0]}</dt><dd>${l[1]}</dd>`).join("")}</dl>
+      <div class="tipo">AMBIENTE${a.numero ? " " + escapar(a.numero) : ""} · ${escapar(String(pavs[a.pavimento].nome || "").toUpperCase())}</div><h2>${escapar(a.nome)}</h2>
+      <dl>${linhas.map(l => `<dt>${l[0]}</dt><dd>${escapar(l[1])}</dd>`).join("")}</dl>
       <div class="acoes"><button class="forte" data-a="andar">${T.andarAqui}</button>${foto360 >= 0 ? `<button class="forte" data-a="foto">${T.ver360}</button>` : ""}<button data-a="planta">${T.plantaInteira}</button></div>`;
     $("mq-cartao").style.display = "block";
     $("mq-cartao").querySelector(".fechar").onclick = () => escolherAmbiente(null);
@@ -1653,7 +1656,7 @@ window.TourDaMaquete = async function (base, tour) {
     };
     if ($("mq-dica").textContent !== dicas[est.modo]) { $("mq-dica").textContent = dicas[est.modo]; if (toque) mostrarDica(); }
     const a = est.modo === "foto" ? pans[foto.atual]?.lugar : est.ambiente != null ? ambientes[est.ambiente].nome : (doPav().nome || "");
-    $("parada").innerHTML = `${a || ""}<span>${tour.projeto}</span>`;
+    $("parada").innerHTML = `${escapar(a)}<span>${escapar(tour.projeto)}</span>`;
     const pl = tour.plantas.findIndex(p => Math.abs(p.z - doPav().z) < .05);
     $("mapa").classList.toggle("esconder", !(est.modo === "andar" || est.modo === "foto") || pl < 0);
   }

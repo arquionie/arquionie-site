@@ -32,7 +32,8 @@ export function iniciais(usuario) {
 }
 
 // Volta para onde a pessoa estava (só caminhos do próprio site, nunca outro endereço); sem volta, o INÍCIO do painel, a casa do
-// sistema (ÊDI, 19/10/2026).
+// sistema (ÊDI, 19/10/2026). A barra invertida e os sinais de controle também ficam de fora: o navegador lê "/\outro.com" e
+// "/<tab>/outro.com" como "//outro.com" (a checagem de segurança de 22/10/2026).
 export function destinoSeguro(volta, padrao = '/painel') {
-  return typeof volta === 'string' && volta.startsWith('/') && !volta.startsWith('//') ? volta : padrao;
+  return typeof volta === 'string' && volta.startsWith('/') && !volta.startsWith('//') && !/[\\\x00-\x1f]/.test(volta) ? volta : padrao;
 }

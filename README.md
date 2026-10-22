@@ -64,6 +64,10 @@ cliente. Os títulos e as descrições ficam em `src/lib/seo.js`.
   novo ao abrir; para os robôs verem a nova, basta publicar o site de novo (Vercel › Deployments › Redeploy).
 - **Conferir antes de publicar:** `npm run build` e `npm run preview` (`ferramentas/servir-pronto.mjs`, que segue o `vercel.json`
   como a Vercel; o `vite preview` entrega a página inicial em toda rota).
+- **Segurança das páginas** (checagem de 22/10/2026): o `vercel.json` manda o `nosniff` em tudo e impede que outro site ponha as
+  páginas num quadro (`frame-ancestors 'self'`), menos o `/t/` e o `/tour/`, que um escritório pode embutir. A sessão da conta fica no
+  navegador, na origem do site: o que vem do escritório ou do pacote do tour entra na tela como texto (nunca como HTML), e o
+  `?envio=`, o `?pacote=` e o `?prova=` só aceitam endereços do próprio site ou do `tours.arquionie.com.br`.
 
 ## Regras para não ficar preso a nenhum fornecedor
 
