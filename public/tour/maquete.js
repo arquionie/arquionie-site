@@ -156,7 +156,8 @@ window.TourDaMaquete = async function (base, tour) {
       padding: 3px 8px; white-space: nowrap; display: none; pointer-events: none; }
     #mq-v-corte .mq-vbarra .bolha { left: auto; right: 36px; }
     .mq-vbarra.mexendo .bolha { display: block; }
-    body.toque #mq-dica { top: calc(52px + env(safe-area-inset-top)); font-size: 11px; }
+    body.toque #mq-dica { top: auto; bottom: calc(66px + env(safe-area-inset-bottom)); font-size: 11px; transition: opacity .5s; }
+    body.toque #mq-dica.sumida { opacity: 0; }
     body.toque #mq-voltar { top: calc(84px + env(safe-area-inset-top)); }
     body.embutido #mapa { top: calc(56px + env(safe-area-inset-top)); }
     #mq-cartao { position: absolute; right: calc(12px + env(safe-area-inset-right)); top: calc(54px + env(safe-area-inset-top)); width: 270px; background: rgba(17,21,26,.88);
@@ -261,6 +262,10 @@ window.TourDaMaquete = async function (base, tour) {
     body.amigavel #mq-topo .mq-pav button.mq-ir:disabled { color: var(--pg-apagado); opacity: .45; }
     body.amigavel #mq-topo #mq-pav { min-width: 70px; height: 36px; padding: 0 6px; background: none; font-size: 13px; }
     body.amigavel .mq-vert { width: 34px; }
+    /* na página do cliente, no celular, a hora do sol e o corte abaixo da miniatura da planta (ÊDI, 22/10/2026: ficavam em cima dela), e
+       a miniatura de cantos redondos, como o resto */
+    body.amigavel.toque .mq-vert { top: calc(222px + env(safe-area-inset-top)); bottom: calc(150px + env(safe-area-inset-bottom)); height: auto; max-height: 300px; }
+    body.amigavel #mapa { border-radius: 14px; overflow: hidden; } body.amigavel #mapa canvas { border-radius: 10px; }
     body.amigavel .mq-vert .mq-ico, body.amigavel #mq-v-sol #mq-sombra { width: 32px; height: 32px; background: var(--pg-superficie); color: var(--pg-texto);
       box-shadow: 0 0 0 1px var(--pg-linha), 0 4px 12px rgba(0,0,0,.18); }
     body.amigavel #mq-v-sol #mq-sombra.ativo { background: var(--pg-esc); color: var(--pg-esc-texto); }
@@ -1223,7 +1228,7 @@ window.TourDaMaquete = async function (base, tour) {
     const b = document.createElement("button");
     b.className = "mq-360"; b.textContent = "360°"; b.title = `Ver em 360°: ${p.lugar}`; b.style.display = "none";
     b.addEventListener("pointerdown", e => e.stopPropagation());
-    b.addEventListener("click", e => { e.stopPropagation(); parar(); entrarNaFoto(i); });
+    b.addEventListener("click", e => { e.stopPropagation(); parar(); movimentoAoEntrar(); entrarNaFoto(i); });
     $("mq-marcas").appendChild(b);
     return b;
   });
@@ -1323,7 +1328,7 @@ window.TourDaMaquete = async function (base, tour) {
     $("mq-cartao").querySelector("[data-a=andar]").onclick = () => andarEm(a.centro[0], a.centro[1], a.z);
     $("mq-cartao").querySelector("[data-a=planta]").onclick = () => { escolherAmbiente(null); mudarModo("planta"); };
     const bf = $("mq-cartao").querySelector("[data-a=foto]");
-    if (bf) bf.onclick = () => entrarNaFoto(foto360);
+    if (bf) bf.onclick = () => { movimentoAoEntrar(); entrarNaFoto(foto360); };
     if (voar && (est.modo === "maquete" || est.modo === "planta")) {
       let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
       for (let k = 0; k < a.contorno.length; k += 2) { x0 = Math.min(x0, a.contorno[k]); x1 = Math.max(x1, a.contorno[k]); y0 = Math.min(y0, a.contorno[k + 1]); y1 = Math.max(y1, a.contorno[k + 1]); }
@@ -1619,7 +1624,8 @@ window.TourDaMaquete = async function (base, tour) {
       $("mq-vb-corte").querySelector(".bolha").style.bottom = `${100 * f}%`;
     }
     $("mq-sombra").classList.toggle("ativo", est.sombra);
-    $("mq-voltar").style.display = est.modo === "foto" ? "block" : "none";
+    // na página do cliente, no celular, a foto sai pelo Maquete da barra (ÊDI, 22/10/2026: o botão suspenso sobrava)
+    $("mq-voltar").style.display = est.modo === "foto" && !(toque && amigavel) ? "block" : "none";
     $("mq-giro").style.display = toque && (est.modo === "andar" || est.modo === "foto") ? "" : "none";
     const dicas = toque ? {
       maquete: "arraste para girar · dois dedos aproximam · toque num ambiente",
@@ -1632,11 +1638,18 @@ window.TourDaMaquete = async function (base, tour) {
       andar: "arrastar olha · setas ou W A S D andam · clique no chão para ir até lá · Esc sai",
       foto: "arrastar olha · clique nos pontos do chão para andar · Esc volta à maquete",
     };
-    $("mq-dica").textContent = dicas[est.modo];
+    if ($("mq-dica").textContent !== dicas[est.modo]) { $("mq-dica").textContent = dicas[est.modo]; if (toque) mostrarDica(); }
     const a = est.modo === "foto" ? pans[foto.atual]?.lugar : est.ambiente != null ? ambientes[est.ambiente].nome : (doPav().nome || "");
     $("parada").innerHTML = `${a || ""}<span>${tour.projeto}</span>`;
     const pl = tour.plantas.findIndex(p => Math.abs(p.z - doPav().z) < .05);
     $("mapa").classList.toggle("esconder", !(est.modo === "andar" || est.modo === "foto") || pl < 0);
+  }
+  // No celular, a dica fica embaixo, acima da barra, aparece quando muda o modo e some sozinha ou no primeiro toque (ÊDI, 22/10/2026:
+  // em cima ela atrapalhava a vista).
+  function mostrarDica() {
+    const d = $("mq-dica");
+    d.classList.remove("sumida"); clearTimeout(mostrarDica.t);
+    mostrarDica.t = setTimeout(() => d.classList.add("sumida"), 5000);
   }
   $("mq-maquete").onclick = () => { parar(); mudarModo("maquete"); };
   $("mq-planta").onclick = () => { parar(); mudarModo("planta"); };
@@ -1689,6 +1702,9 @@ window.TourDaMaquete = async function (base, tour) {
   const embutido = document.body.classList.contains("embutido") && parent !== window;
   $("mq-cheia").onclick = embutido ? () => parent.postMessage({ arquionie: true, tipo: "telaCheia" }, "*") : telaCheia;
   if (!pedirTelaCheia && !embutido) $("mq-cheia").style.display = "none";
+  // Na página do cliente, no celular, o tour já abre em tela cheia: sem o botão, o do movimento fica no lugar dele e não encosta no
+  // pavimento (ÊDI, 22/10/2026: "clico nele e não acontece nada").
+  if (embutido && toque) $("mq-cheia").style.display = "none";
   function avisar(texto) { const a = $("aviso"); a.textContent = texto; a.style.display = "block"; clearTimeout(avisar.t); avisar.t = setTimeout(() => a.style.display = "none", 6000); }
   const movimento = { ligado: false, aparelho: null, deslocamento: 0, inclinacao: 0 };
   const mult = (a, b) => [a[0] * b[3] + a[3] * b[0] + a[1] * b[2] - a[2] * b[1], a[1] * b[3] + a[3] * b[1] + a[2] * b[0] - a[0] * b[2],
@@ -1718,6 +1734,13 @@ window.TourDaMaquete = async function (base, tour) {
     }).catch(() => avisar("O celular não deixou usar o movimento."));
   }
   $("mq-giro").onclick = () => ligarMovimento(!movimento.ligado);
+  // No celular, o movimento liga no próprio toque que entra na foto 360° (ÊDI, 22/10/2026: "a pessoa não sabe que tem que clicar ali");
+  // no iPhone o pedido de permissão só vale saindo do toque. Uma vez por visita: quem desligou ou não deixou não é perguntado de novo.
+  function movimentoAoEntrar() {
+    if (!toque || movimento.ligado || movimento.perguntado) return;
+    movimento.perguntado = true;
+    ligarMovimento(true);
+  }
 
   // ---------------------------------------------------------------- o mapa (em pé): a planta do pavimento, você e as fotos; o toque volta à PLANTA
   function desenharMapa() {
@@ -1750,6 +1773,7 @@ window.TourDaMaquete = async function (base, tour) {
   const ponteiros = new Map();
   tela.addEventListener("contextmenu", e => e.preventDefault());
   tela.addEventListener("pointerdown", e => {
+    if (toque) $("mq-dica").classList.add("sumida");
     if (e.button === 1) e.preventDefault();
     ponteiros.set(e.pointerId, { x: e.clientX, y: e.clientY, arrasto: 0, botao: e.button, shift: e.shiftKey });
     tela.setPointerCapture(e.pointerId); parar();
@@ -1822,8 +1846,9 @@ window.TourDaMaquete = async function (base, tour) {
   function arrastarAlvo(dx, dy) {
     const escala = orb.dist * 2 * Math.tan((est.modo === "planta" ? CAMPO_DA_PLANTA : 45) * rad / 2) / tela.clientHeight;
     const g = orb.guinada, frente = [-Math.cos(g), -Math.sin(g)], lado = [Math.sin(g), -Math.cos(g)];
-    orbAlvo.alvo[0] += (-dx * lado[0] + dy * frente[0]) * escala;
-    orbAlvo.alvo[1] += (-dx * lado[1] + dy * frente[1]) * escala;
+    // o lado aponta para a esquerda da tela: o desenho vai com o dedo (ÊDI, 22/10/2026: de lado ia ao contrário; de cima para baixo, certo)
+    orbAlvo.alvo[0] += (dx * lado[0] + dy * frente[0]) * escala;
+    orbAlvo.alvo[1] += (dx * lado[1] + dy * frente[1]) * escala;
   }
   const soltar = e => {
     const p = ponteiros.get(e.pointerId);
@@ -2151,6 +2176,7 @@ window.TourDaMaquete = async function (base, tour) {
   return () => {
     for (const id of ["parada", "mq-barra", "mq-dica", ...(toque ? ["mq-topo", "mq-v-sol", "mq-v-corte"] : [])]) $(id).classList.remove("esconder");
     atualizar();
+    if (toque) mostrarDica();
     if (parent !== window) parent.postMessage({ arquionie: true, tipo: "pronto" }, "*");
     return { telaCheia, ligarMovimento: () => {} };
   };

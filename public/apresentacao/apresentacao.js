@@ -244,7 +244,8 @@
   function tourEmTelaCheia(ligar) {
     $("tour").classList.toggle("cheio", ligar); document.body.classList.toggle("tourCheio", ligar); $("sairTour").hidden = !ligar;
     const raiz = document.documentElement;
-    if (ligar && !document.fullscreenElement) (raiz.requestFullscreen || raiz.webkitRequestFullscreen || (() => {})).call(raiz)?.catch?.(() => {});
+    // sem as barras do sistema também embaixo, no Android (ÊDI, 22/10/2026: "completamente cheia")
+    if (ligar && !document.fullscreenElement) (raiz.requestFullscreen || raiz.webkitRequestFullscreen || (() => {})).call(raiz, { navigationUI: "hide" })?.catch?.(() => {});
     if (!ligar && document.fullscreenElement) document.exitFullscreen?.();
   }
   $("sairTour").onclick = () => tourEmTelaCheia(false);
