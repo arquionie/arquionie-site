@@ -1452,6 +1452,19 @@ window.TourDaMaquete = async function (base, tour) {
     }
   });
 
+  // Na página do cliente, no celular, a cor do alto do tour vai para a página, que pinta com ela a faixa de cima do navegador (ÊDI,
+  // 22/10/2026: no iPhone as barras do navegador não somem, e a de cima ficava branca sobre o tour). Um ponto, duas vezes por segundo.
+  const corDoAlto = { t: 0, cor: "" };
+  function corDoAltoParaPagina(agora) {
+    if (!naPagina || !toque || agora - corDoAlto.t < 500) return;
+    corDoAlto.t = agora;
+    const b = new Uint8Array(4);
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
+    gl.readPixels(Math.floor(tela.width / 2), tela.height - 1, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, b);
+    const cor = "#" + [b[0], b[1], b[2]].map(v => v.toString(16).padStart(2, "0")).join("");
+    if (cor !== corDoAlto.cor) { corDoAlto.cor = cor; parent.postMessage({ arquionie: true, tipo: "corDoAlto", cor }, "*"); }
+  }
+
   // ---------------------------------------------------------------- os modos
   function mudarPav(n, enquadrar = true) {
     est.pav = Math.max(0, Math.min(pavs.length - 1, n));
@@ -2149,6 +2162,7 @@ window.TourDaMaquete = async function (base, tour) {
     }
     // O quadro pronto na tela.
     if (quadroDaTela) quadroNaTela();
+    corDoAltoParaPagina(agora);
     gl.activeTexture(gl.TEXTURE0);
     desenharRotulos(vp); desenharCotas(vp); desenharAlfinetes(vp);
     desenharPontosDaFoto(vp, vertical);

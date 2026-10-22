@@ -247,6 +247,18 @@
     // sem as barras do sistema também embaixo, no Android (ÊDI, 22/10/2026: "completamente cheia")
     if (ligar && !document.fullscreenElement) (raiz.requestFullscreen || raiz.webkitRequestFullscreen || (() => {})).call(raiz, { navigationUI: "hide" })?.catch?.(() => {});
     if (!ligar && document.fullscreenElement) document.exitFullscreen?.();
+    pintarFaixa();
+  }
+  // No iPhone nenhum navegador esconde as próprias barras (só o vídeo vai à tela cheia de verdade): com o tour em tela cheia, a faixa de
+  // cima fica na cor do alto do tour, que ele manda (ÊDI, 22/10/2026: ela ficava branca). O theme-color e o fundo da página e do tour.
+  let corDoAlto = null;
+  function pintarFaixa() {
+    const cheio = $("tour").classList.contains("cheio"), cor = cheio && /^#[0-9a-f]{6}$/i.test(corDoAlto || "") ? corDoAlto : null;
+    let meta = document.querySelector('meta[name="theme-color"]');
+    if (cor && !meta) { meta = document.createElement("meta"); meta.name = "theme-color"; document.head.append(meta); }
+    if (meta) { if (cor) meta.content = cor; else meta.remove(); }
+    document.documentElement.style.backgroundColor = cor || "";
+    $("tour").style.backgroundColor = cor || "";
   }
   $("sairTour").onclick = () => tourEmTelaCheia(false);
   // Saindo da tela cheia pelo Esc do navegador, o tour volta ao lugar na página.
@@ -270,6 +282,7 @@
     if (ev.source !== $("quadroTour").contentWindow || !ev.data?.arquionie) return;
     const m = ev.data;
     if (m.tipo === "telaCheia") tourEmTelaCheia(!$("tour").classList.contains("cheio"));
+    if (m.tipo === "corDoAlto") { corDoAlto = m.cor; pintarFaixa(); }
     if (m.tipo === "pronto") { tourPronto = true; enviarAlfinetes(); if (comentando) paraOTour({ tipo: "comentar", ligado: true }); }
     if (m.tipo === "ponto" && comentando) {
       // No celular a coluna cobre o tour: a marcação desliga a cada toque; no computador segue ligada, para o próximo.
