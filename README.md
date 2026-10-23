@@ -361,6 +361,9 @@ Configurações feitas no painel, em ordem:
    função, que ninguém recebe). O ENTRAR, o CRIAR CONTA, o ESQUECI A SENHA e o MANDAR OUTRO CÓDIGO levam o token do Turnstile ao
    Supabase (`VerificacaoDePessoa.jsx`; no `npm run dev` ele não aparece). A verificação só passa a valer quando for ligada no Supabase
    (Authentication › Attack Protection), e só depois que os programas tiverem atualizado: as versões antigas entram com a senha.
+   **Servidor e site publicados em 22/10/2026** (a migração, a função `programa` e o site). Conferido no ar: o AUTORIZAR sem conta volta
+   401, um código inventado volta `codigo_invalido`, o navegador não chama as funções do banco, e o Turnstile aparece no ENTRAR de
+   www.arquionie.com.br. Falta a ida e volta com uma conta de verdade (com o ÊDI no computador) e a versão do programa.
    1. **Teste local:** `node supabase/testes/programa.test.mjs` (16 conferências).
    2. **SQL:** rodar a migração (pode rodar duas vezes). **Função** `programa` com `--no-verify-jwt`. **Site:** o `git push`.
    3. **Programa:** a versão com ENTRAR PELO NAVEGADOR (ramo `entrar-pelo-navegador` do repositório do programa).
