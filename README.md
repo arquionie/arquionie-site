@@ -343,7 +343,10 @@ Configurações feitas no painel, em ordem:
    (6), a denúncia de formulário (5) e, nas funções, o feedback do plugin (10), o iniciar do conectar (20) e a resposta do cliente na
    página /t/ (30). A trava geral do `pedido_criar` subiu de 60 para 300 por hora (com 60, um robô parava as vendas). O banco guarda só
    a impressão do endereço (SHA-256 com o sal dele; o IPv6 pela rede /64) e apaga as janelas de ontem. Para mudar um limite, sem
-   publicar nada: `update public.ajustes_limites set codigo = 50`. Só com o ÊDI, nesta ordem:
+   publicar nada: `update public.ajustes_limites set codigo = 50`. **Publicado em 22/10/2026**, com a chave temporária: a migração, as quatro
+   funções e o site. Conferido no ar: o banco e as funções contam o endereço verdadeiro (um `X-Forwarded-For` ou `X-Real-IP` inventado
+   não muda nada, e a Cloudflare recusa um `CF-Connecting-IP` inventado); o 31º erro de código responde `limite`; as contagens dos
+   testes foram apagadas. Para publicar de novo, nesta ordem:
    1. **Teste local:** `node supabase/testes/limites.test.mjs` (30 conferências) e os das funções (`funcoes`, `envio`, `apresentacoes`).
    2. **SQL:** rodar a migração (pode rodar duas vezes). Ela troca as funções `apresentacao_abrir`, `apresentacao_situacao`,
       `tour_abrir`, `comercial_formulario_abrir`, `comercial_proposta_abrir`, `comercial_proposta_aceitar`, `comercial_denunciar`,
