@@ -41,7 +41,7 @@ const VerificacaoDePessoa = forwardRef(function VerificacaoDePessoa({ aoConfirma
       if (!vivo || !caixa.current) return;
       widget.current = window.turnstile.render(caixa.current, {
         sitekey: CHAVE,
-        language: 'pt-BR',
+        language: 'pt-br',
         callback: (token) => avisar.current(token),
         'expired-callback': () => avisar.current(''),
         'error-callback': () => avisar.current(''),

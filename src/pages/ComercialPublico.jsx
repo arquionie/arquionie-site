@@ -142,7 +142,7 @@ function Turnstile({ aoConfirmar }) {
   const caixa = useRef(null);
   useEffect(() => {
     if (!TURNSTILE_CHAVE) return;
-    const desenhar = () => window.turnstile?.render(caixa.current, { sitekey: TURNSTILE_CHAVE, callback: aoConfirmar, language: 'pt-BR' });
+    const desenhar = () => window.turnstile?.render(caixa.current, { sitekey: TURNSTILE_CHAVE, callback: aoConfirmar, language: 'pt-br' });
     if (window.turnstile) return void desenhar();
     const s = document.createElement('script');
     s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
