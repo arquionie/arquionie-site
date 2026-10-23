@@ -369,6 +369,7 @@ Configurações feitas no painel, em ordem:
    3. **Programa:** a versão com ENTRAR PELO NAVEGADOR (ramo `entrar-pelo-navegador` do repositório do programa).
    4. **Ligar a verificação** no Supabase, com o segredo do Turnstile, quando 9 de cada 10 computadores conectados estiverem na versão
       nova (a /gestao mostra a versão de cada um).
+      **ÊDI decidiu em 23/10/2026: não ligar por enquanto.**
 
 ## Pendente
 
