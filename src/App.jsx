@@ -16,6 +16,7 @@ import Completar from '@/pages/Completar';
 import Conta from '@/pages/Conta';
 import Gestao from '@/pages/Gestao';
 import Programa from '@/pages/Programa';
+import EntrarNoPrograma from '@/pages/EntrarNoPrograma';
 import Conectar from '@/pages/Conectar';
 import Comprar from '@/pages/Comprar';
 import { InicioDoPainel, ProgramaDoPainel } from '@/pages/Painel';
@@ -50,6 +51,14 @@ export default function App() {
           element={
             <RotaDaConta>
               <Conectar />
+            </RotaDaConta>
+          }
+        />
+        <Route
+          path="/programa/entrar"
+          element={
+            <RotaDaConta>
+              <EntrarNoPrograma />
             </RotaDaConta>
           }
         />

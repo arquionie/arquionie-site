@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Cartao, { Miolo } from '@/components/Cartao';
 import { Botao, Codigo, Mensagem } from '@/components/Formulario';
+import VerificacaoDePessoa from '@/components/VerificacaoDePessoa';
 import { supabase } from '@/lib/supabase';
 import { mensagemDeErro } from '@/lib/erros';
 import { destinoSeguro } from '@/lib/conta';
@@ -18,6 +19,8 @@ export default function Confirmar() {
   const [aviso, setAviso] = useState('');
   const [ocupado, setOcupado] = useState(false);
   const [espera, setEspera] = useState(ESPERA_REENVIO);
+  const [pessoa, setPessoa] = useState('');
+  const verificacao = useRef(null);
 
   useEffect(() => {
     if (espera <= 0) return undefined;
@@ -38,7 +41,8 @@ export default function Confirmar() {
   async function reenviar() {
     setErro('');
     setAviso('');
-    const { error } = await supabase.auth.resend({ type: 'signup', email });
+    const { error } = await supabase.auth.resend({ type: 'signup', email, options: { captchaToken: pessoa } });
+    verificacao.current?.reiniciar();
     if (error) return setErro(mensagemDeErro(error));
     setAviso('Mandamos um código novo.');
     setEspera(ESPERA_REENVIO);
@@ -78,6 +82,7 @@ export default function Confirmar() {
           )}
           <span>Não chegou? Olhe a caixa de spam.</span>
         </div>
+        {espera <= 0 && <VerificacaoDePessoa ref={verificacao} aoConfirmar={setPessoa} />}
         <p className="text-amg-legenda text-texto-apagado">
           O e-mail trouxe um link em vez do código? Clique nele neste mesmo navegador: a conta fica confirmada e você entra.
         </p>

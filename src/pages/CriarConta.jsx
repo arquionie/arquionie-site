@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Cartao, { Miolo } from '@/components/Cartao';
 import { BotaoGoogle, Botao, Campo, Lista, Marcar, Mensagem, Ou } from '@/components/Formulario';
+import VerificacaoDePessoa from '@/components/VerificacaoDePessoa';
 import { supabase } from '@/lib/supabase';
 import { mensagemDeErro } from '@/lib/erros';
 import { destinoSeguro } from '@/lib/conta';
@@ -24,6 +25,8 @@ export default function CriarConta() {
   const [erro, setErro] = useState('');
   const [ocupado, setOcupado] = useState(false);
   const [tentou, setTentou] = useState(false);
+  const [pessoa, setPessoa] = useState('');
+  const verificacao = useRef(null);
 
   async function criar() {
     setErro('');
@@ -38,6 +41,7 @@ export default function CriarConta() {
       email: email.trim(),
       password: senha,
       options: {
+        captchaToken: pessoa,
         emailRedirectTo: `${window.location.origin}${volta}`,
         data: {
           nome: nome.trim(),
@@ -50,6 +54,7 @@ export default function CriarConta() {
       },
     });
     setOcupado(false);
+    verificacao.current?.reiniciar();
     if (error) return setErro(mensagemDeErro(error));
     // Com a confirmação ligada, um e-mail que já tem conta volta sem identidades, e não com erro.
     if (data.user && (data.user.identities ?? []).length === 0) {
@@ -112,6 +117,7 @@ export default function CriarConta() {
         <Marcar id="novidades" marcado={novidades} aoMudar={setNovidades}>
           Quero receber novidades do Arquionie™ por e-mail (opcional)
         </Marcar>
+        <VerificacaoDePessoa ref={verificacao} aoConfirmar={setPessoa} />
         <Mensagem erro>{erro}</Mensagem>
       </Cartao>
     </Miolo>

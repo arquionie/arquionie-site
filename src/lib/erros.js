@@ -10,6 +10,7 @@ const TRADUCOES = [
   [/rate limit/i, 'Muitos pedidos seguidos. Tente de novo daqui a alguns minutos.'],
   [/unable to validate email address|invalid format/i, 'Esse e-mail não parece certo. Confira o endereço.'],
   [/signups not allowed/i, 'O cadastro está fechado no momento.'],
+  [/captcha/i, 'Não deu para confirmar que você é uma pessoa. Espere o quadrinho da verificação ficar verde e tente de novo.'],
   [/failed to fetch|network/i, 'Sem conexão com o servidor. Confira a internet e tente de novo.'],
 ];
 

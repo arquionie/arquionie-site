@@ -353,6 +353,20 @@ Configurações feitas no painel, em ordem:
       `cupom_conferir` e `pedido_criar`: **rodar de novo uma migração antiga que as cria desfaz o limite**; depois dela, rodar esta outra vez.
    3. **Funções** `feedback`, `conectar`, `cliente` e `comercial`, todas com `--no-verify-jwt`.
 
+17. **ENTRAR PELO NAVEGADOR e a verificação de pessoa nas telas da conta** (mockup `docs/mockups/entrar-pelo-navegador` do repositório
+   do programa, aprovado por ÊDI em 22/10/2026; migração `20261023000000_entrar_no_programa.sql`). O programa não pede mais a senha:
+   abre `/programa/entrar?porta=…&desafio=…&nome=…`, a pessoa entra no site (RotaDaConta leva ao ENTRAR e ao COMPLETAR) e clica
+   ENTRAR NO PROGRAMA; a função `programa` dá um código de uso único (2 minutos, gasto na primeira troca, certa ou errada), que volta ao
+   programa por `/programa/PORTA`; o programa troca o código e o verificador pela sessão dele (um link mágico gerado e conferido na
+   função, que ninguém recebe). O ENTRAR, o CRIAR CONTA, o ESQUECI A SENHA e o MANDAR OUTRO CÓDIGO levam o token do Turnstile ao
+   Supabase (`VerificacaoDePessoa.jsx`; no `npm run dev` ele não aparece). A verificação só passa a valer quando for ligada no Supabase
+   (Authentication › Attack Protection), e só depois que os programas tiverem atualizado: as versões antigas entram com a senha.
+   1. **Teste local:** `node supabase/testes/programa.test.mjs` (16 conferências).
+   2. **SQL:** rodar a migração (pode rodar duas vezes). **Função** `programa` com `--no-verify-jwt`. **Site:** o `git push`.
+   3. **Programa:** a versão com ENTRAR PELO NAVEGADOR (ramo `entrar-pelo-navegador` do repositório do programa).
+   4. **Ligar a verificação** no Supabase, com o segredo do Turnstile, quando 9 de cada 10 computadores conectados estiverem na versão
+      nova (a /gestao mostra a versão de cada um).
+
 ## Pendente
 
 - Textos da página inicial para ÊDI revisar. As imagens são capturas de amostras do programa (`public/imagens`); faltam

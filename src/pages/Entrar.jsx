@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Cartao, { Miolo } from '@/components/Cartao';
 import { BotaoGoogle, Botao, Campo, Mensagem, Ou } from '@/components/Formulario';
+import VerificacaoDePessoa from '@/components/VerificacaoDePessoa';
 import { supabase } from '@/lib/supabase';
 import { mensagemDeErro } from '@/lib/erros';
 import { useSessao } from '@/lib/Sessao';
@@ -23,6 +24,8 @@ export default function Entrar() {
   const [senha, setSenha] = useState('');
   const [erro, setErro] = useState('');
   const [ocupado, setOcupado] = useState(false);
+  const [pessoa, setPessoa] = useState('');
+  const verificacao = useRef(null);
 
   // Quem já entrou segue para onde ia; quem entrou pelo Google e ainda não completou o cadastro passa antes por ele.
   useEffect(() => {
@@ -34,8 +37,9 @@ export default function Entrar() {
     setErro('');
     if (!email.trim() || !senha) return setErro('Digite o e-mail e a senha.');
     setOcupado(true);
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: senha });
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: senha, options: { captchaToken: pessoa } });
     setOcupado(false);
+    verificacao.current?.reiniciar();
     if (!error) return navegar(volta, { replace: true });
     if (/email not confirmed/i.test(error.message)) {
       return navegar(`/confirmar?email=${encodeURIComponent(email.trim())}&volta=${encodeURIComponent(volta)}`);
@@ -76,6 +80,7 @@ export default function Entrar() {
         <Link to={`/recuperar?email=${encodeURIComponent(email.trim())}`} className="self-start font-semibold text-destaque no-underline hover:underline">
           Esqueci a senha
         </Link>
+        <VerificacaoDePessoa ref={verificacao} aoConfirmar={setPessoa} />
         <Mensagem erro>{erro}</Mensagem>
       </Cartao>
     </Miolo>

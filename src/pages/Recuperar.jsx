@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Cartao, { Miolo } from '@/components/Cartao';
 import { Botao, Campo, Mensagem } from '@/components/Formulario';
+import VerificacaoDePessoa from '@/components/VerificacaoDePessoa';
 import { supabase } from '@/lib/supabase';
 import { mensagemDeErro } from '@/lib/erros';
 import { useSessao } from '@/lib/Sessao';
@@ -24,13 +25,16 @@ export default function Recuperar() {
   const [erro, setErro] = useState('');
   const [aviso, setAviso] = useState('');
   const [ocupado, setOcupado] = useState(false);
+  const [pessoa, setPessoa] = useState('');
+  const verificacao = useRef(null);
 
   async function pedirCodigo() {
     setErro('');
     if (!email.trim()) return setErro('Digite o e-mail da conta.');
     setOcupado(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: VOLTA_DO_LINK() });
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: VOLTA_DO_LINK(), captchaToken: pessoa });
     setOcupado(false);
+    verificacao.current?.reiniciar();
     if (error) return setErro(mensagemDeErro(error));
     setEtapa('codigo');
     setAviso('');
@@ -60,7 +64,8 @@ export default function Recuperar() {
 
   async function reenviar() {
     setErro('');
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: VOLTA_DO_LINK() });
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: VOLTA_DO_LINK(), captchaToken: pessoa });
+    verificacao.current?.reiniciar();
     setAviso(error ? '' : 'Mandamos um código novo.');
     if (error) setErro(mensagemDeErro(error));
   }
@@ -84,6 +89,7 @@ export default function Recuperar() {
           }
         >
           <Campo id="email" rotulo="E-mail" tipo="email" valor={email} aoMudar={setEmail} autoComplete="email" autoFocus />
+          <VerificacaoDePessoa ref={verificacao} aoConfirmar={setPessoa} />
           <Mensagem erro>{erro}</Mensagem>
         </Cartao>
       </Miolo>
@@ -130,6 +136,7 @@ export default function Recuperar() {
           <Campo id="senha" rotulo="Nova senha" tipo="password" valor={senha} aoMudar={setSenha} autoComplete="new-password" />
           <Campo id="repetir" rotulo="Repetir a senha" tipo="password" valor={repetir} aoMudar={setRepetir} autoComplete="new-password" />
         </div>
+        {etapa === 'codigo' && <VerificacaoDePessoa ref={verificacao} aoConfirmar={setPessoa} />}
         <Mensagem erro>{erro}</Mensagem>
         <Mensagem>{aviso}</Mensagem>
       </Cartao>
