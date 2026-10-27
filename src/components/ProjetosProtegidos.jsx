@@ -59,7 +59,7 @@ export function PadraoDoEscritorio() {
   if (ligado === null) return null;
   const rotulo = 'Proteger os projetos novos da sua equipe';
   return (
-    <div className="flex max-w-[640px] flex-col gap-2">
+    <div className="flex flex-col gap-2">
       <Grupo>
         <Linha className="flex-nowrap">
           <TextoDaLinha
@@ -373,7 +373,7 @@ export function CopiaDeSeguranca() {
   if (situacao === null) return <p className="text-texto-apagado">Carregando…</p>;
   const pendente = situacao.faltam > 0;
   return (
-    <form onSubmit={baixar} className="flex max-w-[640px] flex-col gap-3 rounded-cartao bg-superficie p-4 shadow-cartao sm:p-5">
+    <form onSubmit={baixar} className="flex flex-col gap-3 rounded-cartao bg-superficie p-4 shadow-cartao sm:p-5">
       <p className="rotulo">Cópia de segurança das chaves</p>
       <p className={pendente ? 'text-destaque-texto' : 'text-texto-apagado'}>
         {situacao.baixadaEm

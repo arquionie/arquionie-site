@@ -64,7 +64,7 @@ function lerArquivoDoFlow(texto) {
 // botão nível 3 sumia, porque tem a mesma cor).
 function CartaoAberto({ rotulo, dentro, children, ...resto }) {
   const Tag = resto.onSubmit ? 'form' : 'div';
-  const caixa = dentro ? 'w-full rounded-dentro ring-1 ring-inset ring-linha p-3 sm:p-4' : 'max-w-[640px] rounded-cartao bg-superficie p-4 shadow-cartao sm:p-5';
+  const caixa = dentro ? 'w-full rounded-dentro ring-1 ring-inset ring-linha p-3 sm:p-4' : 'rounded-cartao bg-superficie p-4 shadow-cartao sm:p-5';
   return (
     <Tag className={`flex flex-col gap-3 ${caixa}`} {...resto}>
       <p className="rotulo">{rotulo}</p>

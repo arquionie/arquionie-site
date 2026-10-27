@@ -380,7 +380,11 @@ Configurações feitas no painel, em ordem:
    está numa equipe), **chegaram ao escritório** e **passados ao escritório**. A troca guarda o identificador e a chave (todas as cópias do
    arquivo continuam abrindo), leva os convidados, os pedidos de acesso e a página do cliente (o mesmo link) e fica no registro, com a
    proteção ligada e a tirada. Só com o ÊDI, nesta ordem, **antes** de publicar a versão do programa que traz o Proteger e o Passar ao
-   escritório (sem as funções, o programa novo protege e abre como antes, mas o Passar e o Pedir ao escritório respondem que não deu):
+   escritório (sem as funções, o programa novo protege e abre como antes, mas o Passar e o Pedir ao escritório respondem que não deu).
+   No mesmo ramo, pelo pedido de ÊDI ("não faz sentido esses cards ficarem mais estreitos do que os outros"): os cartões e os formulários
+   da conta e o cartão aberto da gestão na largura da página, como as listas (a cópia de segurança, o padrão do escritório, o e-mail da
+   equipe, a senha, as novidades, os dados, o convite e a equipe do escritório); os cartões sozinhos no meio da tela (entrar, comprar, a
+   proposta) ficam como estão.
    1. **Teste local:** `node supabase/testes/troca-do-dono.test.mjs` (66 conferências) e os de antes (`projetos` 39, `copia-das-chaves` 7).
    2. **SQL Editor:** rodar a migração (pode rodar duas vezes). Ela troca as funções `projeto_chave`, `projeto_registrar` e
       `copia_de_seguranca_situacao`: **rodar de novo a `20261020120000_projetos_do_escritorio.sql` desfaz a troca do dono**; depois dela,

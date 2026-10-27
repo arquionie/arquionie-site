@@ -285,7 +285,7 @@ function TrocarSenha({ temSenha }) {
   }
 
   return (
-    <form onSubmit={salvar} className="flex max-w-[520px] flex-col gap-2">
+    <form onSubmit={salvar} className="flex flex-col gap-2">
       {!temSenha && <p className="mb-1 text-texto-apagado">Você entra pelo Google. Se quiser, crie também uma senha para entrar pelo e-mail.</p>}
       <Campo id="nova-senha" rotulo="Nova senha" tipo="password" valor={senha} aoMudar={setSenha} autoComplete="new-password" />
       <Campo id="repetir-senha" rotulo="Repetir a senha" tipo="password" valor={repetir} aoMudar={setRepetir} autoComplete="new-password" />
@@ -314,7 +314,7 @@ function Novidades({ ligado }) {
   }
   const rotulo = 'Receber por e-mail as novidades do Arquionie (versões novas e recursos)';
   return (
-    <div className="flex max-w-[640px] flex-col gap-2">
+    <div className="flex flex-col gap-2">
       <Grupo>
         <Linha className="flex-nowrap">
           <span className="min-w-0 flex-1" aria-hidden="true">{rotulo}</span>
@@ -346,7 +346,7 @@ function Aparencia() {
     );
   const barras = (raio) => [0, 1, 2].map((i) => <i key={i} className={`block h-4 bg-superficie ${raio}`} />);
   return (
-    <div className="flex max-w-[520px] flex-col gap-5">
+    <div className="flex flex-col gap-5">
       <div aria-hidden="true" className="grid grid-cols-3 gap-3 sm:flex sm:gap-4">
         {TEMAS.map(([id, nome]) => (
           <button key={id} type="button" tabIndex={-1} onClick={() => escolher(id)}
@@ -390,7 +390,7 @@ function ConviteDaEquipe({ convite, aoResponder }) {
     aoResponder(convite, entrar);
   }
   return (
-    <div className="mb-6 flex max-w-[760px] flex-col gap-2.5 rounded-cartao bg-superficie p-4 shadow-cartao sm:p-5">
+    <div className="mb-6 flex flex-col gap-2.5 rounded-cartao bg-superficie p-4 shadow-cartao sm:p-5">
       <b className="text-amg-secao">{convite.escritorio} colocou você na equipe do escritório</b>
       <span className="text-texto-apagado">
         Com a equipe, você vê as apresentações do escritório e os ajustes dos clientes, aqui e no programa. Quem cadastrou:{' '}
@@ -418,7 +418,7 @@ function EquipeDoEscritorio({ equipe, aoSair }) {
     aoSair(equipe);
   }
   return (
-    <div className="flex max-w-[640px] flex-col gap-3">
+    <div className="flex flex-col gap-3">
       <p className="text-texto-apagado">Quem está na equipe. Só o responsável cadastra e tira pessoas.</p>
       <Grupo>
         <Linha>
@@ -612,7 +612,7 @@ export default function Conta() {
     conteudo = (
       <>
         <Bloco id="dados" titulo="Conta">
-          <div className="max-w-[640px]">
+          <div>
             <Grupo>
               <LinhaDeValor rotulo="Nome">{d.nome || 'Sem nome'}</LinhaDeValor>
               <LinhaDeValor rotulo="E-mail">{d.email}</LinhaDeValor>

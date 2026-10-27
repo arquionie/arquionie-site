@@ -30,7 +30,7 @@ function Selo({ situacao }) {
 export function CartaoAberto({ rotulo, children, ...resto }) {
   const Tag = resto.onSubmit ? 'form' : 'div';
   return (
-    <Tag className="mt-3 flex max-w-[640px] flex-col gap-3 rounded-cartao bg-superficie p-4 shadow-cartao sm:p-5" {...resto}>
+    <Tag className="mt-3 flex flex-col gap-3 rounded-cartao bg-superficie p-4 shadow-cartao sm:p-5" {...resto}>
       <p className="rotulo">{rotulo}</p>
       {children}
     </Tag>
@@ -192,7 +192,7 @@ export default function Equipe({ aoMudar }) {
         Quem você cadastrar aqui entra com o próprio e-mail ou com o Google e vê a área do escritório: as apresentações e os ajustes dos
         clientes. No programa, abre os projetos do escritório.
       </p>
-      <form onSubmit={cadastrar} className="flex max-w-[640px] flex-col gap-2 sm:flex-row sm:items-center">
+      <form onSubmit={cadastrar} className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <div className="min-w-0 flex-1">
           <Campo id="equipe-email" rotulo="E-mail" tipo="email" valor={email} aoMudar={setEmail} placeholder="nome@escritorio.com.br" />
         </div>
