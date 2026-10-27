@@ -9,6 +9,7 @@ import { MetaDaPagina } from '@/lib/seo';
 import { TEMAS, escolherTema, useTema } from '@/lib/aparencia';
 import { useAparenciaDaConta } from '@/components/Moldura';
 import { Icone } from '@/components/Formulario';
+import SalienciaDoMenu from '@/components/SalienciaDoMenu';
 
 // As telas de quem entrou no jeito de sistema (ÊDI, 19/10/2026, pela referência do menu lateral do Sistema Palheta): o menu solto
 // da borda em três blocos do tamanho do que guardam — o leão num círculo no alto, a navegação numa pílula no meio do espaço que
@@ -134,23 +135,11 @@ export const ITENS = [
 ];
 const GESTAO = { id: 'gestao', nome: 'Gestão', para: '/gestao', ativo: (c) => c.startsWith('/gestao') };
 
-// Os botões do menu. No celular, só o círculo de 40 px: os oito de quem administra cabem na largura de um telefone de 375 px. No menu
-// lateral, o círculo de 46 px com o nome ao lado, que fica escondido enquanto o menu está fechado e aparece quando ele se abre.
+// Os botões do menu: o círculo de 46 px no menu lateral e o de 40 px no celular (os oito de quem administra cabem na largura de um
+// telefone de 375 px). No menu lateral, o nome sai da barra ao passar o mouse, pela saliência (SalienciaDoMenu, que lê o data-nome).
 const cor = (ativo) => (ativo ? 'bg-amg-destaque-suave text-destaque-texto' : 'text-texto-apagado hover:bg-superficie-2 hover:text-texto');
 const circulo = (ativo, pequeno) =>
-  pequeno
-    ? `grid h-10 w-10 shrink-0 place-items-center rounded-full transition-colors ${cor(ativo)}`
-    : `flex h-[46px] w-full shrink-0 items-center overflow-hidden rounded-full no-underline transition-colors ${cor(ativo)}`;
-
-function ComNome({ nome, pequeno, children }) {
-  if (pequeno) return children;
-  return (
-    <>
-      <span className="grid h-[46px] w-[46px] shrink-0 place-items-center">{children}</span>
-      <span className="whitespace-nowrap pl-1 pr-4 font-medium">{nome}</span>
-    </>
-  );
-}
+  `grid ${pequeno ? 'h-10 w-10' : 'h-[46px] w-[46px]'} shrink-0 place-items-center rounded-full no-underline transition-colors ${cor(ativo)}`;
 
 // na área de um escritório, Apresentações e Equipe ficam nele (/conta/escritorio/<nome>/equipe); a Minha área volta pelas cápsulas do alto
 function Item({ item, pequeno }) {
@@ -159,10 +148,9 @@ function Item({ item, pequeno }) {
   const area = pathname.match(/^\/conta\/escritorio\/[^/]+\//)?.[0];
   const para = area && item.para.startsWith('/conta/') ? area + item.para.slice('/conta/'.length) : item.para;
   return (
-    <Link to={para} aria-label={item.nome} aria-current={ativo ? 'page' : undefined} className={circulo(ativo, pequeno)}>
-      <ComNome nome={item.nome} pequeno={pequeno}>
-        <IconeDoMenu nome={item.id} />
-      </ComNome>
+    <Link to={para} aria-label={item.nome} aria-current={ativo ? 'page' : undefined} data-nome={pequeno ? undefined : item.nome}
+      className={circulo(ativo, pequeno)}>
+      <IconeDoMenu nome={item.id} />
     </Link>
   );
 }
@@ -206,10 +194,10 @@ function Flutuante({ rotulo, nome, pequeno, botao, children }) {
   }, [aberto]);
 
   return (
-    <div className={`relative ${pequeno ? '' : 'w-full'}`}>
+    <div className="relative">
       <button ref={ref} type="button" onClick={() => setAberto((a) => !a)} aria-expanded={aberto} aria-label={rotulo}
-        className={circulo(false, pequeno)}>
-        <ComNome nome={nome} pequeno={pequeno}>{botao}</ComNome>
+        data-nome={pequeno ? undefined : nome} className={circulo(false, pequeno)}>
+        {botao}
       </button>
       {aberto && (
         <div ref={caixa} className="absolute bottom-[calc(100%+12px)] right-0 z-50 w-60 rounded-cartao bg-superficie p-1.5 shadow-amg-janela md:bottom-0 md:left-[calc(100%+27px)] md:right-auto">
@@ -288,32 +276,32 @@ export default function MolduraDoSistema() {
   // a Gestão só para quem administra; no servidor de desenvolvimento com ?amostra, aparece para conferir a tela (na aula, não)
   const admin = useEhAdministrador() || (AMOSTRA && !AULA);
 
-  // Fechado, cada bloco tem 76 px e os ícones ficam no meio; ao passar o mouse (ou chegar pelo teclado), o menu se abre por cima da
-  // página e mostra os nomes (ÊDI, 19/10/2026: "quando a gente aproximar, o painel se expandir mostrando os títulos"). Abre com um
-  // instante de espera, para não piscar quando o mouse só passa, e fica aberto enquanto a aparência ou a conta estão abertas.
-  const bloco = 'w-full rounded-[38px] bg-superficie shadow-cartao transition-shadow group-hover/menu:shadow-amg-janela group-hover/menu:ring-1 group-hover/menu:ring-linha';
+  // Os três blocos com 76 px e os ícones no meio. A barra não se abre mais: ao passar o mouse (ou chegar pelo teclado) num ícone, o nome
+  // sai de dentro dela, na saliência, como no Sistema Palheta (ÊDI, 27/10/2026: "esse painel lateral que ele expande desse jeito, eu
+  // acho que é melhor a gente fazer igual o do sistema palheta"; antes, de 19/10, o painel inteiro se abria mostrando os títulos). Os
+  // blocos ficam por cima da saliência (z 2 contra 1), e a navegação rola sem a barra de rolagem, que cortaria a pílula.
+  const barraRef = useRef(null);
+  const bloco = 'relative z-[2] w-[76px] rounded-full bg-superficie shadow-cartao';
   return (
     <div className="flex min-h-screen">
       <MetaDaPagina />
       <aside className="sticky top-0 hidden h-screen w-[88px] shrink-0 md:block">
-        <div className="group/menu absolute inset-y-3 left-3 z-30 flex w-[76px] flex-col gap-3 transition-[width] duration-200 ease-out hover:w-[236px] hover:delay-150 has-[:focus-visible]:w-[236px] has-[[aria-expanded=true]]:w-[236px]">
-          <Link to="/" aria-label="Arquionie™, o site" className={`${bloco} flex h-[76px] shrink-0 items-center overflow-hidden text-texto no-underline`}>
-            <span className="grid h-[76px] w-[76px] shrink-0 place-items-center">
-              <img src="/leao.png" alt="" className="h-9 w-9" />
-            </span>
-            <span className="whitespace-nowrap text-amg-secao">Arquionie™</span>
+        <div ref={barraRef} className="absolute inset-y-3 left-3 z-30 flex w-[76px] flex-col gap-3">
+          <Link to="/" aria-label="Arquionie™, o site" className={`${bloco} grid h-[76px] shrink-0 place-items-center no-underline`}>
+            <img src="/leao.png" alt="" className="h-9 w-9" />
           </Link>
           <div className="flex min-h-0 flex-1 flex-col justify-center">
-            <nav aria-label="Menu" className={`${bloco} flex min-h-0 flex-col gap-1.5 overflow-y-auto overflow-x-hidden px-[15px] py-4`}>
+            <nav aria-label="Menu" data-bloco-menu className={`${bloco} sem-barra flex min-h-0 flex-col items-center gap-1.5 overflow-y-auto overflow-x-hidden py-4`}>
               {ITENS.map((item) => <Item key={item.id} item={item} />)}
             </nav>
           </div>
           {/* a Gestão (só de quem administra), a aparência e a conta */}
-          <div className={`${bloco} flex shrink-0 flex-col gap-1.5 px-[15px] py-3`}>
+          <div data-bloco-menu className={`${bloco} flex shrink-0 flex-col items-center gap-1.5 py-3`}>
             {admin && <Item item={GESTAO} />}
             <MenuDaAparencia />
             <MenuDaConta />
           </div>
+          <SalienciaDoMenu barraRef={barraRef} />
         </div>
       </aside>
 

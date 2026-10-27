@@ -371,6 +371,12 @@ Configurações feitas no painel, em ordem:
       nova (a /gestao mostra a versão de cada um).
       **ÊDI decidiu em 23/10/2026: não ligar por enquanto.**
 
+19. **O menu lateral como o do Sistema Palheta** (ÊDI, 27/10/2026: "esse painel lateral que ele expande desse jeito, eu acho que é melhor
+   a gente fazer igual o do sistema palheta"; branch `menu-lateral-como-o-sistema`). **Ainda não publicado.** A barra das telas de quem
+   entrou não se abre mais por cima da página: fica com os ícones, e o nome do item sai de dentro dela, ao passar o mouse ou chegar pelo
+   teclado (`SalienciaDoMenu.jsx`, a mesma do Sistema Palheta; `.amg-saliencia` no `index.css`, pelos tokens). O celular não muda. Para
+   publicar: juntar a `menu-lateral-como-o-sistema` na `main` e o `git push`; conferir no `npm run dev` em `/conta/equipe?amostra=1`.
+
 ## Pendente
 
 - Textos da página inicial para ÊDI revisar. As imagens são capturas de amostras do programa (`public/imagens`); faltam
