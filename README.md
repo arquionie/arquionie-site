@@ -371,6 +371,23 @@ Configurações feitas no painel, em ordem:
       nova (a /gestao mostra a versão de cada um).
       **ÊDI decidiu em 23/10/2026: não ligar por enquanto.**
 
+18. **A PROTEÇÃO COMO OPÇÃO e a TROCA DO DONO** (doc 73, §8, do repositório do programa; mockup `docs/mockups/trocar-o-dono`, versão 2,
+   aprovado por ÊDI em 27/10/2026: "Aprovo as doze recomendações"; branch `troca-do-dono`; migração
+   `20261027000000_protecao_como_opcao_e_troca_do_dono.sql`). **Ainda não publicado.** O projeto nasce aberto no programa e a proteção se
+   liga quando o escritório quiser; em MINHA CONTA › Equipe e licenças › Projetos protegidos: a chave **Proteger os projetos novos da sua
+   equipe** (desligada de fábrica), os **pedidos do escritório** (quem é da equipe pede que o dono passe o projeto da MINHA ÁREA; com o
+   convite da equipe esperando, o botão é ENTRAR NA EQUIPE E PASSAR), **os seus projetos protegidos** com PASSAR AO ESCRITÓRIO (para quem
+   está numa equipe), **chegaram ao escritório** e **passados ao escritório**. A troca guarda o identificador e a chave (todas as cópias do
+   arquivo continuam abrindo), leva os convidados, os pedidos de acesso e a página do cliente (o mesmo link) e fica no registro, com a
+   proteção ligada e a tirada. Só com o ÊDI, nesta ordem, **antes** de publicar a versão do programa que traz o Proteger e o Passar ao
+   escritório (sem as funções, o programa novo protege e abre como antes, mas o Passar e o Pedir ao escritório respondem que não deu):
+   1. **Teste local:** `node supabase/testes/troca-do-dono.test.mjs` (66 conferências) e os de antes (`projetos` 39, `copia-das-chaves` 7).
+   2. **SQL Editor:** rodar a migração (pode rodar duas vezes). Ela troca as funções `projeto_chave`, `projeto_registrar` e
+      `copia_de_seguranca_situacao`: **rodar de novo a `20261020120000_projetos_do_escritorio.sql` desfaz a troca do dono**; depois dela,
+      rodar esta outra vez. Conferir: `select public.meus_projetos_protegidos()` responde `sem conta`.
+   3. **Site:** juntar a `troca-do-dono` na `main` e o `git push`. Conferir em MINHA CONTA › Equipe e licenças › Projetos protegidos; sem
+      conta, no `npm run dev`: `/conta/equipe?amostra=1`.
+
 ## Pendente
 
 - Textos da página inicial para ÊDI revisar. As imagens são capturas de amostras do programa (`public/imagens`); faltam

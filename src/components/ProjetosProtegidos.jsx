@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Botao, Campo, Mensagem } from '@/components/Formulario';
-import { Linha, TextoDaLinha, Vazio } from '@/components/Listas';
+import { Botao, Campo, Chave, Etiqueta, Lista, Mensagem } from '@/components/Formulario';
+import { Confirmacao, Grupo, Linha, TextoDaLinha, Vazio } from '@/components/Listas';
 import { supabase } from '@/lib/supabase';
 import { mensagemDeErro } from '@/lib/erros';
 import { AMOSTRA, dataCurta } from '@/lib/licencas';
@@ -16,6 +16,255 @@ const AMOSTRA_PEDIDOS = [
   { id: 'p1', projeto: 'a1', nomeDoProjeto: '225 · Templo', email: 'calculista@exemplo.com.br', nome: 'Eng. Carlos', pedidoEm: new Date(Date.now() - 3600e3).toISOString() },
 ];
 const AMOSTRA_SITUACAO = { projetos: 38, baixadaEm: null, faltam: 38 };
+const AMOSTRA_PEDIDOS_DO_ESCRITORIO = [
+  { id: 'e1', projeto: 'm1', nomeDoProjeto: '212-2', escritorio: 'r1', nomeDoEscritorio: 'PALHETA ARQUITETURA', pedidoPor: 'ÊDI',
+    pedidoEm: new Date(Date.now() - 1200e3).toISOString(), convite: false },
+];
+const AMOSTRA_DA_CONTA = {
+  projetos: [
+    { projeto: 'm1', nome: '212-2', desde: new Date(Date.now() - 4 * 864e5).toISOString(), comPagina: true },
+    { projeto: 'm2', nome: 'Reforma do apartamento (exemplo)', desde: new Date(Date.now() - 6 * 864e5).toISOString(), comPagina: false },
+  ],
+  escritorios: [{ responsavel: 'r1', escritorio: 'PALHETA ARQUITETURA' }],
+  passados: [],
+  chegaram: [{ projeto: 'c1', nome: '214 · Casa (exemplo)', de: 'Osmar', aPedidoSeu: true, em: new Date(Date.now() - 864e5).toISOString() }],
+};
+
+// A PROTEÇÃO COMO OPÇÃO E A TROCA DO DONO (doc 73, §8, do programa; mockup trocar-o-dono, versão 2, aprovado por ÊDI em 27/10/2026;
+// migração 20261027000000_protecao_como_opcao_e_troca_do_dono.sql): o padrão do escritório, os pedidos do escritório, os projetos da
+// conta com PASSAR AO ESCRITÓRIO, os que chegaram e os que foram passados.
+
+// O padrão do escritório: proteger os projetos novos da equipe, desligado de fábrica. Ligado, o NOVO da equipe mostra a escolha com o
+// escritório marcado.
+export function PadraoDoEscritorio() {
+  const [ligado, setLigado] = useState(null);
+  const [erro, setErro] = useState('');
+  useEffect(() => {
+    (async () => {
+      if (AMOSTRA) return setLigado(false);
+      const { data, error } = await supabase.rpc('protecao_padrao');
+      setLigado(error ? false : !!data.proprio);
+    })();
+  }, []);
+
+  async function trocar(novo) {
+    setErro('');
+    if (!AMOSTRA) {
+      const { data, error } = await supabase.rpc('protecao_padrao_gravar', { p_ligar: novo });
+      if (error || !data.ok) return setErro(error ? mensagemDeErro(error) : 'Não deu certo. Tente de novo.');
+    }
+    setLigado(novo);
+  }
+
+  if (ligado === null) return null;
+  const rotulo = 'Proteger os projetos novos da sua equipe';
+  return (
+    <div className="flex max-w-[640px] flex-col gap-2">
+      <Grupo>
+        <Linha className="flex-nowrap">
+          <TextoDaLinha
+            titulo={rotulo}
+            sub={ligado
+              ? 'Ligado: no NOVO, a equipe vê o escritório marcado, com a Minha área e o Sem proteção ao lado.'
+              : 'Desligado: os projetos nascem abertos, e cada um liga a proteção quando quiser, no ARQUIVO do programa.'}
+          />
+          <Chave rotulo={rotulo} ligada={ligado} aoMudar={trocar} />
+        </Linha>
+      </Grupo>
+      <Mensagem erro>{erro}</Mensagem>
+    </div>
+  );
+}
+
+const textoDaPassagem = (projeto, escritorio, comPagina) =>
+  `Passar o ${projeto} para ${escritorio}? A equipe passa a abrir e editar o projeto, e você continua nela. Os convidados, os pedidos de ` +
+  `acesso${comPagina === false ? '' : ' e a página do cliente'} vão junto. Depois, o projeto é do escritório: daqui não se desfaz.`;
+
+// Os pedidos do escritório: quem é da equipe pediu que o projeto da sua conta passe ao escritório. Com o convite da equipe esperando, o
+// PASSAR entra na equipe junto.
+function PedidosDoEscritorio({ aoMudar }) {
+  const [pedidos, setPedidos] = useState(null);
+  const [confirmando, setConfirmando] = useState(null);
+  const [ocupado, setOcupado] = useState(null);
+  const [erro, setErro] = useState('');
+  const [feito, setFeito] = useState('');
+
+  const carregar = async () => {
+    if (AMOSTRA) return setPedidos((p) => p ?? AMOSTRA_PEDIDOS_DO_ESCRITORIO);
+    const { data, error } = await supabase.rpc('projeto_pedidos_ao_escritorio');
+    setPedidos(error ? [] : data);
+  };
+  useEffect(() => {
+    carregar();
+  }, []);
+
+  async function responder(pedido, aceitar) {
+    setErro('');
+    setFeito('');
+    setOcupado(pedido.id);
+    if (!AMOSTRA) {
+      const { data, error } = await supabase.rpc('projeto_responder_pedido_ao_escritorio', { p_pedido: pedido.id, p_aceitar: aceitar });
+      if (error || !data.ok) { setOcupado(null); return setErro(error ? mensagemDeErro(error) : data.motivo); }
+    }
+    setConfirmando(null);
+    setOcupado(null);
+    if (aceitar) setFeito(`O ${pedido.nomeDoProjeto} passou para ${pedido.nomeDoEscritorio}.`);
+    if (AMOSTRA) setPedidos((p) => p.filter((x) => x.id !== pedido.id));
+    else await carregar();
+    aoMudar?.();
+  }
+
+  if (!pedidos || (pedidos.length === 0 && !feito && !erro)) return null;
+  return (
+    <div className="flex flex-col gap-2">
+      {pedidos.length > 0 && (
+        <Grupo rotulo="Pedidos do escritório">
+          {pedidos.map((p) => (
+            <Linha key={p.id}>
+              {confirmando === p.id ? (
+                <div className="w-full">
+                  <Confirmacao
+                    voltar={() => setConfirmando(null)}
+                    acao={() => responder(p, true)}
+                    rotulo={p.convite ? 'Entrar na equipe e passar' : 'Passar ao escritório'}
+                    ocupado={ocupado === p.id}
+                    rotuloOcupado="Passando…"
+                  >
+                    {(p.convite ? `Você entra na equipe de ${p.nomeDoEscritorio}. ` : '') + textoDaPassagem(p.nomeDoProjeto, p.nomeDoEscritorio)}
+                  </Confirmacao>
+                </div>
+              ) : (
+                <>
+                  <TextoDaLinha titulo={`${p.nomeDoEscritorio} pediu o ${p.nomeDoProjeto}`}>
+                    <small className="block text-amg-legenda text-texto-apagado">
+                      Pedido por {p.pedidoPor} · {quandoLegivel(p.pedidoEm)}.
+                      {p.convite ? ' O escritório convidou você para a equipe: passar o projeto entra na equipe junto.' : ''}
+                    </small>
+                  </TextoDaLinha>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Botao pequeno type="button" disabled={ocupado === p.id} onClick={() => responder(p, false)}>Recusar</Botao>
+                    <Botao pequeno principal type="button" onClick={() => setConfirmando(p.id)}>
+                      {p.convite ? 'Entrar na equipe e passar' : 'Passar ao escritório'}
+                    </Botao>
+                  </div>
+                </>
+              )}
+            </Linha>
+          ))}
+        </Grupo>
+      )}
+      <Mensagem erro>{erro}</Mensagem>
+      <Mensagem>{feito}</Mensagem>
+    </div>
+  );
+}
+
+// Os projetos protegidos da conta, os que chegaram e os que foram passados. A lista dos da conta, com PASSAR AO ESCRITÓRIO, só aparece
+// para quem está na equipe de um escritório.
+export function ProjetosDaConta() {
+  const [dados, setDados] = useState(null);
+  const [confirmando, setConfirmando] = useState(null);
+  const [para, setPara] = useState('');
+  const [ocupado, setOcupado] = useState(false);
+  const [erro, setErro] = useState('');
+  const [feito, setFeito] = useState('');
+
+  const carregar = async () => {
+    if (AMOSTRA) return setDados((d) => d ?? AMOSTRA_DA_CONTA);
+    const { data, error } = await supabase.rpc('meus_projetos_protegidos');
+    setDados(error ? { projetos: [], escritorios: [], passados: [], chegaram: [] } : data);
+  };
+  useEffect(() => {
+    carregar();
+  }, []);
+
+  function abrir(projeto) {
+    setErro('');
+    setFeito('');
+    setPara(dados.escritorios[0]?.responsavel ?? '');
+    setConfirmando(projeto.projeto);
+  }
+
+  async function passar(projeto) {
+    const escritorio = dados.escritorios.find((e) => e.responsavel === para);
+    if (!escritorio) return setErro('Escolha o escritório.');
+    setErro('');
+    setOcupado(true);
+    if (AMOSTRA) setDados((d) => ({ ...d, projetos: d.projetos.filter((x) => x.projeto !== projeto.projeto),
+      passados: [{ projeto: projeto.projeto, nome: projeto.nome, para: escritorio.escritorio, em: new Date().toISOString() }, ...d.passados] }));
+    else {
+      const { data, error } = await supabase.rpc('projeto_passar', { p_projeto: projeto.projeto, p_escritorio: escritorio.responsavel });
+      if (error || !data.ok) { setOcupado(false); return setErro(error ? mensagemDeErro(error) : data.motivo); }
+      await carregar();
+    }
+    setOcupado(false);
+    setConfirmando(null);
+    setFeito(`O ${projeto.nome} passou para ${escritorio.escritorio}.`);
+  }
+
+  if (dados === null) return <p className="text-texto-apagado">Carregando…</p>;
+  const podePassar = dados.escritorios.length > 0;
+  return (
+    <div className="flex flex-col gap-4">
+      <PedidosDoEscritorio aoMudar={carregar} />
+      {podePassar && dados.projetos.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <Grupo rotulo="Os seus projetos protegidos · Minha área">
+            {dados.projetos.map((p) => (
+              <Linha key={p.projeto}>
+                {confirmando === p.projeto ? (
+                  <div className="flex w-full flex-col gap-2">
+                    {dados.escritorios.length > 1 && (
+                      <Lista id={`para-${p.projeto}`} rotulo="Para o escritório" valor={para} aoMudar={setPara}
+                        opcoes={dados.escritorios.map((e) => ({ valor: e.responsavel, rotulo: e.escritorio }))} />
+                    )}
+                    <Confirmacao voltar={() => setConfirmando(null)} acao={() => passar(p)} rotulo="Passar ao escritório"
+                      ocupado={ocupado} rotuloOcupado="Passando…">
+                      {textoDaPassagem(p.nome, dados.escritorios.find((e) => e.responsavel === para)?.escritorio ?? 'o escritório', p.comPagina)}
+                    </Confirmacao>
+                  </div>
+                ) : (
+                  <>
+                    <TextoDaLinha titulo={p.nome || 'Projeto sem nome'}
+                      sub={`Na sua conta desde ${dataCurta(p.desde)}${p.comPagina ? ' · a página do cliente vai junto' : ''}`} />
+                    <Botao pequeno type="button" onClick={() => abrir(p)}>Passar ao escritório</Botao>
+                  </>
+                )}
+              </Linha>
+            ))}
+          </Grupo>
+          <p className="ml-3.5 text-amg-legenda text-texto-apagado">
+            O projeto passa com a mesma chave: todas as cópias do arquivo, também as do histórico do Drive, abrem para a equipe sem regravar.
+            A página do cliente vai junto quando o projeto já foi aberto na versão nova do programa; senão, passe pelo programa, em ARQUIVO ›
+            Passar ao escritório.
+          </p>
+        </div>
+      )}
+      <Mensagem erro>{erro}</Mensagem>
+      <Mensagem>{feito}</Mensagem>
+      {dados.chegaram.length > 0 && (
+        <Grupo rotulo="Chegaram ao escritório">
+          {dados.chegaram.map((c, i) => (
+            <Linha key={`${c.projeto}-${i}`}>
+              <TextoDaLinha titulo={c.nome || 'Projeto sem nome'}
+                sub={`Passado por ${c.de} em ${dataCurta(c.em)}${c.aPedidoSeu ? ', a pedido seu' : c.aPedidoDe ? `, a pedido de ${c.aPedidoDe}` : ''}.`} />
+              <Etiqueta>Do escritório</Etiqueta>
+            </Linha>
+          ))}
+        </Grupo>
+      )}
+      {dados.passados.length > 0 && (
+        <Grupo rotulo="Passados ao escritório">
+          {dados.passados.map((p, i) => (
+            <Linha key={`${p.projeto}-${i}`}>
+              <TextoDaLinha titulo={p.nome || 'Projeto sem nome'} sub={`Para ${p.para} em ${dataCurta(p.em)}.`} />
+            </Linha>
+          ))}
+        </Grupo>
+      )}
+    </div>
+  );
+}
 
 export function PedidosDeAcesso() {
   const [pedidos, setPedidos] = useState(null);
