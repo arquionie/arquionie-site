@@ -27,6 +27,45 @@
   .barra-fina { scrollbar-width: thin; scrollbar-color: var(--linha) transparent; }
   .barra-fina:hover { scrollbar-color: var(--texto-apagado) transparent; }
 
+  /* o nome do item do menu lateral, que sai de dentro da barra como no Sistema Palheta (ÊDI, 27/10/2026; SalienciaDoMenu.jsx): fixo na
+     tela, por baixo da barra, começa no centro do ícone e só aparece o que passa da borda dela, com os cantos côncavos onde encosta */
+  .amg-saliencia { position: fixed; z-index: 1; pointer-events: none; transform: translateY(-50%); }
+  .amg-saliencia[data-deslizar="true"] { transition: top 180ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .amg-saliencia-corpo {
+    @apply font-medium;
+    position: relative; display: flex; align-items: center; height: var(--amg-altura-botao);
+    padding: 0 18px 0 calc(var(--borda) + 14px);
+    border-radius: 0 var(--amg-raio-toque) var(--amg-raio-toque) 0;
+    background: var(--amg-superficie);
+    white-space: nowrap;
+    clip-path: inset(-14px calc(100% - var(--borda)) -14px 0);
+    transition: clip-path 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .amg-saliencia-corpo::before,
+  .amg-saliencia-corpo::after {
+    content: ''; position: absolute; left: 0; width: calc(var(--borda) + var(--amg-raio-dentro)); height: var(--amg-raio-dentro);
+  }
+  .amg-saliencia-corpo::before {
+    bottom: 100%;
+    background: radial-gradient(circle at 100% 0, transparent calc(var(--amg-raio-dentro) - 0.5px), var(--amg-superficie) var(--amg-raio-dentro));
+  }
+  .amg-saliencia-corpo::after {
+    top: 100%;
+    background: radial-gradient(circle at 100% 100%, transparent calc(var(--amg-raio-dentro) - 0.5px), var(--amg-superficie) var(--amg-raio-dentro));
+  }
+  /* na ponta da caixa (o primeiro e o último item), o canto côncavo cairia fora da curva dela: some */
+  .amg-saliencia[data-sem-topo="true"] .amg-saliencia-corpo::before,
+  .amg-saliencia[data-sem-base="true"] .amg-saliencia-corpo::after { display: none; }
+  .amg-saliencia-texto {
+    display: block; opacity: 0; transform: translateX(-6px);
+    transition: opacity 160ms ease, transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .amg-saliencia[data-visivel="true"] .amg-saliencia-corpo { clip-path: inset(-14px 0 -14px 0); }
+  .amg-saliencia[data-visivel="true"] .amg-saliencia-texto { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .amg-saliencia, .amg-saliencia-corpo, .amg-saliencia-texto { transition: none !important; }
+  }
+
   /* a foto que muda com o tema (a do painel do plugin na /para-revit) */
   .so-escuro { display: none; }
   [data-tema="escuro"] .so-claro { display: none; }
