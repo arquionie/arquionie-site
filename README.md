@@ -373,7 +373,8 @@ Configurações feitas no painel, em ordem:
 
 18. **A PROTEÇÃO COMO OPÇÃO e a TROCA DO DONO** (doc 73, §8, do repositório do programa; mockup `docs/mockups/trocar-o-dono`, versão 2,
    aprovado por ÊDI em 27/10/2026: "Aprovo as doze recomendações"; branch `troca-do-dono`; migração
-   `20261027000000_protecao_como_opcao_e_troca_do_dono.sql`). **Ainda não publicado.** O projeto nasce aberto no programa e a proteção se
+   `20261027000000_protecao_como_opcao_e_troca_do_dono.sql`). **Publicado em 27/10/2026:** a migração rodada por ÊDI (conferida de fora: as
+   funções novas existem e recusam quem chama sem conta) e o site (`91f24c8`; no ar, as telas novas no código da página). O projeto nasce aberto no programa e a proteção se
    liga quando o escritório quiser; em MINHA CONTA › Equipe e licenças › Projetos protegidos: a chave **Proteger os projetos novos da sua
    equipe** (desligada de fábrica), os **pedidos do escritório** (quem é da equipe pede que o dono passe o projeto da MINHA ÁREA; com o
    convite da equipe esperando, o botão é ENTRAR NA EQUIPE E PASSAR), **os seus projetos protegidos** com PASSAR AO ESCRITÓRIO (para quem
@@ -393,7 +394,7 @@ Configurações feitas no painel, em ordem:
       conta, no `npm run dev`: `/conta/equipe?amostra=1`.
 
 19. **O menu lateral como o do Sistema Palheta** (ÊDI, 27/10/2026: "esse painel lateral que ele expande desse jeito, eu acho que é melhor
-   a gente fazer igual o do sistema palheta"; branch `menu-lateral-como-o-sistema`). **Ainda não publicado.** A barra das telas de quem
+   a gente fazer igual o do sistema palheta"; branch `menu-lateral-como-o-sistema`). **Publicado em 27/10/2026** (`91f24c8`). A barra das telas de quem
    entrou não se abre mais por cima da página: fica com os ícones, e o nome do item sai de dentro dela, ao passar o mouse ou chegar pelo
    teclado (`SalienciaDoMenu.jsx`, a mesma do Sistema Palheta; `.amg-saliencia` no `index.css`, pelos tokens). O celular não muda. Para
    publicar: juntar a `menu-lateral-como-o-sistema` na `main` e o `git push`; conferir no `npm run dev` em `/conta/equipe?amostra=1`.
