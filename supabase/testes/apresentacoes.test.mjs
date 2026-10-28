@@ -133,6 +133,18 @@ confere(situacao.situacao === "ajustes" && situacao.comentarios === 3, "a etique
 abrir = await chamar("anon", null, "apresentacao_abrir", { p_codigo: codigo });
 confere(abrir.envio.pedidos.length === 1 && abrir.envio.pedidos[0].comentarios.length === 3 && abrir.envio.pedidos[0].comentarios[0].lugar.ambiente === "AUDITÓRIO",
   "os alfinetes ficam na página para quem abre");
+const visitas = async () => (await db.query(`select visitas from public.apresentacoes where codigo = '${codigo}'`)).rows[0].visitas;
+const visitasAntes = await visitas();
+await db.query(`update public.pedidos_de_ajuste set feitos = '{"1": {"por": "MARIA SOUZA", "em": "2026-10-27T12:00:00Z"}}'`);
+let doSistema = await chamar("anon", null, "apresentacao_pedidos", { p_codigo: codigo.toLowerCase() });
+const lidos = doSistema.envios?.[0]?.pedidos?.[0]?.comentarios ?? [];
+confere(doSistema.envio === 2 && doSistema.envios.length === 1 && doSistema.envios[0].numero === 2 && doSistema.envios[0].pedidos[0].nome === "O PASTOR"
+  && lidos.length === 3 && lidos[0].lugar.ambiente === "AUDITÓRIO" && lidos[0].feito?.por === "MARIA SOUZA" && lidos[2].feito === null
+  && await visitas() === visitasAntes,
+  "o sistema Palheta lê os comentários, com o lugar e o feito, sem conta e sem contar visita: " + JSON.stringify(doSistema));
+doSistema = await chamar("anon", null, "apresentacao_pedidos", { p_codigo: "ZZZZZZ" });
+confere(doSistema.situacao === "inexistente", "o código que não existe: inexistente");
+await db.query(`update public.pedidos_de_ajuste set feitos = '{}'`);
 let respostas = await chamar("authenticated", bia, "apresentacao_respostas", { p_desde: null });
 confere(respostas.pedidos.length === 1 && respostas.pedidos[0].codigo === codigo && respostas.pedidos[0].envio === 2 && !respostas.pedidos[0].lido,
   "o programa lê o pedido de ajustes (não lido)");

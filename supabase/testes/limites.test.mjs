@@ -31,7 +31,7 @@ r = await chamarDe("200.1.1.1", "anon", "tour_abrir", { p_codigo: "ZZZZZZ" });
 confere(r.situacao === "limite", "o 31º erro, noutra porta de código, já é limite: " + r.situacao);
 r = await chamarDe("200.1.1.1", "anon", "comercial_formulario_abrir", { p_codigo: form.codigo });
 confere(r.situacao === "limite", "e o código certo também não abre daquele endereço: " + r.situacao);
-for (const nome of ["apresentacao_situacao", "comercial_proposta_abrir"]) {
+for (const nome of ["apresentacao_situacao", "apresentacao_pedidos", "comercial_proposta_abrir"]) {
   r = await chamarDe("200.1.1.1", "anon", nome, { p_codigo: "ZZZZZZ" });
   confere(r.situacao === "limite", `${nome} também para: ` + r.situacao);
 }
