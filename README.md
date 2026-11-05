@@ -399,6 +399,20 @@ Configurações feitas no painel, em ordem:
    teclado (`SalienciaDoMenu.jsx`, a mesma do Sistema Palheta; `.amg-saliencia` no `index.css`, pelos tokens). O celular não muda. Para
    publicar: juntar a `menu-lateral-como-o-sistema` na `main` e o `git push`; conferir no `npm run dev` em `/conta/equipe?amostra=1`.
 
+20. **A página do cliente passada ao escritório** (ÊDI, 04/11/2026: o 236 e o Start Kids publicados pela plataforma não apareciam na área
+   do escritório; migração `20261104000000_pagina_passada_ao_escritorio.sql` e `supabase/ferramentas/passar-paginas-ao-escritorio.sql`).
+   A apresentação é da conta que a enviou: o 236 (`/t/YHJH28`) saiu sem o "em nome do escritório" e o Start Kids pelo dono do projeto
+   protegido (`kemilyarq@gmail.com`). A migração faz o envio pela própria área de quem está na equipe ir para a página que o escritório já
+   tem do projeto, no mesmo link (antes, depois de a página passar ao escritório, o envio seguinte criava outra); a ferramenta passa as
+   duas páginas à conta `escritorio@palhetaarquitetura.com` e diz, numa tabela, o que passou, se quem enviou está na equipe e se o 225
+   ainda tem página (os links `95QPJ2` e `J4FNAX` não existem mais: o 225 precisa ser enviado de novo). Não muda nada do site nem das
+   funções do servidor: só o banco. Só com o ÊDI, nesta ordem:
+   1. **Teste local:** `node supabase/testes/pagina-no-escritorio.test.mjs` (17 conferências) e os de antes (`apresentacoes` 92,
+      `troca-do-dono` 66, `projetos` 39).
+   2. **SQL Editor:** rodar a migração (pode rodar duas vezes); **depois**, a ferramenta (também pode rodar de novo) e ler a tabela.
+   3. **Conferir:** em MINHA CONTA › APRESENTAÇÕES, na área do escritório, o 236 e o Start Kids com os links de sempre. O projeto do Start
+      Kids continua sendo da Kemily (a página não): para o escritório abrir o arquivo, ela usa o PASSAR AO ESCRITÓRIO no programa.
+
 ## Pendente
 
 - Textos da página inicial para ÊDI revisar. As imagens são capturas de amostras do programa (`public/imagens`); faltam
