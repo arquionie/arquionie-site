@@ -82,6 +82,10 @@ window.TourDaMaquete = async function (base, tour) {
     .mq-alfinete b { display: block; transform: rotate(45deg); color: var(--alfinete-texto, #fff); font: 700 12px/26px "Segoe UI", sans-serif; text-align: center; }
     .mq-alfinete.rascunho { background: #fff; border: 2.5px solid var(--alfinete, #E76353); margin: -36px 0 0 -15px; }
     .mq-alfinete.rascunho b { color: var(--alfinete-letra, #E76353); line-height: 21px; }
+    /* o alfinete escolhido na lista da página: na frente dos outros, com o anel branco e a onda na cor dele */
+    .mq-alfinete.foco { z-index: 2; animation: mq-onda 1s ease-out 3; }
+    @keyframes mq-onda { from { box-shadow: 0 0 0 3px #fff, 0 0 0 3px var(--alfinete, #E76353), 0 3px 8px rgba(0,0,0,.35); }
+      to { box-shadow: 0 0 0 3px #fff, 0 0 0 18px transparent, 0 3px 8px rgba(0,0,0,.35); } }
     body.comentando #tela { cursor: crosshair; }
     #mq-cotas { width: 100%; height: 100%; }
     #mq-cotas text { font: 600 11.5px Inter, "Segoe UI", sans-serif; fill: #2b3036; stroke: rgba(244,243,240,.85); stroke-width: 2.5px; paint-order: stroke; }
@@ -1377,7 +1381,7 @@ window.TourDaMaquete = async function (base, tour) {
   // A página conversa com o tour por mensagens (ÊDI, 11/10/2026, mockup do ENVIAR PARA O CLIENTE): com COMENTAR ligado, o toque na
   // maquete, na planta ou em pé marca o ponto (o que está na tela ali, pela profundidade do quadro) e o devolve à página com o pavimento,
   // o ambiente e a vista; a página manda os alfinetes (os enviados, cheios, e os por enviar, vazados), desenhados no lugar de cada um.
-  const comentarios = { ligado: false, alfinetes: [], els: new Map() };
+  const comentarios = { ligado: false, alfinetes: [], els: new Map(), foco: null };
   const leituraProg = programa(`#version 300 es
     layout(location = 0) in vec3 pos; void main() { gl_Position = vec4(pos.xy, 0.0, 1.0); }`,
   `#version 300 es
@@ -1432,13 +1436,55 @@ window.TourDaMaquete = async function (base, tour) {
         el.onclick = () => parent.postMessage({ arquionie: true, tipo: "alfinete", n: a.n }, "*");
         $("mq-alfinetes").appendChild(el); comentarios.els.set(a.n, el);
       }
-      el.className = "mq-alfinete" + (a.rascunho ? " rascunho" : "");
+      el.className = "mq-alfinete" + (a.rascunho ? " rascunho" : "") + (a.n === comentarios.foco ? " foco" : "");
       el.firstChild.textContent = a.n;
       el.title = [a.nome, a.texto].filter(Boolean).join(" · ");
       const s = (a.lugar.pav ?? est.pav) === est.pav && est.modo !== "foto" ? naTela(vp, a.lugar.ponto) : null;
       el.style.display = s ? "" : "none";
       if (s) el.style.transform = `translate(${s[0].toFixed(1)}px, ${s[1].toFixed(1)}px) rotate(-45deg)`;
     }
+  }
+  // O item da lista da página leva ao alfinete (ÊDI, 04/11/2026: com muitos ajustes espalhados pela planta, achar cada um): o tour vai
+  // ao pavimento dele e aproxima, de onde o cliente o marcou. Na maquete e na planta, fica no modo e chega perto; em pé ou na foto, volta à
+  // vista da marcação (em pé, no mesmo lugar, olhando para o alfinete). A altura das paredes só sobe quando o alfinete ficaria cortado.
+  const PERTO = { maquete: 7, planta: 12 };
+  function focarAlfinete(n) {
+    const a = comentarios.alfinetes.find(x => x.n === n);
+    if (!a) return;
+    const p = a.lugar.ponto, v = a.lugar.vista || {}, pav = Math.max(0, Math.min(pavs.length - 1, a.lugar.pav ?? pavDe(p[2])));
+    parar();
+    if (est.ambiente != null) escolherAmbiente(null);
+    const emOrbita = est.modo === "maquete" || est.modo === "planta";
+    const modo = emOrbita ? est.modo : v.modo === "andar" && Array.isArray(v.olho) ? "andar" : v.modo === "planta" ? "planta" : "maquete";
+    if (est.modo === "foto") sairDaFoto(modo === "andar" ? "andar" : modo);
+    else if (!emOrbita && modo !== "andar") mudarModo(modo);
+    if (pav !== est.pav) mudarPav(pav, false);
+    if (modo === "andar") {
+      // O voo em pé, do olho de agora ao da marcação, virando para o alfinete.
+      const de = pe.olho.slice(), d = p.map((x, i) => x - v.olho[i]);
+      const inclPara = Math.max(-1.3, Math.min(1.3, Math.atan2(d[2], Math.hypot(d[0], d[1]))));
+      pe.chaoAlvo = null; pe.indo = null;
+      voo = { de, para: v.olho.slice(), t0: performance.now(), duracao: 1300, guinadaDe: pe.guinada, guinadaPara: Math.atan2(d[1], d[0]), inclDe: pe.inclinacao, inclPara };
+    } else {
+      orbAlvo.alvo = [p[0], p[1], modo === "planta" ? pavs[pav].z : p[2]];
+      // de pé, o celular mostra menos de lado: mais longe, para caber o mesmo em volta
+      orbAlvo.dist = Math.min(PERTO[modo] / Math.min(1, Math.max(.5, aspecto)), Math.max(3, orbAlvo.dist));
+      if (modo === "maquete") {
+        // Do lado de onde foi marcado: a direção da maquete de então, ou a de quem estava em pé; marcado na planta, de cima.
+        if (v.modo === "maquete") { orbAlvo.guinada = v.guinada; orbAlvo.inclinacao = Math.max(20 * rad, Math.min(80 * rad, v.inclinacao)); }
+        else if (v.modo === "andar" && Array.isArray(v.olho)) { orbAlvo.guinada = Math.atan2(v.olho[1] - p[1], v.olho[0] - p[0]); orbAlvo.inclinacao = 45 * rad; }
+        else orbAlvo.inclinacao = Math.max(orbAlvo.inclinacao, 55 * rad);
+      }
+    }
+    if (modo !== "planta" && v.paredes > est.paredes && p[2] > pavs[pav].z + est.paredes - .05) {
+      const entrada = $("mq-paredes"); entrada.value = v.paredes; entrada.dispatchEvent(new Event("input"));
+    }
+    atualizar();
+    // A onda recomeça a cada escolha, também a do mesmo alfinete.
+    comentarios.foco = n;
+    const el = comentarios.els.get(n);
+    if (el) { el.classList.remove("foco"); void el.offsetWidth; el.classList.add("foco"); }
+    clearTimeout(focarAlfinete.t); focarAlfinete.t = setTimeout(() => { comentarios.foco = null; }, 3000);
   }
   addEventListener("message", ev => {
     const m = ev.data;
@@ -1453,6 +1499,7 @@ window.TourDaMaquete = async function (base, tour) {
       const vivos = new Set(comentarios.alfinetes.map(a => a.n));
       for (const [n, el] of comentarios.els) if (!vivos.has(n)) { el.remove(); comentarios.els.delete(n); }
     }
+    if (m.tipo === "focar") focarAlfinete(m.n);
   });
 
   // Na página do cliente, no celular, a cor do alto do tour vai para a página, que pinta com ela a faixa de cima do navegador (ÊDI,

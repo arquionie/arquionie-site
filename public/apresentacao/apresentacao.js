@@ -295,15 +295,33 @@
     const m = ev.data;
     if (m.tipo === "telaCheia") tourEmTelaCheia(!$("tour").classList.contains("cheio"));
     if (m.tipo === "corDoAlto") { corDoAlto = m.cor; pintarFaixa(); }
-    if (m.tipo === "pronto") { tourPronto = true; enviarAlfinetes(); if (comentando) paraOTour({ tipo: "comentar", ligado: true }); }
+    if (m.tipo === "pronto") {
+      tourPronto = true; enviarAlfinetes(); if (comentando) paraOTour({ tipo: "comentar", ligado: true });
+      if (focoPendente != null) { paraOTour({ tipo: "focar", n: focoPendente }); focoPendente = null; }
+    }
     if (m.tipo === "ponto" && comentando) {
       // No celular a coluna cobre o tour: a marcação desliga a cada toque; no computador segue ligada, para o próximo.
       if (toque || $("painel").hidden) ligarComentar(false);
       rascunho.push({ texto: "", lugar: m.lugar });
       guardarRascunho(); abrirPainel(); desenharLista(true);
     }
-    if (m.tipo === "alfinete") { abrirPainel(); const el = document.querySelector(`[data-n="${m.n}"]`); el?.scrollIntoView({ block: "center" }); el?.querySelector("textarea")?.focus(); }
+    if (m.tipo === "alfinete") { itemEmFoco = m.n; abrirPainel(); const el = document.querySelector(`[data-n="${m.n}"]`); el?.scrollIntoView({ block: "center" }); el?.querySelector("textarea")?.focus(); }
   });
+  // O item da lista leva ao alfinete dele no tour (ÊDI, 04/11/2026: com muitos ajustes espalhados pela planta, achar cada um): o tour vai
+  // até ele e aproxima, e o item fica marcado. Com o tour fechado, ele abre e vai assim que fica pronto; no celular, a coluna sai da frente.
+  let itemEmFoco = null, focoPendente = null;
+  function irAoAlfinete(n) {
+    itemEmFoco = n;
+    for (const el of document.querySelectorAll(".painelCom .it")) el.classList.toggle("on", el.dataset.n === String(n));
+    if (toque) { $("painel").hidden = true; document.body.classList.remove("comPainel"); }
+    if (!$("quadroTour").src) entrarNoTour();
+    else if (toque && !$("tour").classList.contains("cheio")) tourEmTelaCheia(true);
+    if (!$("tour").classList.contains("cheio")) {
+      const r = $("tour").getBoundingClientRect();
+      if (r.top < 0 || r.bottom > innerHeight) irPara("explorar");
+    }
+    if (tourPronto) paraOTour({ tipo: "focar", n }); else focoPendente = n;
+  }
 
   // ---------------------------------------------------------------- SOLICITAR AJUSTE
   const chaveRascunho = () => `rascunho:${codigo || pastaDaProva}:${d.envio.numero}`;
@@ -352,6 +370,7 @@
       el.innerHTML = `<div class="n${c.lugar?.ponto ? "" : " geral"}">${i + 1}</div><div class="meio"><small></small><div></div></div>`;
       el.querySelector("small").textContent = `${c.nome} · ${data(c.em, true)} · ${ondeFica(c.lugar)}`;
       el.querySelector(".meio div").textContent = c.texto;
+      vaiAoAlfinete(el, c, i + 1);
       $("enviados").append(el);
     });
     const lista = $("lista"); lista.innerHTML = rascunho.length ? `<p class="rotulo">${rascunho.length} por enviar</p>` : "";
@@ -366,10 +385,22 @@
       caixa.value = c.texto;
       caixa.oninput = () => { c.texto = caixa.value; guardarRascunho(); conferirBotoes(); enviarAlfinetes(); };
       el.querySelector(".tirar").onclick = () => { rascunho.splice(i, 1); guardarRascunho(); desenharLista(); };
+      vaiAoAlfinete(el, c, n);
       lista.append(el);
     });
     if (focarUltimo) lista.lastElementChild?.querySelector("textarea")?.focus();
     conferirBotoes(); enviarAlfinetes();
+  }
+  /** O item com alfinete leva a ele: o número vira botão (para o teclado e o leitor de tela) e o item todo responde ao clique, menos a
+   *  caixa do texto e o TIRAR. */
+  function vaiAoAlfinete(el, c, n) {
+    if (!c.lugar?.ponto) return;
+    const b = document.createElement("button");
+    b.type = "button"; b.className = el.querySelector(".n").className; b.textContent = n;
+    b.setAttribute("aria-label", `Ver o ajuste ${n} no tour`); b.title = "Ver no tour";
+    el.querySelector(".n").replaceWith(b);
+    el.classList.add("vai"); el.classList.toggle("on", n === itemEmFoco);
+    el.addEventListener("click", ev => { if (!ev.target.closest("textarea, .tirar")) irAoAlfinete(n); });
   }
   function conferirBotoes() {
     const prontos = rascunho.filter(c => c.texto.trim()).length;
