@@ -420,7 +420,8 @@ Configurações feitas no painel, em ordem:
    CONTA), e pergunta antes do envio que criaria outro link. Sem a migração, o programa diz "não deu para conferir agora" e envia como
    antes. Só o banco: rodar no SQL Editor depois da do item 20. Teste local: `node supabase/testes/onde-esta-a-pagina.test.mjs` (14).
    **Rodado por ÊDI em 05/11/2026**, com a migração e a ferramenta do item 20 num script só: o 236 já estava no escritório
-   (`escritorio@palhetaarquitetura.com`); nenhuma página com START KIDS no nome; o 225 sem página.
+   (`escritorio@palhetaarquitetura.com`); o Start Kids fora da tabela, porque a página se chama "212.2 · IGREJA BATISTA BETEL"
+   (`VBS77W`), já na área do escritório com o 236 e o 203; o 225 sem página.
 
 ## Pendente
 
