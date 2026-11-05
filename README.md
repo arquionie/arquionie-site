@@ -412,6 +412,13 @@ Configurações feitas no painel, em ordem:
    2. **SQL Editor:** rodar a migração (pode rodar duas vezes); **depois**, a ferramenta (também pode rodar de novo) e ler a tabela.
    3. **Conferir:** em MINHA CONTA › APRESENTAÇÕES, na área do escritório, o 236 e o Start Kids com os links de sempre. O projeto do Start
       Kids continua sendo da Kemily (a página não): para o escritório abrir o arquivo, ela usa o PASSAR AO ESCRITÓRIO no programa.
+21. **Em que conta está a página do cliente** (ÊDI, 05/11/2026, pelo 236: "Por que eu não consigo ver em qual área de trabalho ele está
+   publicado? Ou em qual conta?"; migração `20261105000000_onde_esta_a_pagina.sql`). A função `apresentacao_onde(p_codigo, p_chave,
+   p_escritorio)`, para quem tem conta, devolve pelo código do link e pela chave do projeto (só quem tem o arquivo sabe as duas) a conta
+   dona da página (o e-mail e o nome do escritório), se ela é a de quem pergunta ou a do escritório da equipe dela e se o envio seguinte
+   vai ao mesmo link, pelas regras da `apresentacao_enviar` do item 20. O programa mostra isso no ENVIAR, em A PUBLICAÇÃO (a linha NA
+   CONTA), e pergunta antes do envio que criaria outro link. Sem a migração, o programa diz "não deu para conferir agora" e envia como
+   antes. Só o banco: rodar no SQL Editor depois da do item 20. Teste local: `node supabase/testes/onde-esta-a-pagina.test.mjs` (14).
 
 ## Pendente
 
