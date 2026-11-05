@@ -419,6 +419,8 @@ Configurações feitas no painel, em ordem:
    vai ao mesmo link, pelas regras da `apresentacao_enviar` do item 20. O programa mostra isso no ENVIAR, em A PUBLICAÇÃO (a linha NA
    CONTA), e pergunta antes do envio que criaria outro link. Sem a migração, o programa diz "não deu para conferir agora" e envia como
    antes. Só o banco: rodar no SQL Editor depois da do item 20. Teste local: `node supabase/testes/onde-esta-a-pagina.test.mjs` (14).
+   **Rodado por ÊDI em 05/11/2026**, com a migração e a ferramenta do item 20 num script só: o 236 já estava no escritório
+   (`escritorio@palhetaarquitetura.com`); nenhuma página com START KIDS no nome; o 225 sem página.
 
 ## Pendente
 
