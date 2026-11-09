@@ -250,6 +250,17 @@ const DESENHOS = {
       <path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" />
     </>
   ),
+  // os três pontinhos do menu de mais ações
+  mais: (
+    <>
+      <circle cx="5" cy="12" r="1.2" fill="currentColor" />
+      <circle cx="12" cy="12" r="1.2" fill="currentColor" />
+      <circle cx="19" cy="12" r="1.2" fill="currentColor" />
+    </>
+  ),
+  // passar para outra conta: a seta até a parede
+  passar: <path d="M4 12h12M11 6l6 6-6 6M20 4v16" />,
+  lixeira: <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />,
 };
 
 export function Icone({ nome, tamanho = 16, className = '' }) {

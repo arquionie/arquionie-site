@@ -74,7 +74,14 @@ export async function tratar(req: Request): Promise<Response> {
       // em nome de quem: a própria conta, ou o escritório em cuja equipe quem envia está
       const escritorio = corpo.escritorio ? String(corpo.escritorio) : null;
       if (escritorio && !/^[0-9a-f-]{36}$/i.test(escritorio)) return responder({ erro: "escritório inválido" }, 400);
-      const dono = await rpc("escritorio_para_enviar", { p_quem: usuario, p_escritorio: escritorio });
+      // fora da equipe do "em nome de", o envio vai para a página que quem envia já tem do projeto (a que recebeu de outra conta,
+      // migração 20261109000000); sem essa migração no banco, a regra de antes
+      let dono;
+      try {
+        dono = await rpc("dono_do_envio", { p_quem: usuario, p_escritorio: escritorio, p_chave: chave });
+      } catch {
+        dono = await rpc("escritorio_para_enviar", { p_quem: usuario, p_escritorio: escritorio });
+      }
       if (!dono) return responder({ ok: false, motivo: "equipe", texto: "Você não está na equipe deste escritório. Envie pela sua área ou fale com o responsável." });
       for (let tentativa = 0; tentativa < 8; tentativa++) {
         let d;

@@ -99,6 +99,18 @@ export const AMOSTRA_MINHAS_EQUIPES = [
 export const AMOSTRA_CONVITE = [{ ...AMOSTRA_MINHAS_EQUIPES[0], situacao: 'convidado', pessoas: [] }];
 
 const comentario = (texto, lugar, feito) => ({ texto, lugar, feito: feito ?? null });
+// A página passando para outra conta (?amostra=passagem): esperando o Natanael no 192, e o bloco Chegou para você com o TCC.
+export const AMOSTRA_PASSAGENS = [
+  { apresentacao: 'a2', situacao: 'esperando', paraEmail: 'natanael@exemplo.com.br', para: 'Natanael', em: daqui(-0.2), venceEm: daqui(24 * 30) },
+];
+export const AMOSTRA_PARA_MIM = {
+  temIdentidade: false,
+  passagens: [
+    { id: 'p1', nome: '/10 · CENTRO DE CONVENÇÕES BEZALEL', codigo: 'SWUDEV', envios: 1, visitas: 4, comentarios: 0, de: 'PALHETA ARQUITETURA',
+      em: daqui(-0.2), venceEm: daqui(24 * 30) },
+  ],
+};
+
 export const AMOSTRA_APRESENTACOES = {
   limite: 500, escritorio: 'PALHETA ARQUITETURA', responsavel: true,
   apresentacoes: [

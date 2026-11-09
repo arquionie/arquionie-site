@@ -3,16 +3,17 @@ import { Botao, Etiqueta, Icone, Mensagem } from '@/components/Formulario';
 import { Confirmacao, Escolha, LinkCopiavel, Vazio, emFrase } from '@/components/Listas';
 import { supabase } from '@/lib/supabase';
 import { mensagemDeErro } from '@/lib/erros';
-import { AMOSTRA, dataCurta } from '@/lib/licencas';
+import { AMOSTRA, dataCurta, estadoDaAmostra } from '@/lib/licencas';
 import { linkCurto, linkDoTour, quandoLegivel, tamanhoLegivel } from '@/lib/tours';
+import { ChegouParaVoce, MaisAcoes, PainelDePassar } from '@/components/PassarPagina';
 import {
-  AMOSTRA_APRESENTACOES, abaDaApresentacao, ajustesAFazer, capaDaApresentacao, etiquetaDaApresentacao, lugarDoComentario,
+  AMOSTRA_APRESENTACOES, AMOSTRA_PASSAGENS, abaDaApresentacao, ajustesAFazer, capaDaApresentacao, etiquetaDaApresentacao, lugarDoComentario,
 } from '@/lib/equipe';
 
 // MINHA CONTA › APRESENTAÇÕES (mockup docs/mockups/equipe-e-apresentacoes do repositório do programa, aprovado por ÊDI em
 // 11/10/2026): as páginas enviadas aos clientes pelo ENVIAR PARA O CLIENTE, um cartão por projeto, da área escolhida (a conta de
 // quem entrou, ou o escritório em que ela está na equipe). Cada cartão com o envio mais novo, a etiqueta, as visitas, o prazo, o
-// link (COPIAR, ABRIR), PAUSAR e EXCLUIR (só o responsável); VER OS AJUSTES abre o que o cliente pediu, com o feito de cada um (o
+// link (COPIAR, ABRIR), PAUSAR e, nos três pontinhos (só o responsável), PASSAR PARA OUTRA CONTA e EXCLUIR; VER OS AJUSTES abre o que o cliente pediu, com o feito de cada um (o
 // feito se marca no programa). Os dados vêm de minhas_apresentacoes(p_area).
 // No modo AMIGÁVEL desde o mockup site-amigavel (16/10/2026): cartões de 18 px, a escolha em cápsulas e as etiquetas em frase.
 
@@ -127,11 +128,13 @@ export function CartaoDoProjeto({ capa, pausado, titulo, etiqueta, sub, link, cu
   );
 }
 
-function Cartao({ apresentacao, responsavel, aoMudar, aoErro }) {
+function Cartao({ apresentacao, responsavel, area, passagem, aoMudar, aoPassagem, aoAviso, aoErro }) {
   const [capa, setCapa] = useState(apresentacao.capa ?? null);
   const [ajustes, setAjustes] = useState(false);
   const [excluindo, setExcluindo] = useState(false);
+  const [passando, setPassando] = useState(false);
   const [ocupado, setOcupado] = useState(false);
+  const esperando = passagem?.situacao === 'esperando';
   useEffect(() => {
     let vivo = true;
     capaDaApresentacao(apresentacao).then((c) => vivo && setCapa(c));
@@ -163,15 +166,49 @@ function Cartao({ apresentacao, responsavel, aoMudar, aoErro }) {
     setOcupado(false);
     setExcluindo(false);
   }
+  async function cancelarPassagem() {
+    aoErro('');
+    if (AMOSTRA) return aoPassagem(apresentacao.id, null);
+    const { data, error } = await supabase.rpc('apresentacao_cancelar_passagem', { p_id: apresentacao.id });
+    if (error) return aoErro(mensagemDeErro(error));
+    if (!data.ok) return aoErro(data.motivo);
+    aoMudar();
+  }
+  function passou(d) {
+    setPassando(false);
+    if (d.passada) {
+      aoAviso(`A página de ${apresentacao.nome} foi para a área do escritório ${d.para}, no mesmo link.`);
+      if (AMOSTRA) return aoMudar((x) => ({ ...x, apresentacoes: x.apresentacoes.filter((a) => a.id !== apresentacao.id) }));
+      return aoMudar();
+    }
+    aoAviso(`Pedido enviado a ${d.para}. A página fica com você até a pessoa aceitar, e o pedido vale 30 dias.`);
+    if (AMOSTRA) return aoPassagem(apresentacao.id, { situacao: 'esperando', paraEmail: d.paraEmail, para: d.para, em: new Date().toISOString(),
+      venceEm: new Date(Date.now() + 30 * 864e5).toISOString() });
+    aoMudar();
+  }
+
+  // a etiqueta e a linha do envio dizem quando a página está passando para outra conta ou quando a pessoa recusou
+  const linhaDoEnvio = envio && [`Envio ${envio.numero} · ${dataCurta(envio.em)}`, envio.paraQuem, envio.fase === 'final' ? 'entrega final' : 'estudo',
+    envio.enviadoPor ? `enviado por ${envio.enviadoPor}` : ''].filter(Boolean).join(' · ');
+  const sub = esperando
+    ? `Passada para ${passagem.paraEmail} ${quandoLegivel(passagem.em)} · o pedido vale até ${dataCurta(passagem.venceEm)}`
+    : passagem?.situacao === 'recusada'
+      ? [linhaDoEnvio, `${passagem.para} recusou ${quandoLegivel(passagem.respondidoEm)}`].filter(Boolean).join(' · ')
+      : linhaDoEnvio;
+  const menu = responsavel && [
+    ...(esperando ? [] : [{ rotulo: 'Passar para outra conta', icone: 'passar', acao: () => { setExcluindo(false); setPassando(true); } }, '-']),
+    { rotulo: 'Excluir a apresentação', icone: 'lixeira', perigo: true, acao: () => { setPassando(false); setExcluindo(true); } },
+  ];
 
   return (
     <CartaoDoProjeto
       capa={capa}
       pausado={apresentacao.pausada}
       titulo={apresentacao.nome}
-      etiqueta={<Etiqueta tipo={TIPO_DA_ETIQUETA[etiqueta.tipo]}>{emFrase(etiqueta.texto)}</Etiqueta>}
-      sub={envio && [`Envio ${envio.numero} · ${dataCurta(envio.em)}`, envio.paraQuem, envio.fase === 'final' ? 'entrega final' : 'estudo',
-        envio.enviadoPor ? `enviado por ${envio.enviadoPor}` : ''].filter(Boolean).join(' · ')}
+      etiqueta={esperando
+        ? <Etiqueta tipo="urgente">Esperando {passagem.para} aceitar</Etiqueta>
+        : <Etiqueta tipo={TIPO_DA_ETIQUETA[etiqueta.tipo]}>{emFrase(etiqueta.texto)}</Etiqueta>}
+      sub={sub}
       link={linkDoTour(apresentacao.codigo)}
       curto={linkCurto(apresentacao.codigo)}
       numeros={
@@ -183,7 +220,7 @@ function Cartao({ apresentacao, responsavel, aoMudar, aoErro }) {
       }
       botoes={
         <>
-          {responsavel && <Botao pequeno type="button" onClick={() => setExcluindo(true)}>Excluir</Botao>}
+          {esperando && responsavel && <Botao pequeno type="button" onClick={cancelarPassagem}>Cancelar a passagem</Botao>}
           <Botao pequeno nivel={apresentacao.pausada ? 2 : 3} type="button" onClick={() => pausar(!apresentacao.pausada)}>
             {apresentacao.pausada ? 'Reativar' : 'Pausar'}
           </Botao>
@@ -193,10 +230,12 @@ function Cartao({ apresentacao, responsavel, aoMudar, aoErro }) {
               {ajustes ? 'Fechar' : envio?.aprovacao && !envio.pedidos?.length ? 'Ver a aprovação' : 'Ver os ajustes'}
             </Botao>
           )}
+          {menu && <MaisAcoes itens={menu} />}
         </>
       }
     >
       {ajustes && <Ajustes apresentacao={apresentacao} />}
+      {passando && <PainelDePassar apresentacao={apresentacao} area={area} voltar={() => setPassando(false)} aoPassar={passou} />}
       {excluindo && (
         <div className="border-t border-linha p-3">
           <Confirmacao voltar={() => setExcluindo(false)} acao={excluir} rotulo="Excluir" rotuloOcupado="Excluindo…" ocupado={ocupado}>
@@ -213,11 +252,21 @@ const ABAS = [['todas', 'Todas'], ['ajustes', 'Com ajustes'], ['aguardando', 'Ag
 export default function Apresentacoes({ area = null }) {
   const [dados, setDados] = useState(null);
   const [erro, setErro] = useState('');
+  const [aviso, setAviso] = useState('');
   const [aba, setAba] = useState('todas');
+  const [passagens, setPassagens] = useState({});
 
   const carregar = async () => {
-    if (AMOSTRA) return setDados(area ? { ...AMOSTRA_APRESENTACOES, responsavel: false } : AMOSTRA_APRESENTACOES);
-    const { data, error } = await supabase.rpc('minhas_apresentacoes', area ? { p_area: area } : {});
+    if (AMOSTRA) {
+      setPassagens(estadoDaAmostra() === 'passagem' && !area ? Object.fromEntries(AMOSTRA_PASSAGENS.map((p) => [p.apresentacao, p])) : {});
+      return setDados(area ? { ...AMOSTRA_APRESENTACOES, responsavel: false } : AMOSTRA_APRESENTACOES);
+    }
+    const [{ data, error }, passou] = await Promise.all([
+      supabase.rpc('minhas_apresentacoes', area ? { p_area: area } : {}),
+      // a passagem de cada página (sem a migração de 09/11 no banco, nenhuma)
+      supabase.rpc('passagens_das_minhas_apresentacoes', area ? { p_area: area } : {}),
+    ]);
+    setPassagens(passou.error ? {} : Object.fromEntries((passou.data ?? []).map((p) => [p.apresentacao, p])));
     if (error) { setErro(mensagemDeErro(error)); return setDados({ limite: 500, apresentacoes: [] }); }
     setDados(data);
   };
@@ -226,6 +275,7 @@ export default function Apresentacoes({ area = null }) {
     carregar();
   }, [area]);
   const mudar = (f) => (typeof f === 'function' ? setDados(f) : carregar());
+  const mudarPassagem = (id, p) => setPassagens((m) => ({ ...m, [id]: p }));
 
   if (dados === null) return <p className="text-texto-apagado">Carregando…</p>;
   const lista = dados.apresentacoes;
@@ -238,6 +288,8 @@ export default function Apresentacoes({ area = null }) {
       <p className="text-texto-apagado">
         As páginas enviadas aos clientes pelo ENVIAR PARA O CLIENTE, um cartão por projeto. O link é o mesmo a cada envio do projeto.
       </p>
+      {!area && <ChegouParaVoce aoAceitar={() => carregar()} />}
+      <Mensagem>{aviso}</Mensagem>
       {lista.length === 0 ? (
         <Vazio>
           <b className="text-texto">Nenhuma apresentação ainda.</b> No Arquionie, abra o projeto e use ENVIAR PARA O CLIENTE, no APRESENTAR. O link
@@ -254,7 +306,10 @@ export default function Apresentacoes({ area = null }) {
             <Escolha rotulo="Apresentações" valor={aba} aoMudar={setAba} opcoes={ABAS.map(([id, nome]) => [id, nome, contar(id)])} />
           </div>
           {naAba.length === 0 && <p className="py-2 text-texto-apagado">Nenhum projeto nesta aba.</p>}
-          {naAba.map((a) => <Cartao key={a.id} apresentacao={a} responsavel={dados.responsavel !== false} aoMudar={mudar} aoErro={setErro} />)}
+          {naAba.map((a) => (
+            <Cartao key={a.id} apresentacao={a} responsavel={dados.responsavel !== false} area={area} passagem={passagens[a.id]}
+              aoMudar={mudar} aoPassagem={mudarPassagem} aoAviso={setAviso} aoErro={setErro} />
+          ))}
         </>
       )}
       <Mensagem erro>{erro}</Mensagem>

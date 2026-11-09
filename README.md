@@ -422,6 +422,24 @@ Configurações feitas no painel, em ordem:
    **Rodado por ÊDI em 05/11/2026**, com a migração e a ferramenta do item 20 num script só: o 236 já estava no escritório
    (`escritorio@palhetaarquitetura.com`); o Start Kids fora da tabela, porque a página se chama "212.2 · IGREJA BATISTA BETEL"
    (`VBS77W`), já na área do escritório com o 236 e o 203; o 225 sem página.
+22. **Passar a página do cliente para outra conta** (ÊDI, 09/11/2026, pelo TCC do Natanael: enviado pelo computador da Palheta, a página
+   `SWUDEV` ficou na conta `escritorio@palhetaarquitetura.com`; mockup `docs/mockups/passar-pagina-para-outra-conta` do repositório do
+   programa, aprovado por ÊDI: "Pode seguir"; migração `20261109000000_passar_pagina_para_outra_conta.sql`). Em MINHA CONTA ›
+   APRESENTAÇÕES, os três pontinhos no fim da faixa do cartão (`MaisAcoes`, `src/components/PassarPagina.jsx`) trazem Passar para outra
+   conta e o Excluir, que saiu da faixa. Para outra pessoa, pelo e-mail, o pedido espera o aceite dela por 30 dias (`apresentacao_passar`,
+   `apresentacao_cancelar_passagem`); ela aceita ou recusa no bloco Chegou para você (`passagens_para_mim`,
+   `apresentacao_responder_passagem`). Para o escritório da equipe, na hora. O cartão mostra a espera e a recusa
+   (`passagens_das_minhas_apresentacoes`). A `dono_do_envio` (na função `apresentacoes` e na `apresentacao_onde`) manda o envio seguinte
+   de quem recebeu para a página dela, mesmo com o "em nome do escritório" guardado no arquivo. Conferir pela amostra em
+   `/conta/apresentacoes?amostra=passagem`. Só com o ÊDI, nesta ordem:
+   1. **Teste local:** `node supabase/testes/passar-pagina.test.mjs` (36 conferências) e os de antes (`apresentacoes` 92,
+      `onde-esta-a-pagina` 14, `pagina-no-escritorio` 17, `pagina-do-tcc` 14, `troca-do-dono` 66).
+   2. **SQL Editor:** rodar a migração (pode rodar duas vezes).
+   3. **Função:** `npx supabase functions deploy apresentacoes --project-ref sowazotriildoeaxbhkl` (sem a migração no banco, a função
+      volta à regra de antes, sem quebrar o envio).
+   4. **Site:** o `git push` da `main`.
+   5. **O TCC:** o dono da página (a conta `escritorio@palhetaarquitetura.com`) passa a página pelo e-mail do Natanael, e ele aceita na
+      conta dele. O script `supabase/ferramentas/passar-pagina-do-tcc-ao-natanael.sql` fica para o caso de ser preciso antes do site.
 
 ## Pendente
 
