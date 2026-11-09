@@ -25,7 +25,9 @@ import { ALFABETO, MINUSCULAS, CORS, apagar, existe, listar, responder, sorteio,
 
 const SITE = Deno.env.get("SITE_URL") ?? "https://www.arquionie.com.br";
 const ARQUIVO = /^[0-9a-f]{64}\.(json|bin|jpg|png|svg|webp|m3u8|m4s|mp4|txt)$/;
-const LIMITE_ARQUIVOS = 8000, LIMITE_ARQUIVO = 300 * 1024 * 1024, LIMITE_TAMANHO = 6 * 1024 * 1024 * 1024;
+// O arquivo maior passou de 300 para 600 MB (ÊDI, 09/11/2026: a maquete do tour de um TCC, com 517 MB num arquivo, parava o ENVIAR).
+// O programa confere os mesmos limites antes de subir (EnvioDaPagina.LimiteDoArquivo, no repositório do programa).
+const LIMITE_ARQUIVOS = 8000, LIMITE_ARQUIVO = 600 * 1024 * 1024, LIMITE_TAMANHO = 6 * 1024 * 1024 * 1024;
 const LIMITE_LOGO = 2 * 1024 * 1024;
 
 const db = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "", {
