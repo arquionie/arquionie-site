@@ -442,6 +442,16 @@ Configurações feitas no painel, em ordem:
       conta dele. O script `supabase/ferramentas/passar-pagina-do-tcc-ao-natanael.sql` fica para o caso de ser preciso antes do site.
    **No ar em 09/11/2026:** a migração rodada por ÊDI; a função publicada pelo Claude Code depois do `supabase login` de ÊDI (foi junto o
    limite de 600 MB do `b0677d3`); o site na `main` em `cee64cc`. Falta o passo 5.
+23. **O COMPUTADOR DE RENDERIZAÇÃO** (ÊDI, 10/11/2026: as máquinas paradas do escritório renderizando o que a equipe manda pelo EXPORTAR;
+   mockup `docs/mockups/computador-de-renderizacao` do repositório do programa, aprovado por ÊDI: "Aprovo as doze"; migração
+   `20261110000000_computadores_de_renderizacao.sql`, etapa 1). Só a fila fica aqui, sem arquivo: as máquinas (`renderizadores`, o sinal
+   de cada uma pela `renderizador_sinal`, que também tira a máquina dos três computadores da conta, e a `renderizador_desligar`) e os
+   pedidos (`pedidos_de_renderizacao`): `renderizadores_do_escritorio` e `renderizacao_pedir` para quem pede, `renderizacao_pegar`,
+   `renderizacao_andamento` e `renderizador_fila` para a máquina, `renderizacao_meus_pedidos` e `renderizacao_cancelar` (quem pediu, ou o
+   responsável). Nada muda no site. Só com o ÊDI, nesta ordem:
+   1. **Teste local:** `node supabase/testes/renderizacao.test.mjs` (44 conferências).
+   2. **SQL Editor:** rodar a migração (pode rodar duas vezes).
+   Sem a migração no banco, o programa mostra o EXPORTAR como antes (sem o ONDE RENDERIZAR) e a página de configuração diz que não achou a lista.
 
 ## Pendente
 
