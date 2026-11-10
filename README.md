@@ -452,6 +452,7 @@ Configurações feitas no painel, em ordem:
    1. **Teste local:** `node supabase/testes/renderizacao.test.mjs` (44 conferências).
    2. **SQL Editor:** rodar a migração (pode rodar duas vezes).
    Sem a migração no banco, o programa mostra o EXPORTAR como antes (sem o ONDE RENDERIZAR) e a página de configuração diz que não achou a lista.
+   **No ar em 10/11/2026:** a migração rodada por ÊDI no SQL Editor; conferido de fora que as funções existem e recusam sem conta (42501).
 
 ## Pendente
 
