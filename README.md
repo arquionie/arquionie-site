@@ -440,6 +440,8 @@ Configurações feitas no painel, em ordem:
    4. **Site:** o `git push` da `main`.
    5. **O TCC:** o dono da página (a conta `escritorio@palhetaarquitetura.com`) passa a página pelo e-mail do Natanael, e ele aceita na
       conta dele. O script `supabase/ferramentas/passar-pagina-do-tcc-ao-natanael.sql` fica para o caso de ser preciso antes do site.
+   **No ar em 09/11/2026:** a migração rodada por ÊDI; a função publicada pelo Claude Code depois do `supabase login` de ÊDI (foi junto o
+   limite de 600 MB do `b0677d3`); o site na `main` em `cee64cc`. Falta o passo 5.
 
 ## Pendente
 
