@@ -5,7 +5,38 @@
   biblioteca: no Safari (iPhone), o próprio navegador toca o HLS; nos outros, pelo Media Source do navegador, que recebe os pedaços um a
   um. A qualidade é escolhida pela internet de quem assiste e troca no meio sem parar (no começo do pedaço seguinte).
     TocadorDoVideo(video, { hls, mp4, capa, aoTrocar(qualidade) })
+  O BAIXAR O VÍDEO (ÊDI, 13/11/2026) junta no navegador o começo e os pedaços da maior qualidade num arquivo só, um MP4 que o
+  computador e o celular tocam, e entrega com o nome do projeto: o envio não leva um MP4 inteiro.
+    BaixarOVideo({ hls, mp4, nome, aoAndar(parte de 0 a 1) })
 */
+(() => {
+// A leitura do HLS, do tocador e do BAIXAR O VÍDEO.
+const endereco = (de, uri) => new URL(uri, de).href;
+const atributos = linha => Object.fromEntries([...linha.matchAll(/([A-Z0-9-]+)=("[^"]*"|[^,]*)/g)].map(m => [m[1], m[2].replace(/^"|"$/g, "")]));
+async function texto(url) { const r = await fetch(url); if (!r.ok) throw new Error(`${url}: ${r.status}`); return r.text(); }
+/** As qualidades do HLS principal: a banda, a altura, os codecs e a lista dos pedaços de cada uma. */
+async function lerPrincipal(url) {
+  const linhas = (await texto(url)).split(/\r?\n/);
+  const qualidades = [];
+  for (let i = 0; i < linhas.length; i++) {
+    if (!linhas[i].startsWith("#EXT-X-STREAM-INF:")) continue;
+    const a = atributos(linhas[i].slice(18)), uri = linhas[++i].trim();
+    qualidades.push({ banda: +a.BANDWIDTH || 0, altura: +(a.RESOLUTION || "x0").split("x")[1] || 0, codecs: a.CODECS || "avc1.640028,mp4a.40.2", url: endereco(url, uri) });
+  }
+  return qualidades.sort((x, y) => x.banda - y.banda);
+}
+/** Uma lista de pedaços: o começo (o init do MP4 fragmentado) e cada pedaço com a duração e o instante em que começa. */
+async function lerLista(q) {
+  const linhas = (await texto(q.url)).split(/\r?\n/);
+  q.pedacos = []; let t = 0, duracao = 0;
+  for (const l of linhas) {
+    if (l.startsWith("#EXT-X-MAP:")) q.inicio = endereco(q.url, atributos(l.slice(11)).URI);
+    else if (l.startsWith("#EXTINF:")) duracao = parseFloat(l.slice(8));
+    else if (l && !l.startsWith("#")) { q.pedacos.push({ url: endereco(q.url, l.trim()), t, d: duracao }); t += duracao; }
+  }
+  q.total = t;
+}
+
 window.TocadorDoVideo = function (video, { hls, mp4, capa, aoTrocar = () => {} }) {
   if (capa) video.poster = capa;
   video.playsInline = true;
@@ -15,32 +46,6 @@ window.TocadorDoVideo = function (video, { hls, mp4, capa, aoTrocar = () => {} }
     video.src = nativo ? hls : mp4 || hls;
     aoTrocar(nativo ? "automática" : "");
     return { parar() { video.removeAttribute("src"); video.load(); } };
-  }
-
-  const endereco = (de, uri) => new URL(uri, de).href;
-  const atributos = linha => Object.fromEntries([...linha.matchAll(/([A-Z0-9-]+)=("[^"]*"|[^,]*)/g)].map(m => [m[1], m[2].replace(/^"|"$/g, "")]));
-  async function texto(url) { const r = await fetch(url); if (!r.ok) throw new Error(`${url}: ${r.status}`); return r.text(); }
-  /** As qualidades do HLS principal: a banda, a altura, os codecs e a lista dos pedaços de cada uma. */
-  async function lerPrincipal(url) {
-    const linhas = (await texto(url)).split(/\r?\n/);
-    const qualidades = [];
-    for (let i = 0; i < linhas.length; i++) {
-      if (!linhas[i].startsWith("#EXT-X-STREAM-INF:")) continue;
-      const a = atributos(linhas[i].slice(18)), uri = linhas[++i].trim();
-      qualidades.push({ banda: +a.BANDWIDTH || 0, altura: +(a.RESOLUTION || "x0").split("x")[1] || 0, codecs: a.CODECS || "avc1.640028,mp4a.40.2", url: endereco(url, uri) });
-    }
-    return qualidades.sort((x, y) => x.banda - y.banda);
-  }
-  /** Uma lista de pedaços: o começo (o init do MP4 fragmentado) e cada pedaço com a duração e o instante em que começa. */
-  async function lerLista(q) {
-    const linhas = (await texto(q.url)).split(/\r?\n/);
-    q.pedacos = []; let t = 0, duracao = 0;
-    for (const l of linhas) {
-      if (l.startsWith("#EXT-X-MAP:")) q.inicio = endereco(q.url, atributos(l.slice(11)).URI);
-      else if (l.startsWith("#EXTINF:")) duracao = parseFloat(l.slice(8));
-      else if (l && !l.startsWith("#")) { q.pedacos.push({ url: endereco(q.url, l.trim()), t, d: duracao }); t += duracao; }
-    }
-    q.total = t;
   }
 
   let parado = false, banda = 0, atual = null, proximo = 0, ultimoInicio = null, ocupado = false;
@@ -132,3 +137,33 @@ window.TocadorDoVideo = function (video, { hls, mp4, capa, aoTrocar = () => {} }
   if (ms.addEventListener) ms.addEventListener("startstreaming", alimentar);
   return { parar() { parado = true; try { if (ms.readyState === "open") ms.endOfStream(); } catch { } video.removeAttribute("src"); video.load(); } };
 };
+
+window.BaixarOVideo = async function ({ hls, mp4, nome, aoAndar = () => {} }) {
+  // Cada arquivo com três tentativas: num vídeo comprido, uma queda da internet não perde o que já veio.
+  async function buscar(url) {
+    for (let vez = 1; ; vez++) {
+      try { const r = await fetch(url); if (!r.ok) throw new Error(`${url}: ${r.status}`); return await r.arrayBuffer(); }
+      catch (e) { if (vez >= 3) throw e; await new Promise(ok => setTimeout(ok, 800 * vez)); }
+    }
+  }
+  const partes = [];
+  let juntou = false;
+  if (hls) try {
+    const q = (await lerPrincipal(hls)).at(-1);
+    if (!q) throw new Error("o vídeo não tem qualidades");
+    await lerLista(q);
+    if (!q.inicio || !q.pedacos.length) throw new Error("a lista não tem os pedaços");
+    const enderecos = [q.inicio, ...q.pedacos.map(p => p.url)];
+    for (let i = 0; i < enderecos.length; i++) { partes.push(await buscar(enderecos[i])); aoAndar((i + 1) / enderecos.length); }
+    juntou = true;
+  } catch (e) { if (!mp4) throw e; partes.length = 0; }
+  if (!juntou) {
+    if (!mp4) throw new Error("o envio não tem vídeo");
+    partes.push(await buscar(mp4)); aoAndar(1);
+  }
+  const a = document.createElement("a"), url = URL.createObjectURL(new Blob(partes, { type: "video/mp4" }));
+  a.href = url; a.download = nome; a.hidden = true;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+};
+})();

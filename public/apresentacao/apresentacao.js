@@ -31,6 +31,8 @@
     return `${dois(d.getDate())}/${dois(d.getMonth() + 1)}/${d.getFullYear()}` + (comHora ? `, ${dois(d.getHours())}:${dois(d.getMinutes())}` : "");
   };
   const mb = b => b >= 1e9 ? `${(b / 1e9).toFixed(1).replace(".", ",")} GB` : `${Math.max(1, Math.round(b / 1e6))} MB`;
+  /** O nome do projeto como nome de arquivo: sem o que o Windows e o celular não aceitam. */
+  const nomeDeArquivo = nome => (nome || "").replace(/[\\/:*?"<>|\x00-\x1f]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 120) || "video";
   function nota(texto) {
     const n = $("nota"); n.textContent = texto; n.hidden = false;
     clearTimeout(nota.t); nota.t = setTimeout(() => { n.hidden = true; }, 3200);
@@ -173,6 +175,20 @@
       TocadorDoVideo($("player"), { hls: v.hls && base + v.hls, mp4: v.mp4 && base + v.mp4, capa: v.capa && base + v.capa,
         aoTrocar: q => { $("qualidade").textContent = q ? `qualidade ${q}` : ""; $("qualidade").hidden = !q; } });
       $("player").addEventListener("ended", () => irPara("explorar"));
+      // BAIXAR O VÍDEO: o arquivo inteiro na maior qualidade, com o nome do projeto; o ícone no canto do vídeo conta o quanto já veio.
+      const botao = $("baixarVideo"), rotulo = botao.querySelector("span");
+      botao.onclick = async () => {
+        if (botao.getAttribute("aria-busy") === "true") return;
+        botao.setAttribute("aria-busy", "true"); rotulo.textContent = "0%"; rotulo.hidden = false;
+        botao.title = "Baixando o vídeo"; botao.setAttribute("aria-label", "Baixando o vídeo");
+        try {
+          await BaixarOVideo({ hls: v.hls && base + v.hls, mp4: v.mp4 && base + v.mp4, nome: nomeDeArquivo(d.nome) + ".mp4",
+            aoAndar: p => { rotulo.textContent = `${Math.floor(p * 100)}%`; } });
+          nota("Vídeo baixado: está nos downloads deste aparelho.");
+        } catch { nota("Não deu para baixar o vídeo agora. Confira a internet e tente de novo."); }
+        botao.removeAttribute("aria-busy"); rotulo.hidden = true; rotulo.textContent = "";
+        botao.title = "Baixar o vídeo"; botao.setAttribute("aria-label", "Baixar o vídeo");
+      };
     }
     if (manifesto.tour) {
       $("explorar").hidden = false;
