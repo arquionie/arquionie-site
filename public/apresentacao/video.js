@@ -4,7 +4,8 @@
   ÊDI em 11/10/2026): o HLS que o Arquionie faz (pedaços de 4 s em MP4 fragmentado, em 480p, 720p e 1080p, e a capa). Nosso, sem
   biblioteca: no Safari (iPhone), o próprio navegador toca o HLS; nos outros, pelo Media Source do navegador, que recebe os pedaços um a
   um. A qualidade é escolhida pela internet de quem assiste e troca no meio sem parar (no começo do pedaço seguinte).
-    TocadorDoVideo(video, { hls, mp4, capa, aoTrocar(qualidade) })
+    TocadorDoVideo(video, { hls, mp4, capa, aoTrocar(qualidade) })  devolve { parar, qualidades, fixada, fixar }
+  Pelo menu do vídeo (ÊDI, 13/11/2026), quem assiste fixa uma qualidade ou volta à automática.
   O BAIXAR O VÍDEO (ÊDI, 13/11/2026) junta no navegador o começo e os pedaços da maior qualidade num arquivo só, um MP4 que o
   computador e o celular tocam, e entrega com o nome do projeto: o envio não leva um MP4 inteiro.
     BaixarOVideo({ hls, mp4, nome, aoAndar(parte de 0 a 1) })
@@ -41,19 +42,24 @@ window.TocadorDoVideo = function (video, { hls, mp4, capa, aoTrocar = () => {} }
   if (capa) video.poster = capa;
   video.playsInline = true;
   const MS = window.ManagedMediaSource || window.MediaSource;
-  const nativo = !!hls && !!video.canPlayType("application/vnd.apple.mpegurl");
+  // O HLS do próprio navegador só nos da Apple: o Chrome passou a tocar HLS sozinho, mas sem deixar escolher a qualidade; nele
+  // segue o nosso, pelo Media Source, como era antes de ele aprender (ÊDI, 13/11/2026: a qualidade no menu do vídeo).
+  const daApple = /Apple/.test(navigator.vendor || "") || !window.MediaSource;
+  const nativo = !!hls && !!video.canPlayType("application/vnd.apple.mpegurl") && daApple;
   if (!hls || nativo || !MS) {
     video.src = nativo ? hls : mp4 || hls;
     aoTrocar(nativo ? "automática" : "");
-    return { parar() { video.removeAttribute("src"); video.load(); } };
+    return { parar() { video.removeAttribute("src"); video.load(); }, qualidades: () => [], fixada: () => 0, fixar() { } };
   }
 
-  let parado = false, banda = 0, atual = null, proximo = 0, ultimoInicio = null, ocupado = false;
+  let parado = false, banda = 0, atual = null, proximo = 0, ultimoInicio = null, ocupado = false, fixa = null, trocar = false;
   const ms = new MS();
   if (window.ManagedMediaSource) video.disableRemotePlayback = true;
   video.src = URL.createObjectURL(ms);
   let qualidades, sb;
   const escolher = () => {
+    // A que quem assiste escolheu no menu do vídeo vale sobre a medida da internet.
+    if (fixa) return fixa;
     // A maior que cabe em 80% da banda medida; sem medida ainda, a do meio (720p) para começar logo.
     if (!banda) return qualidades[Math.min(1, qualidades.length - 1)];
     let q = qualidades[0];
@@ -85,16 +91,24 @@ window.TocadorDoVideo = function (video, { hls, mp4, capa, aoTrocar = () => {} }
   };
   // Leva os pedaços: até 30 s à frente do que está tocando, cada um na qualidade escolhida na hora.
   async function alimentar() {
-    if (ocupado || parado || !sb || ms.readyState !== "open") return;
+    if (ocupado || parado || !sb || (ms.readyState !== "open" && !trocar)) return;
     ocupado = true;
     try {
+      if (trocar) {
+        // A qualidade escolhida à mão vale logo: o que estava guardado à frente sai, e os pedaços seguem dali na nova.
+        trocar = false;
+        const t = video.currentTime;
+        let i = atual.pedacos.findIndex(p => t < p.t + p.d);
+        if (i < 0) i = atual.pedacos.length - 1;
+        if (i + 1 < atual.pedacos.length) { proximo = i + 1; await tirar(atual.pedacos[proximo].t, atual.total); }
+      }
       while (!parado && proximo < atual.pedacos.length && naFrente() < 30) {
         const q = escolher();
         if (q !== atual || ultimoInicio !== q.inicio) {
           if (!q.pedacos) await lerLista(q);
           if (q.codecs !== atual.codecs && sb.changeType) sb.changeType(`video/mp4; codecs="${q.codecs}"`);
           await anexar(await baixar(q.inicio)); ultimoInicio = q.inicio;
-          if (q !== atual) { atual = q; aoTrocar(`automática · ${q.altura}p`); }
+          if (q !== atual) { atual = q; aoTrocar(fixa ? `${q.altura}p` : `automática · ${q.altura}p`); }
         }
         await anexar(await baixar(atual.pedacos[proximo].url));
         proximo++;
@@ -135,7 +149,20 @@ window.TocadorDoVideo = function (video, { hls, mp4, capa, aoTrocar = () => {} }
   video.addEventListener("timeupdate", alimentar);
   video.addEventListener("waiting", alimentar);
   if (ms.addEventListener) ms.addEventListener("startstreaming", alimentar);
-  return { parar() { parado = true; try { if (ms.readyState === "open") ms.endOfStream(); } catch { } video.removeAttribute("src"); video.load(); } };
+  return {
+    parar() { parado = true; try { if (ms.readyState === "open") ms.endOfStream(); } catch { } video.removeAttribute("src"); video.load(); },
+    /** As alturas que o vídeo tem (1080, 720, 480), da maior para a menor; vazio enquanto a lista não chegou. */
+    qualidades: () => (qualidades || []).map(q => q.altura).filter(Boolean).sort((a, b) => b - a),
+    /** A altura escolhida à mão, ou 0 na automática. */
+    fixada: () => fixa ? fixa.altura : 0,
+    /** Fixa uma altura, ou volta à automática com 0. */
+    fixar(altura) {
+      fixa = altura && (qualidades || []).find(q => q.altura === altura) || null;
+      trocar = !!fixa;
+      if (atual) aoTrocar(fixa ? `${fixa.altura}p` : `automática · ${atual.altura}p`);
+      alimentar();
+    },
+  };
 };
 
 window.BaixarOVideo = async function ({ hls, mp4, nome, aoAndar = () => {} }) {

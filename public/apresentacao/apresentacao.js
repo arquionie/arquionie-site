@@ -172,22 +172,45 @@
     const v = manifesto.video;
     if (v && (v.hls || v.mp4)) {
       $("video").hidden = false;
-      TocadorDoVideo($("player"), { hls: v.hls && base + v.hls, mp4: v.mp4 && base + v.mp4, capa: v.capa && base + v.capa,
+      const tocador = TocadorDoVideo($("player"), { hls: v.hls && base + v.hls, mp4: v.mp4 && base + v.mp4, capa: v.capa && base + v.capa,
         aoTrocar: q => { $("qualidade").textContent = q ? `qualidade ${q}` : ""; $("qualidade").hidden = !q; } });
       $("player").addEventListener("ended", () => irPara("explorar"));
-      // BAIXAR O VÍDEO: o arquivo inteiro na maior qualidade, com o nome do projeto; o ícone no canto do vídeo conta o quanto já veio.
-      const botao = $("baixarVideo"), rotulo = botao.querySelector("span");
+      // O menu do vídeo, atrás dos três pontinhos do canto (ÊDI, 13/11/2026): a qualidade (a automática ou uma fixa), a velocidade e o
+      // BAIXAR O VÍDEO. Onde o próprio navegador toca o HLS (o iPhone), a qualidade é dele e não aparece.
+      const mais = $("maisVideo"), menu = $("menuVideo"), andamento = mais.querySelector("span");
+      const opcoes = (onde, itens, atual, escolher) => onde.replaceChildren(...itens.map(([rotulo, valor]) => {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "op"; b.textContent = rotulo; b.setAttribute("aria-pressed", valor === atual);
+        b.onclick = () => { escolher(valor); for (const o of onde.children) o.setAttribute("aria-pressed", o === b); };
+        return b;
+      }));
+      const abrirMenu = aberto => {
+        if (aberto) {
+          const alturas = tocador.qualidades();
+          $("grupoQualidade").hidden = !alturas.length;
+          opcoes($("opcoesQualidade"), [["Automática", 0], ...alturas.map(a => [`${a}p`, a])], tocador.fixada(), a => tocador.fixar(a));
+          opcoes($("opcoesVelocidade"), [.5, 1, 1.25, 1.5, 2].map(x => [`${String(x).replace(".", ",")}×`, x]), $("player").playbackRate,
+            x => { $("player").playbackRate = x; });
+        }
+        menu.hidden = !aberto; mais.setAttribute("aria-expanded", aberto);
+      };
+      mais.onclick = () => abrirMenu(menu.hidden);
+      document.addEventListener("click", ev => { if (!menu.hidden && !menu.contains(ev.target) && !mais.contains(ev.target)) abrirMenu(false); });
+      document.addEventListener("keydown", ev => { if (ev.key === "Escape" && !menu.hidden) { abrirMenu(false); mais.focus(); } });
+      // BAIXAR O VÍDEO: o arquivo inteiro na maior qualidade, com o nome do projeto; os três pontinhos contam o quanto já veio.
+      const botao = $("baixarVideo");
       botao.onclick = async () => {
-        if (botao.getAttribute("aria-busy") === "true") return;
-        botao.setAttribute("aria-busy", "true"); rotulo.textContent = "0%"; rotulo.hidden = false;
-        botao.title = "Baixando o vídeo"; botao.setAttribute("aria-label", "Baixando o vídeo");
+        if (mais.getAttribute("aria-busy") === "true") return;
+        abrirMenu(false); botao.disabled = true;
+        mais.setAttribute("aria-busy", "true"); andamento.textContent = "0%"; andamento.hidden = false;
+        mais.title = "Baixando o vídeo"; mais.setAttribute("aria-label", "Opções do vídeo, baixando o vídeo");
         try {
           await BaixarOVideo({ hls: v.hls && base + v.hls, mp4: v.mp4 && base + v.mp4, nome: nomeDeArquivo(d.nome) + ".mp4",
-            aoAndar: p => { rotulo.textContent = `${Math.floor(p * 100)}%`; } });
+            aoAndar: p => { andamento.textContent = `${Math.floor(p * 100)}%`; } });
           nota("Vídeo baixado: está nos downloads deste aparelho.");
         } catch { nota("Não deu para baixar o vídeo agora. Confira a internet e tente de novo."); }
-        botao.removeAttribute("aria-busy"); rotulo.hidden = true; rotulo.textContent = "";
-        botao.title = "Baixar o vídeo"; botao.setAttribute("aria-label", "Baixar o vídeo");
+        mais.removeAttribute("aria-busy"); andamento.hidden = true; andamento.textContent = ""; botao.disabled = false;
+        mais.title = "Opções do vídeo"; mais.setAttribute("aria-label", "Opções do vídeo");
       };
     }
     if (manifesto.tour) {

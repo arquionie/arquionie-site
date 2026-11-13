@@ -65,15 +65,26 @@ main { max-width: 1180px; margin: 0 auto; padding: 4px 24px 36px; }
 .bloco h3 { margin: 26px 0 12px; font-size: 17px; line-height: 1.3; font-weight: 700; letter-spacing: -.01em; }
 .video { position: relative; background: #111; border-radius: var(--raio-cartao); overflow: hidden; aspect-ratio: 16 / 9; }
 .video video { width: 100%; height: 100%; display: block; background: #111; }
-/* o canto do vídeo: a qualidade e o BAIXAR O VÍDEO, discreto (ÊDI, 13/11/2026: só o ícone, no tom da etiqueta; baixando, o quanto já veio) */
-.video .canto { position: absolute; right: 14px; top: 14px; display: flex; align-items: center; gap: 6px; pointer-events: none; }
-.video .q { height: 24px; display: flex; align-items: center; padding: 0 10px; border-radius: var(--raio-toque);
+/* o canto do vídeo: a qualidade e os três pontinhos, discretos, no tom da etiqueta (ÊDI, 13/11/2026); baixando, o quanto já veio.
+   O menu deles (a qualidade, a velocidade e o BAIXAR O VÍDEO) flutua um tom acima, com contorno e sombra, e pode passar do vídeo. */
+.quadroVideo { position: relative; }
+.quadroVideo .canto { position: absolute; right: 14px; top: 14px; display: flex; align-items: center; gap: 6px; pointer-events: none; }
+.quadroVideo .q { height: 24px; display: flex; align-items: center; padding: 0 10px; border-radius: var(--raio-toque);
   background: rgba(0, 0, 0, .55); color: #fff; font-size: 12px; }
-.video .baixar { pointer-events: auto; height: 28px; min-width: 28px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 0 6px;
+.quadroVideo .mais { pointer-events: auto; height: 28px; min-width: 28px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 0 6px;
   border: 0; border-radius: var(--raio-toque); background: rgba(0, 0, 0, .55); color: #fff; font-size: 12px; opacity: .8; transition: opacity .15s; }
-.video .baixar:hover, .video .baixar:focus-visible, .video .baixar[aria-busy="true"] { opacity: 1; }
-.video .baixar[aria-busy="true"] { padding: 0 10px; cursor: progress; }
-.video .baixar svg { width: 15px; height: 15px; flex: none; }
+.quadroVideo .mais:hover, .quadroVideo .mais:focus-visible, .quadroVideo .mais[aria-expanded="true"], .quadroVideo .mais[aria-busy="true"] { opacity: 1; }
+.quadroVideo .mais[aria-busy="true"] { padding: 0 10px 0 6px; }
+.quadroVideo .mais svg { width: 16px; height: 16px; flex: none; }
+.menuVideo { position: absolute; right: 14px; top: 48px; z-index: 6; width: 304px; max-width: calc(100% - 28px); display: flex; flex-direction: column; gap: 12px;
+  padding: 14px; border-radius: var(--raio-cartao); background: var(--superficie); border: 1px solid var(--linha); box-shadow: 0 12px 30px rgba(0, 0, 0, .35); }
+.menuVideo .grupo { display: flex; flex-direction: column; gap: 6px; }
+.menuVideo small { font-size: 12px; font-weight: 600; color: var(--texto-apagado); }
+.menuVideo .opcoes { display: flex; flex-wrap: wrap; gap: 6px; }
+.menuVideo .op { height: 30px; padding: 0 10px; border: 0; border-radius: var(--raio-toque); background: var(--botao-3); color: var(--botao-3-texto);
+  font-size: 13px; font-weight: 600; white-space: nowrap; }
+.menuVideo .op[aria-pressed="true"] { background: var(--esc); color: var(--esc-texto); }
+.menuVideo .b3 svg { width: 16px; height: 16px; flex: none; }
 .explorar { width: 100%; margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 16px 16px 22px; border: 0;
   border-radius: var(--raio-cartao); background: var(--superficie); box-shadow: var(--sombra-cartao); text-align: left; }
 .explorar .txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }

@@ -32,7 +32,16 @@
   <div id="pedido" class="faixa" hidden></div>
   <section id="video" class="bloco" hidden>
     <h3>O vídeo</h3>
-    <div class="video"><video id="player" controls playsinline preload="none"></video><div class="canto"><div class="q" id="qualidade" hidden></div><button id="baixarVideo" class="baixar" type="button" title="Baixar o vídeo" aria-label="Baixar o vídeo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg><span hidden></span></button></div></div>
+    <div class="quadroVideo">
+      <div class="video"><video id="player" controls playsinline preload="none"></video></div>
+      <div class="canto"><div class="q" id="qualidade" hidden></div><button id="maisVideo" class="mais" type="button" title="Opções do vídeo" aria-label="Opções do vídeo" aria-haspopup="true" aria-expanded="false" aria-controls="menuVideo"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="12" cy="19" r="1.9"/></svg><span hidden></span></button></div>
+      <!-- O menu do vídeo (ÊDI, 13/11/2026): a qualidade, a velocidade e o BAIXAR O VÍDEO, atrás dos três pontinhos. -->
+      <div id="menuVideo" class="menuVideo" hidden>
+        <div class="grupo" id="grupoQualidade" role="group" aria-label="Qualidade"><small>Qualidade</small><div class="opcoes" id="opcoesQualidade"></div></div>
+        <div class="grupo" role="group" aria-label="Velocidade"><small>Velocidade</small><div class="opcoes" id="opcoesVelocidade"></div></div>
+        <button id="baixarVideo" class="b3 cheio" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Baixar o vídeo</button>
+      </div>
+    </div>
     <button class="explorar" type="button" data-ir="explorar"><span class="txt"><b>Explorar o projeto</b><small>Ande pela maquete, veja a planta com as medidas e as fotos 360°</small></span><span class="ir">Entrar no tour<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span></button>
   </section>
   <section id="explorar" class="bloco" hidden>
