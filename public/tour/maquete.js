@@ -421,18 +421,34 @@ window.TourDaMaquete = async function (base, tour) {
     in vec3 mundo; in vec3 normal; in vec2 vuv; in float vespelho;
     uniform sampler2D imagem; uniform sampler2DShadow sombra; uniform mat4 luzVp, vp; uniform vec3 olho;
     uniform vec3 corBase, tint, dirSol, corSol, ceu, chao; uniform float mistura, corte, exposicao, texel, destaque;
-    uniform vec4 acesa;
+    uniform vec4 acesa; uniform vec3 led;
     uniform bool comImagem, recorte, comSombra; out vec4 cor;
     ${CORES}
     void main() {
       if (mundo.z > corte) discard;
-      vec3 b = corBase;
-      if (comImagem) { vec4 t = texture(imagem, vuv); if (recorte && t.a < 0.5) discard; b = mix(b, linear(t.rgb), mistura); }
+      vec3 b = corBase; float ganho = 1.0;
+      if (comImagem && led.x > 0.0) {
+        // O painel de LED (a conta da vista do programa): cada ponto com a cor do centro dele na imagem ou no quadro do vídeo, e a
+        // carcaça escura entre os pontos; o ponto menor que o pixel vira a fração da célula que ele cobre, sem o serrilhado da grade.
+        // O ponto acende mais forte que a imagem (até 2,5 vezes), e de longe o painel fica no brilho dela.
+        vec2 grade = vuv * led.xy, f = fract(grade) - 0.5;
+        float px = max(length(dFdx(grade)), length(dFdy(grade))), raio = 0.5 * led.z;
+        float cobertura = min(1.0, 3.14159265 * raio * raio);
+        float nitido = 1.0 - smoothstep(raio - 0.5 * px, raio + 0.5 * px, length(f));
+        float ponto = mix(nitido, cobertura, smoothstep(0.25, 0.7, px));
+        vec4 t = textureGrad(imagem, (floor(grade) + 0.5) / led.xy, dFdx(vuv), dFdy(vuv));
+        b = mix(b, linear(t.rgb) * ponto, mistura); ganho = min(2.5, 1.0 / max(cobertura, 0.05));
+      }
+      else if (comImagem) { vec4 t = texture(imagem, vuv); if (recorte && t.a < 0.5) discard; b = mix(b, linear(t.rgb), mistura); }
       b *= tint;
       // O material aceso (o difusor da luminária, a fita de LED) brilha com a luz dele, sem o sol e sem a sombra; com imagem (o painel),
       // a imagem acesa.
-      // O painel que toca vídeo (acesa.a negativo): a tela mostra o quadro como ele é, sem o sol, a sombra e o ganho da luz.
-      if (acesa.a < 0.0) { cor = vec4(mix(srgb(b), vec3(0.906, 0.388, 0.325), destaque), 1.0); return; }
+      // O painel que toca vídeo (acesa.a negativo): a tela mostra o quadro como ele é, sem o sol, a sombra e o ganho da luz; com os
+      // pontos do LED, o ganho do ponto, sem mudar a cor do que passar do branco.
+      if (acesa.a < 0.0) {
+        vec3 e = b * ganho; e /= max(1.0, max(e.r, max(e.g, e.b)));
+        cor = vec4(mix(srgb(e), vec3(0.906, 0.388, 0.325), destaque), 1.0); return;
+      }
       if (acesa.a > 0.0) {
         vec3 base = comImagem ? b / max(max(b.r, b.g), max(b.b, 1e-3)) : vec3(1.0);
         vec3 e = base * acesa.rgb / max(max(acesa.r, acesa.g), max(acesa.b, 1e-3)) * acesa.a;
@@ -602,6 +618,7 @@ window.TourDaMaquete = async function (base, tour) {
   const brilhoDaLuz = m => m.acesa ? [m.acesa[0], m.acesa[1], m.acesa[2], 2 + 1.5 * Math.max(0, Math.min(1, Math.log10(Math.max(1e-6, m.acesa[3]) / .003) / 1.6))] : [0, 0, 0, 0];
   const porMaterial = new Map(tour.materiais.map((m, i) => [m.id, { ...m, luz: brilhoDaLuz(m), textura: imagensDosMateriais[i] ? texturaDoMaterial(imagensDosMateriais[i]) : null }]));
   const semMaterial = { cor: [.8, .8, .8], tint: [1, 1, 1], mistura: 0, textura: null, recorte: false, luz: [0, 0, 0, 0] };
+  const SEM_LED = [0, 0, 0];
 
   // O vídeo do material (o painel de LED; 14/11/2026): o mat-ID.mp4 toca mudo, em laço, e cada quadro novo vai para a textura do
   // material. Chega depois da abertura (não entra na barra da carga); até lá, e se o navegador não tocar, fica a imagem (a capa). O
@@ -635,11 +652,34 @@ window.TourDaMaquete = async function (base, tour) {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
         if (anis) gl.texParameterf(gl.TEXTURE_2D, anisotropia.TEXTURE_MAX_ANISOTROPY_EXT, anis);
       } else gl.bindTexture(gl.TEXTURE_2D, k.textura);
-      try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, v); gl.generateMipmap(gl.TEXTURE_2D); k.m.textura = k.textura; }
+      try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, v); gl.generateMipmap(gl.TEXTURE_2D); k.m.textura = k.textura; k.m.tocando = true; }
       catch (e) { videos.splice(videos.indexOf(k), 1); return; }
       // O painel aceso passa a mostrar o quadro como ele é (a capa parada fica com o brilho da luz do material, como antes).
       if (k.m.acesa) k.m.luz = [1, 1, 1, -1];
     }
+  }
+  // O vídeo por cima da foto 360° (14/11/2026): a foto é uma imagem parada, e o painel dentro dela mostrava o quadro da hora do
+  // render. As superfícies dos materiais que tocam vídeo são desenhadas por cima, no lugar delas, com o quadro da vez; o que a
+  // maquete tem na frente do painel (a parede, o móvel, a pessoa) continua na frente. `comProfundidade`: a profundidade do modelo já
+  // está feita com esta câmera (a passagem entre as fotos); senão, é feita aqui, sem cor.
+  function videosPorCimaDaFoto(vp, olho, comProfundidade) {
+    if (!videos.some(k => k.m.tocando)) return;
+    gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE); gl.disable(gl.BLEND); gl.depthMask(true);
+    if (!comProfundidade) {
+      gl.clear(gl.DEPTH_BUFFER_BIT); gl.colorMask(false, false, false, false);
+      gl.useProgram(sombraProg.p);
+      gl.uniformMatrix4fv(sombraProg.u.vp, false, vp); gl.uniform1f(sombraProg.u.corte, 1e9); gl.uniform1i(sombraProg.u.imagem, 0);
+      desenharModelo(sombraProg, { comMaterial: true });
+      gl.colorMask(true, true, true, true);
+    }
+    gl.depthFunc(gl.LEQUAL); gl.enable(gl.POLYGON_OFFSET_FILL); gl.polygonOffset(-1, -2);
+    gl.useProgram(modelo.p);
+    const u = modelo.u;
+    gl.uniformMatrix4fv(u.vp, false, vp); gl.uniform3fv(u.olho, olho); gl.uniform1i(u.imagem, 0); gl.uniform1i(u.sombra, 1);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, sombraTex);
+    gl.uniform1i(u.comSombra, 0); gl.uniform1f(u.corte, 1e9); gl.uniform1f(u.exposicao, 1.05); gl.uniform1f(u.destaque, 0);
+    desenharModelo(modelo, { comMaterial: true, soOsVideos: true });
+    gl.disable(gl.POLYGON_OFFSET_FILL); gl.depthFunc(gl.LESS);
   }
 
   // O desenho do modelo: os lotes (cada um com os vértices dele), com o material ou só a forma; sem a porta pela qual se passa.
@@ -647,17 +687,20 @@ window.TourDaMaquete = async function (base, tour) {
   // altura; andando, uma e outra ganhavam a profundidade e piscavam, "um pedaço está branco, outro está escuro", ÊDI, 10/10/2026): cada
   // material puxa a profundidade um pouco, sempre o mesmo tanto, e a mesma face ganha sempre (de 0 a 15 unidades, menos de um milímetro).
   const desempate = id => -(((id % 16) + 16) % 16);
-  function desenharModelo(prog, { comMaterial = false, semPorta = -1, soOCorte = false, desempatar = false } = {}) {
+  function desenharModelo(prog, { comMaterial = false, semPorta = -1, soOCorte = false, desempatar = false, soOsVideos = false } = {}) {
     gl.bindVertexArray(vaoModelo); gl.bindBuffer(gl.ARRAY_BUFFER, bv);
     gl.uniform3fv(prog.u.minimo, cxMin); gl.uniform3fv(prog.u.maximo, cxMax);
+    const tocando = id => { const m = porMaterial.get(id); return !!m && m.tocando; };
     for (const k of tour.modelo.lotes) {
       if (k.porta >= 0 && k.porta === semPorta) continue;
       if (soOCorte && !k.corta) continue;
+      if (soOsVideos && !tocando(k.material)) continue;
       if (comMaterial) {
         const m = porMaterial.get(k.material) || semMaterial;
         gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, m.textura || branca);
         if (prog.u.corBase) { gl.uniform3fv(prog.u.corBase, m.cor); gl.uniform3fv(prog.u.tint, m.tint); gl.uniform1f(prog.u.mistura, m.mistura); gl.uniform1i(prog.u.comImagem, m.textura ? 1 : 0); }
         if (prog.u.acesa) gl.uniform4fv(prog.u.acesa, m.luz);
+        if (prog.u.led) gl.uniform3fv(prog.u.led, m.led || SEM_LED);
         if (desempatar) gl.polygonOffset(0, desempate(k.material));
         gl.uniform1i(prog.u.recorte, m.recorte && m.textura ? 1 : 0);
       }
@@ -671,11 +714,13 @@ window.TourDaMaquete = async function (base, tour) {
     if (!pecas || soOCorte) return;
     gl.bindVertexArray(vaoPecas);
     for (const pc of pecas.lista) {
+      if (soOsVideos && !tocando(pc.material)) continue;
       if (comMaterial) {
         const m = porMaterial.get(pc.material) || semMaterial;
         gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, m.textura || branca);
         if (prog.u.corBase) { gl.uniform3fv(prog.u.corBase, m.cor); gl.uniform3fv(prog.u.tint, m.tint); gl.uniform1f(prog.u.mistura, m.mistura); gl.uniform1i(prog.u.comImagem, m.textura ? 1 : 0); }
         if (prog.u.acesa) gl.uniform4fv(prog.u.acesa, m.luz);
+        if (prog.u.led) gl.uniform3fv(prog.u.led, m.led || SEM_LED);
         if (desempatar) gl.polygonOffset(0, desempate(pc.material));
         gl.uniform1i(prog.u.recorte, m.recorte && m.textura ? 1 : 0);
       }
@@ -2231,6 +2276,7 @@ window.TourDaMaquete = async function (base, tour) {
         gl.uniform3fv(passagemProg.u.ca, pans[de].olho); gl.uniform3fv(passagemProg.u.cb, pans[para].olho); gl.uniform1f(passagemProg.u.mistura, mistura);
         gl.bindFramebuffer(gl.FRAMEBUFFER, quadroDaTela); gl.viewport(0, 0, tela.width, tela.height);
         desenharModelo(passagemProg, { semPorta: foto.passagem && foto.passagem.porta != null ? foto.passagem.porta : -1 });
+        videosPorCimaDaFoto(vp, olho, true);
       } else {
         gl.disable(gl.DEPTH_TEST);
         gl.useProgram(fotoProg.p); gl.bindVertexArray(vaoTela);
@@ -2250,6 +2296,8 @@ window.TourDaMaquete = async function (base, tour) {
           gl.drawArrays(gl.TRIANGLES, 0, 3);
         }
         gl.disable(gl.BLEND);
+        // A foto inteira na tela, vista do lugar dela: o vídeo por cima do painel.
+        if (!(ps && ps.longe) && foto.alfa >= 1) videosPorCimaDaFoto(vp, olho, false);
       }
     }
     // O quadro pronto na tela.
