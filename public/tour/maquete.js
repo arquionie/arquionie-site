@@ -431,6 +431,8 @@ window.TourDaMaquete = async function (base, tour) {
       b *= tint;
       // O material aceso (o difusor da luminária, a fita de LED) brilha com a luz dele, sem o sol e sem a sombra; com imagem (o painel),
       // a imagem acesa.
+      // O painel que toca vídeo (acesa.a negativo): a tela mostra o quadro como ele é, sem o sol, a sombra e o ganho da luz.
+      if (acesa.a < 0.0) { cor = vec4(mix(srgb(b), vec3(0.906, 0.388, 0.325), destaque), 1.0); return; }
       if (acesa.a > 0.0) {
         vec3 base = comImagem ? b / max(max(b.r, b.g), max(b.b, 1e-3)) : vec3(1.0);
         vec3 e = base * acesa.rgb / max(max(acesa.r, acesa.g), max(acesa.b, 1e-3)) * acesa.a;
@@ -600,6 +602,45 @@ window.TourDaMaquete = async function (base, tour) {
   const brilhoDaLuz = m => m.acesa ? [m.acesa[0], m.acesa[1], m.acesa[2], 2 + 1.5 * Math.max(0, Math.min(1, Math.log10(Math.max(1e-6, m.acesa[3]) / .003) / 1.6))] : [0, 0, 0, 0];
   const porMaterial = new Map(tour.materiais.map((m, i) => [m.id, { ...m, luz: brilhoDaLuz(m), textura: imagensDosMateriais[i] ? texturaDoMaterial(imagensDosMateriais[i]) : null }]));
   const semMaterial = { cor: [.8, .8, .8], tint: [1, 1, 1], mistura: 0, textura: null, recorte: false, luz: [0, 0, 0, 0] };
+
+  // O vídeo do material (o painel de LED; 14/11/2026): o mat-ID.mp4 toca mudo, em laço, e cada quadro novo vai para a textura do
+  // material. Chega depois da abertura (não entra na barra da carga); até lá, e se o navegador não tocar, fica a imagem (a capa). O
+  // arquivo vem inteiro e toca da memória: o laço e o começo não dependem do servidor.
+  const videos = [];
+  for (const m of porMaterial.values()) {
+    if (!m.video || !m.textura) continue;
+    const v = document.createElement("video");
+    v.muted = true; v.loop = m.video.laco !== false; v.playsInline = true; v.setAttribute("playsinline", ""); v.setAttribute("muted", ""); v.preload = "auto";
+    const item = { m, v, textura: null, tempo: -1 };
+    baixar(m.video.arquivo, false).then(b => {
+      v.addEventListener("loadedmetadata", () => { if (m.video.inicio > 0 && isFinite(v.duration) && v.duration > 0) v.currentTime = m.video.inicio % v.duration; }, { once: true });
+      v.src = URL.createObjectURL(new Blob([b], { type: "video/mp4" }));
+      const tocar = () => { if (v.paused && !v.ended) v.play().catch(() => {}); };
+      tocar();
+      // O navegador que só toca depois de um toque (a economia de dados do celular): no primeiro toque na tela.
+      addEventListener("pointerdown", tocar);
+      document.addEventListener("visibilitychange", () => { if (!document.hidden) tocar(); });
+      videos.push(item);
+    }).catch(() => {});
+  }
+  function quadrosDosVideos() {
+    for (const k of videos) {
+      const v = k.v;
+      if (v.readyState < 2 || !v.videoWidth || v.currentTime === k.tempo) continue;
+      k.tempo = v.currentTime;
+      gl.activeTexture(gl.TEXTURE0);
+      if (!k.textura) {
+        k.textura = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, k.textura);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        if (anis) gl.texParameterf(gl.TEXTURE_2D, anisotropia.TEXTURE_MAX_ANISOTROPY_EXT, anis);
+      } else gl.bindTexture(gl.TEXTURE_2D, k.textura);
+      try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, v); gl.generateMipmap(gl.TEXTURE_2D); k.m.textura = k.textura; }
+      catch (e) { videos.splice(videos.indexOf(k), 1); return; }
+      // O painel aceso passa a mostrar o quadro como ele é (a capa parada fica com o brilho da luz do material, como antes).
+      if (k.m.acesa) k.m.luz = [1, 1, 1, -1];
+    }
+  }
 
   // O desenho do modelo: os lotes (cada um com os vértices dele), com o material ou só a forma; sem a porta pela qual se passa.
   // O desempate das faces coplanares de materiais diferentes (o Revit manda o topo da travessa da pele de vidro e a peça ao lado na mesma
@@ -1985,6 +2026,7 @@ window.TourDaMaquete = async function (base, tour) {
   let antes = performance.now(), quadroDoMapa = 0, acabouDeEntrar = false;
   function quadro(agora) {
     const dt = Math.min(.1, (agora - antes) / 1000); antes = agora;
+    quadrosDosVideos();
     const k = 1 - Math.exp(-dt * 6);
     // A órbita chega devagar nos desejados.
     orb.alvo = orb.alvo.map((v, i) => v + (orbAlvo.alvo[i] - v) * k);
@@ -2239,7 +2281,7 @@ window.TourDaMaquete = async function (base, tour) {
   atualizar();
   requestAnimationFrame(quadro);
   if (pedidos.get("foto")) setTimeout(() => entrarNaFoto(+pedidos.get("foto") - 1), 200);
-  window.__maquete = { est, orb, orbAlvo, pe, foto, sol, telaQ, comentarios, marcarComentario, escolherAmbiente, mudarModo, entrarNaFoto, irParaFoto, andarEm, get voo() { return voo; } };
+  window.__maquete = { videos, est, orb, orbAlvo, pe, foto, sol, telaQ, comentarios, marcarComentario, escolherAmbiente, mudarModo, entrarNaFoto, irParaFoto, andarEm, get voo() { return voo; } };
   return () => {
     for (const id of ["parada", "mq-barra", "mq-dica", ...(toque ? ["mq-topo", "mq-v-sol", "mq-v-corte"] : [])]) $(id).classList.remove("esconder");
     atualizar();
