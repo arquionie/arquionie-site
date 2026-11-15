@@ -9,13 +9,38 @@
   <!-- O Arquionie no navegador: esta página é só a entrada. Os arquivos do programa moram no servidor dos downloads
        (baixar.arquionie.com.br/navegador), e o entrada.js de lá aponta para a publicação em vigor: publicar uma versão nova do
        programa não pede publicar o site. A página fica no endereço do site para a conta e o Drive valerem com o mesmo endereço. -->
+  <!-- A tela de carregamento em esqueleto (ÊDI, 15/11/2026: "aquelas telas de carregamento [...] a mesma que a gente coloca no
+       sistema"): o desenho da tela de Início em blocos claros, pulsando, até o programa desenhar por cima. O mesmo trecho mora no
+       index.html do programa (ferramentas/navegador/programa/wwwroot) e na página de entrada do site (public/navegador): mudou
+       num, muda no outro. -->
   <style>
     html, body { margin: 0; height: 100%; overflow: hidden; background: #F3F1EF; font: 14px Inter, "Segoe UI", system-ui, sans-serif; color: #1E1B19; }
     #out { height: 100%; }
-    #carregando { position: fixed; inset: 0; display: grid; place-items: center; text-align: center; padding: 0 24px; }
-    #carregando small { display: block; margin-top: 8px; color: #6B645F; }
-    #erro { position: fixed; inset: auto 0 0 0; max-height: 45%; overflow: auto; margin: 0; padding: 12px 16px; background: #fff; color: #B3261E; white-space: pre-wrap; font: 12px ui-monospace, Consolas, monospace; }
+    #erro { position: fixed; inset: auto 0 0 0; max-height: 45%; overflow: auto; margin: 0; padding: 12px 16px; background: #fff; color: #B3261E; white-space: pre-wrap; font: 12px ui-monospace, Consolas, monospace; z-index: 2; }
     #erro:empty { display: none; }
+    #carregando { position: fixed; inset: 0; display: flex; flex-direction: column; background: #F3F1EF; }
+    #carregando i { display: block; flex: none; height: 12px; border-radius: 999px; background: #E6E1DC; animation: pulso 1.5s ease-in-out infinite; }
+    #carregando .cartao i { background: #EDE9E5; }
+    #carregando .bola { width: 28px; height: 28px; }
+    #carregando .barra { display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 12px; background: #fff; }
+    #carregando .vao { flex: 1; }
+    #carregando .corpo { flex: 1; display: flex; min-height: 0; }
+    #carregando .lado { width: 368px; flex: none; padding: 18px 16px; display: flex; flex-direction: column; gap: 14px; border-right: 1px solid #ECE8E4; overflow: hidden; }
+    #carregando .meio { flex: 1; min-width: 0; padding: 30px 32px; display: flex; flex-direction: column; gap: 16px; overflow: hidden; }
+    #carregando .cartao { background: #fff; border-radius: 18px; }
+    #carregando .folga { padding: 18px 16px; display: flex; flex-direction: column; gap: 10px; }
+    #carregando .linha { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; }
+    #carregando .linha + .linha { border-top: 1px solid #F3F1EF; }
+    #carregando .topo { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    #carregando .topo > div { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+    #carregando .tres { display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 16px; }
+    #carregando .tres .cartao { height: 318px; padding: 22px 18px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; }
+    #carregando .passos { display: flex; align-items: center; gap: 22px; padding: 14px 16px; }
+    #carregando .aviso { margin: auto 0 0; text-align: center; color: #6B645F; font-size: 13px; opacity: 0; animation: aparecer .6s ease 8s forwards; }
+    @keyframes pulso { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+    @keyframes aparecer { to { opacity: 1; } }
+    @media (max-width: 900px) { #carregando .lado { display: none; } #carregando .tres { grid-template-columns: 1fr; } #carregando .meio { padding: 18px 16px; } }
+    @media (prefers-reduced-motion: reduce) { #carregando i { animation: none; } }
   </style>
   <script>
     // o que a página de entrada diz ao programa: a conta vale, onde fica a página da volta do login e de onde vêm as imagens
@@ -27,7 +52,53 @@
   </script>
 </head>
 <body>
-  <div id="out"><div id="carregando"><div>Abrindo o Arquionie™…<small>Na primeira vez, o navegador baixa o programa (cerca de 20 MB).</small></div></div></div>
+  <div id="out">
+    <div id="carregando" role="status" aria-label="Abrindo o Arquionie">
+      <div class="barra">
+        <i class="bola"></i><i style="width:84px"></i><i style="width:250px;height:24px"></i><span class="vao"></span><i class="bola"></i><i class="bola"></i>
+      </div>
+      <div class="corpo">
+        <div class="lado">
+          <i style="width:130px;height:16px"></i>
+          <div class="cartao folga"><i style="width:150px;height:15px"></i><i style="width:240px"></i></div>
+          <i style="width:110px;height:10px;margin-left:16px"></i>
+          <div class="cartao">
+            <div class="linha"><i style="width:60px"></i><i style="width:130px"></i></div>
+            <div class="linha"><i style="width:70px"></i><i style="width:44px"></i></div>
+          </div>
+          <i style="width:150px;height:10px;margin-left:16px"></i>
+          <div class="cartao">
+            <div class="linha"><i style="width:130px"></i><i style="width:150px"></i></div>
+            <div class="linha"><i style="width:140px"></i><i style="width:90px"></i></div>
+            <div class="linha"><i style="width:150px"></i><i style="width:130px"></i></div>
+          </div>
+          <i style="width:100px;height:10px;margin-left:16px"></i>
+          <div class="cartao">
+            <div class="linha"><i style="width:80px"></i><i style="width:110px"></i></div>
+            <div class="linha"><i style="width:110px"></i><i style="width:100px"></i></div>
+            <div class="linha"><i style="width:130px"></i><i style="width:60px"></i></div>
+            <div class="linha"><i style="width:30px"></i><i style="width:110px"></i></div>
+            <div class="linha"><i style="width:60px"></i><i style="width:150px"></i></div>
+            <div class="linha"><i style="width:100px"></i><i style="width:70px"></i></div>
+          </div>
+        </div>
+        <div class="meio">
+          <div class="topo">
+            <div><i style="width:min(380px,70%);height:24px"></i><i style="width:min(520px,95%)"></i></div>
+            <i style="width:112px;height:34px"></i>
+          </div>
+          <div class="tres">
+            <div class="cartao"><i style="width:140px;height:10px"></i><i style="width:85%;height:18px"></i><i style="width:50%;height:18px"></i><i style="width:95%"></i><i style="width:90%"></i><i style="width:60%"></i><span class="vao"></span><i style="width:118px;height:36px"></i></div>
+            <div class="cartao"><i style="width:130px;height:10px"></i><i style="width:132px;height:108px;border-radius:12px;align-self:center"></i><i style="width:70%;height:18px"></i><i style="width:95%"></i><i style="width:80%"></i><span class="vao"></span><i style="width:134px;height:36px"></i></div>
+            <div class="cartao"><i style="width:120px;height:10px"></i><i style="width:88%;height:18px"></i><i style="width:95%"></i><i style="width:90%"></i><i style="width:70%"></i><span class="vao"></span><i style="width:92px;height:36px"></i></div>
+          </div>
+          <div class="cartao passos"><i style="width:200px"></i><i style="width:90px"></i><i style="width:120px"></i><i style="width:100px"></i><span class="vao"></span><i style="width:190px;height:32px"></i></div>
+          <div class="cartao folga" style="align-items:center"><i style="width:min(620px,90%)"></i></div>
+          <p class="aviso">Abrindo o Arquionie™… Na primeira vez, o navegador baixa o programa (cerca de 20 MB).</p>
+        </div>
+      </div>
+    </div>
+  </div>
   <pre id="erro"></pre>
   <script type="module">
     try { await import('https://baixar.arquionie.com.br/navegador/entrada.js'); }
