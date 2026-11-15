@@ -168,7 +168,8 @@ export function ProgramaDoPainel() {
   return (
     <div className="mx-auto flex max-w-[1100px] flex-col gap-5 px-4 py-6 sm:px-6 md:py-10">
       <h1 className="text-amg-titulo-grande">Programa</h1>
-      <div className="grid gap-3 sm:grid-cols-2">
+      {/* os três lado a lado quando a tela dá (ÊDI, 15/11/2026: "a gente tem espaço para isso") */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Cartao icone="programa" titulo="Arquionie™ para Windows">
           {manifesto === undefined ? carregando : !instalador?.url ? (
             <p className="text-texto-apagado">A versão para download está sendo preparada. O aviso chega no e-mail da conta.</p>

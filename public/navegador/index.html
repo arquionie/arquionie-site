@@ -48,6 +48,22 @@
       conta: true,
       volta: location.origin + '/navegador/volta.html',
       biblioteca: 'https://baixar.arquionie.com.br/biblioteca/',
+      // A conta aberta no site vale no programa: com a sessão do site (a mesma chave do src/lib/supabase.js), a função
+      // "programa" autoriza o desafio do programa e dá o código de uso único, que ele troca pela sessão dele. Sem conta aberta,
+      // ou com a sessão vencida, devolve vazio e o programa pede a conta.
+      contaDoSite: async desafio => {
+        try {
+          const sessao = JSON.parse(localStorage.getItem('arquionie-sessao') ?? 'null');
+          if (!sessao?.access_token || (sessao.expires_at && sessao.expires_at * 1000 < Date.now() + 30000)) return '';
+          const resposta = await fetch('https://sowazotriildoeaxbhkl.supabase.co/functions/v1/programa', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + sessao.access_token, apikey: 'sb_publishable_aSoXh3xrkPi2T-cd0pslWw_Jj8n9xSY' },
+            body: JSON.stringify({ acao: 'autorizar', desafio }),
+          });
+          const dados = await resposta.json();
+          return dados?.ok ? dados.codigo : '';
+        } catch { return ''; }
+      },
     };
   </script>
 </head>
