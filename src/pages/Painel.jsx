@@ -186,6 +186,14 @@ export function ProgramaDoPainel() {
           )}
         </Cartao>
 
+        {/* O mesmo programa numa aba, sem instalar (15/11/2026): abre em outra aba; o arquivo fica no computador ou no Drive da pessoa. */}
+        <Cartao icone="programa" titulo="Arquionie™ no navegador">
+          <p className="text-texto-apagado">O mesmo programa numa aba, sem instalar. O arquivo fica no seu computador ou no seu Drive.</p>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Botao principal href="/navegador" target="_blank" rel="noopener">Abrir no navegador</Botao>
+          </div>
+        </Cartao>
+
         <Cartao icone="plugin" titulo="Arquionie™ para Revit">
           {/* sem o manifesto do plugin, o botão CONHECER leva aos requisitos */}
           {plugin && <Destaque valor={plugin.versao} detalhe={`Revit ${REQUISITOS.find(([q]) => q === 'Revit')?.[1]}`} />}

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Arquionie</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #F3F1EF; font: 16px Inter, "Segoe UI", system-ui, sans-serif; color: #1E1B19; }
+    main { height: 100%; display: grid; place-items: center; text-align: center; padding: 0 24px; }
+    h1 { font-size: 20px; font-weight: 600; margin: 0 0 8px; }
+    p { margin: 0; color: #6B645F; }
+  </style>
+</head>
+<body>
+  <main>
+    <div>
+      <h1 id="titulo">Voltando ao Arquionie…</h1>
+      <p id="texto">Esta janela fecha sozinha.</p>
+    </div>
+  </main>
+  <script>
+    // A volta do Google na entrada da conta (doc 89, seção 10.4): o que chegou no endereço (o código, ou o erro) vai para a aba do
+    // programa por um canal entre as abas deste site, e esta janela se fecha.
+    const chegou = location.search || location.hash;
+    const erro = /[?&#]error/.test(chegou);
+    try { new BroadcastChannel('arquionie-conta').postMessage(chegou); } catch { /* navegador sem o canal */ }
+    document.getElementById('titulo').textContent = erro ? 'A entrada com o Google não deu certo.' : 'Pronto. Volte ao Arquionie.';
+    document.getElementById('texto').textContent = erro ? 'Volte ao Arquionie e tente de novo.' : 'Esta janela pode ser fechada.';
+    setTimeout(() => window.close(), 900);
+  </script>
+</body>
+</html>

@@ -43,6 +43,10 @@
       "destination": "/versoes/index.html"
     },
     {
+      "source": "/navegador",
+      "destination": "/navegador/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/app.html"
     }

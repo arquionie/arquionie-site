@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="robots" content="noindex">
+  <title>Arquionie™ no navegador</title>
+  <link rel="icon" href="/favicon.ico">
+  <!-- O Arquionie no navegador: esta página é só a entrada. Os arquivos do programa moram no servidor dos downloads
+       (baixar.arquionie.com.br/navegador), e o entrada.js de lá aponta para a publicação em vigor: publicar uma versão nova do
+       programa não pede publicar o site. A página fica no endereço do site para a conta e o Drive valerem com o mesmo endereço. -->
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #F3F1EF; font: 14px Inter, "Segoe UI", system-ui, sans-serif; color: #1E1B19; }
+    #out { height: 100%; }
+    #carregando { position: fixed; inset: 0; display: grid; place-items: center; text-align: center; padding: 0 24px; }
+    #carregando small { display: block; margin-top: 8px; color: #6B645F; }
+    #erro { position: fixed; inset: auto 0 0 0; max-height: 45%; overflow: auto; margin: 0; padding: 12px 16px; background: #fff; color: #B3261E; white-space: pre-wrap; font: 12px ui-monospace, Consolas, monospace; }
+    #erro:empty { display: none; }
+  </style>
+  <script>
+    // o que a página de entrada diz ao programa: a conta vale, onde fica a página da volta do login e de onde vêm as imagens
+    globalThis.arquionieProducao = {
+      conta: true,
+      volta: location.origin + '/navegador/volta.html',
+      biblioteca: 'https://baixar.arquionie.com.br/biblioteca/',
+    };
+  </script>
+</head>
+<body>
+  <div id="out"><div id="carregando"><div>Abrindo o Arquionie™…<small>Na primeira vez, o navegador baixa o programa (cerca de 20 MB).</small></div></div></div>
+  <pre id="erro"></pre>
+  <script type="module">
+    try { await import('https://baixar.arquionie.com.br/navegador/entrada.js'); }
+    catch (erro) { document.getElementById('erro').textContent = 'O Arquionie não abriu: ' + (erro?.message ?? erro); }
+  </script>
+</body>
+</html>
