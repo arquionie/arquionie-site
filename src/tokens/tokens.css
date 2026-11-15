@@ -1,7 +1,6 @@
 /* Gerado por ferramentas/tokens/gerar_tokens.py a partir de design/tokens/tokens.json e design/cores/cores.json; não editar aqui. */
 /* O tema: claro de fábrica; data-tema="escuro" ou data-tema="auto" (segue o aparelho) no <html>.
-   O modo: amigável de fábrica; data-modo="tecnico" no <html> ou num bloco. Os nomes sem prefixo (--fundo, --raio-toque…)
-   apontam para o modo ativo; os prefixados (--amg-…, --tec-…) servem para mostrar os dois lado a lado. */
+   Os nomes sem prefixo (--fundo, --raio-toque…) apontam para os do desenho (--amg-…, o prefixo de sempre do site). */
 
 :root, [data-tema="claro"] {
   --marca-coral: #E76353;
@@ -15,14 +14,15 @@
   --amg-texto: #1E1B19;
   --amg-texto-apagado: #6F6964;
   --amg-destaque: #A9513F;
-  --amg-destaque-suave: #FBE6E0;
+  --amg-destaque-suave: #E8DCC3;
   --amg-destaque-texto: #9A3F2C;
   --amg-botao-1: #A9513F;
   --amg-botao-1-texto: #FFFFFF;
   --amg-botao-2: var(--amg-destaque-suave);
-  --amg-botao-2-texto: var(--amg-destaque-texto);
+  --amg-botao-2-texto: #7C3A26;
   --amg-botao-3: var(--amg-superficie-2);
   --amg-botao-3-texto: var(--amg-texto);
+  --amg-botao-3-no-fundo: #FFFFFF;
   --amg-whatsapp: #17733F;
   --amg-whatsapp-suave: #E2F4E9;
   --amg-sucesso: #256B40;
@@ -36,29 +36,8 @@
   --amg-etapa-4: #D2952A;
   --amg-etapa-5: #3E9A63;
   --amg-etapa-6: #C25B5B;
-  --tec-fundo: #FFFFFF;
-  --tec-superficie: #F3F1EF;
-  --tec-superficie-2: #EDEAE7;
-  --tec-linha: #D6D1CC;
-  --tec-texto: #33302D;
-  --tec-texto-forte: #1E1B19;
-  --tec-texto-apagado: #66605B;
-  --tec-destaque: #A9513F;
-  --tec-destaque-texto: #9A3F2C;
-  --tec-botao-1: #A9513F;
-  --tec-botao-1-texto: #FFFFFF;
-  --tec-botao-2: #F5CAC3;
-  --tec-botao-2-texto: #1E1B19;
-  --tec-botao-3: #EDEAE7;
-  --tec-botao-3-texto: #1E1B19;
-  --tec-campo-rotulo: #F5CAC3;
-  --tec-campo-valor: #EBBCB4;
-  --tec-sucesso: #2F6B3A;
-  --tec-aviso: #A4452F;
-  --tec-aprovado: #3F8F63;
   --amg-sombra-cartao: 0 1px 2px rgba(30,27,25,0.06), 0 3px 10px rgba(30,27,25,0.05);
   --amg-sombra-janela: 0 22px 60px rgba(0,0,0,0.35);
-  --tec-sombra-cartao: none;
 }
 
 [data-tema="escuro"] {
@@ -73,14 +52,15 @@
   --amg-texto: #F3F1EE;
   --amg-texto-apagado: #A39E99;
   --amg-destaque: #D47263;
-  --amg-destaque-suave: #3B2520;
+  --amg-destaque-suave: #3A3323;
   --amg-destaque-texto: #F2A595;
   --amg-botao-1: #A9513F;
   --amg-botao-1-texto: #FFFFFF;
   --amg-botao-2: var(--amg-destaque-suave);
-  --amg-botao-2-texto: var(--amg-destaque-texto);
+  --amg-botao-2-texto: #F2A595;
   --amg-botao-3: var(--amg-superficie-2);
   --amg-botao-3-texto: var(--amg-texto);
+  --amg-botao-3-no-fundo: #2A2B2E;
   --amg-whatsapp: #45C97F;
   --amg-whatsapp-suave: #17301F;
   --amg-sucesso: #82D3A2;
@@ -94,29 +74,8 @@
   --amg-etapa-4: #D2952A;
   --amg-etapa-5: #3E9A63;
   --amg-etapa-6: #C25B5B;
-  --tec-fundo: #353639;
-  --tec-superficie: #2A2B2E;
-  --tec-superficie-2: #111213;
-  --tec-linha: #4A4C50;
-  --tec-texto: #DAD6D1;
-  --tec-texto-forte: #F3F1EE;
-  --tec-texto-apagado: #A39E99;
-  --tec-destaque: #D47263;
-  --tec-destaque-texto: #DB8779;
-  --tec-botao-1: #A9513F;
-  --tec-botao-1-texto: #FFFFFF;
-  --tec-botao-2: #734841;
-  --tec-botao-2-texto: #F3F1EE;
-  --tec-botao-3: #2A2B2E;
-  --tec-botao-3-texto: #F3F1EE;
-  --tec-campo-rotulo: #734841;
-  --tec-campo-valor: #66403A;
-  --tec-sucesso: #BFE3C4;
-  --tec-aviso: #E9C2BC;
-  --tec-aprovado: #3F8F63;
   --amg-sombra-cartao: none;
   --amg-sombra-janela: 0 22px 60px rgba(0,0,0,0.35);
-  --tec-sombra-cartao: none;
   color-scheme: dark;
 }
 
@@ -133,14 +92,15 @@
     --amg-texto: #F3F1EE;
     --amg-texto-apagado: #A39E99;
     --amg-destaque: #D47263;
-    --amg-destaque-suave: #3B2520;
+    --amg-destaque-suave: #3A3323;
     --amg-destaque-texto: #F2A595;
     --amg-botao-1: #A9513F;
     --amg-botao-1-texto: #FFFFFF;
     --amg-botao-2: var(--amg-destaque-suave);
-    --amg-botao-2-texto: var(--amg-destaque-texto);
+    --amg-botao-2-texto: #F2A595;
     --amg-botao-3: var(--amg-superficie-2);
     --amg-botao-3-texto: var(--amg-texto);
+    --amg-botao-3-no-fundo: #2A2B2E;
     --amg-whatsapp: #45C97F;
     --amg-whatsapp-suave: #17301F;
     --amg-sucesso: #82D3A2;
@@ -154,29 +114,8 @@
     --amg-etapa-4: #D2952A;
     --amg-etapa-5: #3E9A63;
     --amg-etapa-6: #C25B5B;
-    --tec-fundo: #353639;
-    --tec-superficie: #2A2B2E;
-    --tec-superficie-2: #111213;
-    --tec-linha: #4A4C50;
-    --tec-texto: #DAD6D1;
-    --tec-texto-forte: #F3F1EE;
-    --tec-texto-apagado: #A39E99;
-    --tec-destaque: #D47263;
-    --tec-destaque-texto: #DB8779;
-    --tec-botao-1: #A9513F;
-    --tec-botao-1-texto: #FFFFFF;
-    --tec-botao-2: #734841;
-    --tec-botao-2-texto: #F3F1EE;
-    --tec-botao-3: #2A2B2E;
-    --tec-botao-3-texto: #F3F1EE;
-    --tec-campo-rotulo: #734841;
-    --tec-campo-valor: #66403A;
-    --tec-sucesso: #BFE3C4;
-    --tec-aviso: #E9C2BC;
-    --tec-aprovado: #3F8F63;
     --amg-sombra-cartao: none;
     --amg-sombra-janela: 0 22px 60px rgba(0,0,0,0.35);
-    --tec-sombra-cartao: none;
     color-scheme: dark;
   }
 }
@@ -185,18 +124,12 @@
   --amg-raio-toque: 999px;
   --amg-raio-cartao: 18px;
   --amg-raio-dentro: 12px;
-  --tec-raio-toque: 0;
-  --tec-raio-cartao: 0;
-  --tec-raio-dentro: 0;
   --amg-altura-botao: 36px;
   --amg-altura-botao-pequeno: 30px;
   --amg-altura-botao-grande: 48px;
   --amg-toque-minimo: 44px;
   --amg-altura-campo: 46px;
   --amg-altura-opcao: 50px;
-  --tec-altura-botao: 36px;
-  --tec-altura-botao-pequeno: 28px;
-  --tec-largura-rotulo: 180px;
   --espaco-1: 4px;
   --espaco-2: 8px;
   --espaco-3: 12px;
@@ -205,17 +138,18 @@
   --espaco-6: 24px;
   --espaco-8: 32px;
   --font-aparelho: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-tecnico: Inter, "Segoe UI", sans-serif;
 }
 
-:root, [data-modo="amigavel"], .modo-amigavel {
+:root {
   --fundo: var(--amg-fundo);
   --superficie: var(--amg-superficie);
   --superficie-2: var(--amg-superficie-2);
+  --superficie-escolhida: var(--amg-superficie-escolhida);
   --linha: var(--amg-linha);
   --texto: var(--amg-texto);
   --texto-apagado: var(--amg-texto-apagado);
   --destaque: var(--amg-destaque);
+  --destaque-suave: var(--amg-destaque-suave);
   --destaque-texto: var(--amg-destaque-texto);
   --botao-1: var(--amg-botao-1);
   --botao-1-texto: var(--amg-botao-1-texto);
@@ -223,7 +157,20 @@
   --botao-2-texto: var(--amg-botao-2-texto);
   --botao-3: var(--amg-botao-3);
   --botao-3-texto: var(--amg-botao-3-texto);
+  --botao-3-no-fundo: var(--amg-botao-3-no-fundo);
+  --whatsapp: var(--amg-whatsapp);
+  --whatsapp-suave: var(--amg-whatsapp-suave);
   --sucesso: var(--amg-sucesso);
+  --sucesso-suave: var(--amg-sucesso-suave);
+  --informacao: var(--amg-informacao);
+  --informacao-suave: var(--amg-informacao-suave);
+  --chave-ligada: var(--amg-chave-ligada);
+  --etapa-1: var(--amg-etapa-1);
+  --etapa-2: var(--amg-etapa-2);
+  --etapa-3: var(--amg-etapa-3);
+  --etapa-4: var(--amg-etapa-4);
+  --etapa-5: var(--amg-etapa-5);
+  --etapa-6: var(--amg-etapa-6);
   --raio-toque: var(--amg-raio-toque);
   --raio-cartao: var(--amg-raio-cartao);
   --raio-dentro: var(--amg-raio-dentro);
@@ -231,29 +178,4 @@
   --altura-botao-pequeno: var(--amg-altura-botao-pequeno);
   --sombra-cartao: var(--amg-sombra-cartao);
   --letra: var(--font-aparelho);
-}
-
-[data-modo="tecnico"], .modo-tecnico {
-  --fundo: var(--tec-fundo);
-  --superficie: var(--tec-superficie);
-  --superficie-2: var(--tec-superficie-2);
-  --linha: var(--tec-linha);
-  --texto: var(--tec-texto);
-  --texto-apagado: var(--tec-texto-apagado);
-  --destaque: var(--tec-destaque);
-  --destaque-texto: var(--tec-destaque-texto);
-  --botao-1: var(--tec-botao-1);
-  --botao-1-texto: var(--tec-botao-1-texto);
-  --botao-2: var(--tec-botao-2);
-  --botao-2-texto: var(--tec-botao-2-texto);
-  --botao-3: var(--tec-botao-3);
-  --botao-3-texto: var(--tec-botao-3-texto);
-  --sucesso: var(--tec-sucesso);
-  --raio-toque: var(--tec-raio-toque);
-  --raio-cartao: var(--tec-raio-cartao);
-  --raio-dentro: var(--tec-raio-dentro);
-  --altura-botao: var(--tec-altura-botao);
-  --altura-botao-pequeno: var(--tec-altura-botao-pequeno);
-  --sombra-cartao: var(--tec-sombra-cartao);
-  --letra: var(--font-tecnico);
 }
