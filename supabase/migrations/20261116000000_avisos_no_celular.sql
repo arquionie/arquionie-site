@@ -212,11 +212,12 @@ end $$;
 revoke execute on function public.avisos_testar(uuid) from public, anon, authenticated;
 grant execute on function public.avisos_testar(uuid) to service_role;
 
--- ------------------------------------------------------------------------------------------------ as tarefas (pg_cron)
--- Na publicação, com a chave AVISOS_SEGREDO já nos segredos das funções (o mesmo valor no lugar de <SEGREDO>):
---   select cron.schedule('avisos-fila', '*/5 * * * *', $c$ select net.http_post(
---     url := 'https://sowazotriildoeaxbhkl.supabase.co/functions/v1/avisos',
---     headers := '{"Content-Type": "application/json", "x-avisos": "<SEGREDO>"}'::jsonb, body := '{"acao": "processar"}'::jsonb) $c$);
---   select cron.schedule('avisos-retornos', '0 10 * * *', $c$ select net.http_post(      -- 7h em Brasília
---     url := 'https://sowazotriildoeaxbhkl.supabase.co/functions/v1/avisos',
---     headers := '{"Content-Type": "application/json", "x-avisos": "<SEGREDO>"}'::jsonb, body := '{"acao": "retornos"}'::jsonb) $c$);
+-- ------------------------------------------------------------------------------------------------ o segredo da tarefa
+-- O segredo das duas tarefas do pg_cron fica no cofre (Vault), sorteado por supabase/ferramentas/ligar-os-avisos.sql, que também
+-- agenda as tarefas (rodar depois de publicar a função avisos). A função o lê por aqui, com a chave secreta do servidor.
+create or replace function public.segredo_dos_avisos() returns text
+language sql stable security definer set search_path = '' as $$
+  select decrypted_secret from vault.decrypted_secrets where name = 'avisos_segredo' limit 1;
+$$;
+revoke execute on function public.segredo_dos_avisos() from public, anon, authenticated;
+grant execute on function public.segredo_dos_avisos() to service_role;

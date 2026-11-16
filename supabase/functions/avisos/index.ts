@@ -1,14 +1,16 @@
 // Arquionie™ — os avisos no celular (o app do Arquionie; migração 20261116000000_avisos_no_celular.sql; o envio em
 // ../_compartilhado/avisos.ts).
 //
-//   POST { acao: "processar" } com o cabeçalho x-avisos: AVISOS_SEGREDO   (a tarefa do pg_cron, a cada 5 minutos: a reserva)
+//   POST { acao: "processar" } com o cabeçalho x-avisos: o segredo da tarefa (a tarefa do pg_cron, a cada 5 minutos: a reserva)
 //     -> { ok: true, avisos, enviados, esquecidos, erros }
-//   POST { acao: "retornos" }  com o cabeçalho x-avisos: AVISOS_SEGREDO   (a tarefa das 7h: os retornos do dia, e já manda)
+//   POST { acao: "retornos" }  com o cabeçalho x-avisos: o segredo da tarefa (a tarefa das 7h: os retornos do dia, e já manda)
 //     -> { ok: true, retornos, avisos, enviados, esquecidos, erros }
 //   POST { acao: "testar" }    com a conta (Mais › Avisos, no app)          -> { ok: true, aparelhos } | { ok: false, motivo }
 //
 // Publicar com a verificação de JWT DESLIGADA (--no-verify-jwt): quem chama é o pg_cron; o "testar" confere a conta aqui.
-// Segredos: AVISOS_SEGREDO e os do envio (FIREBASE_CONTA e os APNS_*; ver ../_compartilhado/avisos.ts).
+// O segredo da tarefa fica no cofre do banco (supabase/ferramentas/ligar-os-avisos.sql o sorteia; ninguém copia) e a função o lê pela
+// segredo_dos_avisos(); AVISOS_SEGREDO, se existir, vale no lugar dele (nos testes). Segredos da função: os do envio (FIREBASE_CONTA e os
+// APNS_*; ver ../_compartilhado/avisos.ts).
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { CORS, responder } from "../_compartilhado/r2.ts";
 import { processarAvisos } from "../_compartilhado/avisos.ts";
@@ -16,6 +18,15 @@ import { processarAvisos } from "../_compartilhado/avisos.ts";
 const db = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "", {
   auth: { persistSession: false, autoRefreshToken: false },
 });
+
+let segredoGuardado = "";
+async function segredo(): Promise<string> {
+  if (segredoGuardado) return segredoGuardado;
+  const env = Deno.env.get("AVISOS_SEGREDO");
+  if (env) return (segredoGuardado = env);
+  const { data } = await db.rpc("segredo_dos_avisos");
+  return (segredoGuardado = typeof data === "string" ? data : "");
+}
 
 async function quem(req: Request): Promise<string | null> {
   const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
@@ -31,8 +42,8 @@ export async function tratar(req: Request): Promise<Response> {
     const corpo = await req.json().catch(() => ({}));
 
     if (corpo.acao === "processar" || corpo.acao === "retornos") {
-      const segredo = Deno.env.get("AVISOS_SEGREDO");
-      if (!segredo || req.headers.get("x-avisos") !== segredo) return responder({ erro: "só a tarefa do servidor" }, 401);
+      const s = await segredo();
+      if (!s || req.headers.get("x-avisos") !== s) return responder({ erro: "só a tarefa do servidor" }, 401);
       let retornos = 0;
       if (corpo.acao === "retornos") {
         const { data, error } = await db.rpc("avisos_retornos_do_dia");
