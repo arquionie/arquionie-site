@@ -1,19 +1,29 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { Botao } from '@/components/Formulario';
 
 // A volta do Google para o programa (doc 57, §4.2): o Arquionie™ abre o navegador pedindo que o Google volte a esta
 // página com a porta em que ele espera, neste mesmo computador; a página só repassa o código ao programa, que o troca
 // pela sessão com o verificador que só ele tem. O site não usa o código (supabase.js não lê a URL nesta rota).
+// Na porta "app" (o app do Arquionie no celular, doc 90 do repositório do programa, 16/11/2026), o código vai ao app pelo endereço
+// arquionie://entrar; o navegador do celular pode pedir um toque antes de abrir o app, então o botão fica à vista.
 export default function Programa() {
   const { porta } = useParams();
   const [falhou, setFalhou] = useState(false);
+  const [doApp, setDoApp] = useState(null);
 
   useEffect(() => {
     const busca = new URLSearchParams(window.location.search);
     const repassar = new URLSearchParams();
     for (const chave of ['code', 'error', 'error_description']) if (busca.get(chave)) repassar.set(chave, busca.get(chave));
-    if (!/^\d{2,5}$/.test(porta ?? '') || ![...repassar.keys()].length) {
+    if (!/^(\d{2,5}|app)$/.test(porta ?? '') || ![...repassar.keys()].length) {
       setFalhou(true);
+      return;
+    }
+    if (porta === 'app') {
+      const endereco = `arquionie://entrar?${repassar.toString()}`;
+      setDoApp(endereco);
+      window.location.replace(endereco);
       return;
     }
     window.location.replace(`http://127.0.0.1:${porta}/?${repassar.toString()}`);
@@ -26,6 +36,12 @@ export default function Programa() {
         <>
           <h1 className="mb-3 text-amg-titulo">Não deu para voltar ao programa.</h1>
           <p className="text-texto-apagado">Volte ao Arquionie™ e clique de novo em CONTINUAR COM O GOOGLE.</p>
+        </>
+      ) : doApp ? (
+        <>
+          <h1 className="mb-3 text-amg-titulo">Voltando ao app do Arquionie™…</h1>
+          <p className="mb-6 text-texto-apagado">Se o app não abrir sozinho, toque no botão.</p>
+          <Botao principal grande href={doApp}>Abrir o app</Botao>
         </>
       ) : (
         <>

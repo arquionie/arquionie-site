@@ -11,7 +11,9 @@ import { AMOSTRA } from '@/lib/licencas';
 // ENTRAR, com a verificação de pessoa, e ao COMPLETAR de quem vem pelo Google). A pessoa confere o e-mail e o computador e clica: a função
 // programa dá um código de uso único, que volta ao programa por /programa/PORTA (127.0.0.1). O programa troca o código pela sessão dele.
 
-const PORTA = /^\d{2,5}$/;
+// A porta "app" é a do app do Arquionie no celular (doc 90 do repositório do programa, 16/11/2026): o código volta por /programa/app,
+// que o entrega ao app pelo endereço arquionie://entrar.
+const PORTA = /^(\d{2,5}|app)$/;
 const DESAFIO = /^[A-Za-z0-9_-]{43}$/;
 
 export default function EntrarNoPrograma() {
@@ -20,7 +22,8 @@ export default function EntrarNoPrograma() {
   const { usuario } = useSessao();
   const porta = busca.get('porta') ?? '';
   const desafio = busca.get('desafio') ?? '';
-  const computador = (busca.get('nome') ?? '').trim().slice(0, 60) || 'este computador';
+  const noCelular = porta === 'app';
+  const computador = (busca.get('nome') ?? '').trim().slice(0, 60) || (noCelular ? 'este celular' : 'este computador');
   const [erro, setErro] = useState('');
   const [ocupado, setOcupado] = useState(false);
 
@@ -56,12 +59,12 @@ export default function EntrarNoPrograma() {
   return (
     <Miolo>
       <Cartao
-        titulo="Entrar no programa"
+        titulo={noCelular ? 'Entrar no app' : 'Entrar no programa'}
         aoEnviar={entrar}
         botoes={
           <>
             <Botao nivel={2} type="button" onClick={outraConta}>Usar outra conta</Botao>
-            <Botao principal type="submit" disabled={ocupado}>{ocupado ? 'Entrando…' : 'Entrar no programa'}</Botao>
+            <Botao principal type="submit" disabled={ocupado}>{ocupado ? 'Entrando…' : noCelular ? 'Entrar no app' : 'Entrar no programa'}</Botao>
           </>
         }
       >
@@ -71,7 +74,7 @@ export default function EntrarNoPrograma() {
           </span>
           <span className="flex min-w-0 flex-col">
             <b className="break-all font-semibold">{email}</b>
-            <small className="text-amg-legenda text-texto-apagado">no computador {computador}</small>
+            <small className="text-amg-legenda text-texto-apagado">{noCelular ? 'no celular' : 'no computador'} {computador}</small>
           </span>
         </div>
         <Mensagem erro>{erro}</Mensagem>
