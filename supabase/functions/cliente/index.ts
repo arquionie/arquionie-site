@@ -15,6 +15,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { CORS, apagar, listar, responder } from "../_compartilhado/r2.ts";
 import { cabe } from "../_compartilhado/limite.ts";
+import { avisarLogo } from "../_compartilhado/avisos.ts";
 
 const SITE = Deno.env.get("SITE_URL") ?? "https://www.arquionie.com.br";
 const DE = Deno.env.get("AVISO_DE") ?? "Arquionie <suporte@arquionie.com.br>";
@@ -87,6 +88,7 @@ export async function tratar(req: Request): Promise<Response> {
       const d = await rpc("apresentacao_comentar", { p_codigo: codigo, p_numero: envio, p_nome: nome, p_comentarios: comentarios });
       if (!d.ok) return responder(d);
       await avisar("comentar", d.aviso);
+      avisarLogo(db); // o aviso no celular do escritório (o comentário entrou na fila pelo banco)
       return responder({ ok: true, situacao: d.situacao });
     }
 

@@ -16,6 +16,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { CORS, apagar, responder, resumo, urlDeEnvio } from "../_compartilhado/r2.ts";
 import { endereco } from "../_compartilhado/limite.ts";
+import { avisarLogo } from "../_compartilhado/avisos.ts";
 
 const LIMITE_PDF = 10 * 1024 * 1024;
 
@@ -75,6 +76,7 @@ export async function tratar(req: Request): Promise<Response> {
       });
       // o aviso (o e-mail do escritório) fica no banco: o Arquionie não manda e-mail entre o escritório e o cliente (11/10/2026)
       if (!d.ok) return responder(d);
+      avisarLogo(db); // o aviso no celular do escritório (o pedido entrou na fila pelo banco)
       return responder({ ok: true, numero: d.numero });
     }
 
